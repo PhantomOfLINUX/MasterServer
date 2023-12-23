@@ -39,7 +39,7 @@ public class SignService {
                 "client_id="+GOOGLE_CLIENT_ID +
                 "&redirect_uri="+GOOGLE_REDIRECT_URI +
                 "&response_type=code" +
-                "&scope=https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile";
+                "&scope=email profile";
     }
 
     public GoogleUserResource socialLogin(String code) {
