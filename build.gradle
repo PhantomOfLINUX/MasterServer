@@ -22,14 +22,35 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    //implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // java mail sender
     implementation 'org.springframework.boot:spring-boot-starter-mail'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    // okhttp rest client
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+    // gson
+    implementation 'com.google.code.gson:gson:2.8.8'
+
     implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // spring security
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
+    // oauth
+    //implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    // swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
+
+    // template engine
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+
     compileOnly 'org.projectlombok:lombok'
-    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
+    // maria db
+    //runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
