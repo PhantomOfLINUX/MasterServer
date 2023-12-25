@@ -26,10 +26,6 @@ dependencies {
 
     // java mail sender
     implementation 'org.springframework.boot:spring-boot-starter-mail'
-    // okhttp rest client
-    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
-    // gson
-    implementation 'com.google.code.gson:gson:2.8.8'
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
 
