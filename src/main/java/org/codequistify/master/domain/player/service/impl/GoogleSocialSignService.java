@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.player.service.imple;
+package org.codequistify.master.domain.player.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.dto.OAuthResourceResponse;
@@ -19,32 +19,37 @@ import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
-public class KakaoSocialSignService implements SocialSignService {
-    private final Logger LOGGER = LoggerFactory.getLogger(KakaoSocialSignService.class);
+public class GoogleSocialSignService implements SocialSignService {
+    private final Logger LOGGER = LoggerFactory.getLogger(GoogleSocialSignService.class);
     private final OAuthKey oAuthKey;
-    /*
-    카카오 소셜 로그인 주소 반환
-     */
-    public String getSocialSignInURL(){
-        return "https://kauth.kakao.com/oauth/authorize?response_type=code" +
-                "&client_id="+oAuthKey.getKAKAO_CLIENT_ID() +
-                "&redirect_uri="+oAuthKey.getKAKAO_REDIRECT_URI();
-    }
 
+    /*
+    구글 소셜 로그인 주소 반환
+     */
+    @Override
+    public String getSocialSignInURL(){
+        return "https://accounts.google.com/o/oauth2/auth?" +
+                "client_id="+oAuthKey.getGOOGLE_CLIENT_ID() +
+                "&redirect_uri="+oAuthKey.getGOOGLE_REDIRECT_URI() +
+                "&response_type=code" +
+                "&scope=email profile";
+    }
 
     /*
     code를 통한 소셜 로그인
      */
+    @Override
     public PlayerDTO socialLogin(String code) {
         String accessToken = getAccessToken(code);
         OAuthResourceResponse response = getUserResource(accessToken);
 
-        LOGGER.info("{} {}", response.id(), response.properties().get("nickname"));
+        LOGGER.info("{} {} {}", response.id(), response.email(), response.name());
 
         return new PlayerDTO(
-                response.id(),
+                Long.parseLong(response.id()),
                 response.email(),
-                response.properties().get("nickname")
+                response.name(),
+                null, null, null
         );
     }
 
@@ -53,8 +58,9 @@ public class KakaoSocialSignService implements SocialSignService {
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("code", code);
-        body.add("client_id", oAuthKey.getKAKAO_CLIENT_ID());
-        body.add("redirect_uri", oAuthKey.getKAKAO_REDIRECT_URI());
+        body.add("client_id", oAuthKey.getGOOGLE_CLIENT_ID());
+        body.add("client_secret", oAuthKey.getGOOGLE_CLIENT_SECRET());
+        body.add("redirect_uri", oAuthKey.getGOOGLE_REDIRECT_URI());
         body.add("grant_type", "authorization_code");
 
         HttpHeaders headers = new HttpHeaders();
@@ -62,7 +68,7 @@ public class KakaoSocialSignService implements SocialSignService {
 
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
 
-        OAuthTokenResponse response = restTemplate.postForObject(oAuthKey.getKAKAO_TOKEN_URI(), entity, OAuthTokenResponse.class);
+        OAuthTokenResponse response = restTemplate.postForObject(oAuthKey.getGOOGLE_TOKEN_URI(), entity, OAuthTokenResponse.class);
 
         if (response.access_token() != null){
             return response.access_token();
@@ -79,7 +85,7 @@ public class KakaoSocialSignService implements SocialSignService {
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        OAuthResourceResponse response = restTemplate.exchange(oAuthKey.getKAKAO_RESOURCE_URI(), HttpMethod.GET, entity, OAuthResourceResponse.class).getBody();
+        OAuthResourceResponse response = restTemplate.exchange(oAuthKey.getGOOGLE_RESOURCE_URI(), HttpMethod.GET, entity, OAuthResourceResponse.class).getBody();
 
         if (response != null){
             return response;
