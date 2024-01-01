@@ -1,11 +1,14 @@
 package org.codequistify.master.domain.player.dto;
 
 public record PlayerDTO(
-        String id,
+        Long id,
         String email,
-        String name
+        String name,
+        String authType,
+        Long authId,
+        Integer level
 ) {
-    public PlayerDTO of(String id, String email, String name){
-        return new PlayerDTO(id, email, name);
+    public PlayerDTO of(Long id, String email, String name, String authType, Long authId, Integer level){
+        return new PlayerDTO(id, email, name, authType, authId, level);
     }
 }
