@@ -3,7 +3,10 @@ name: Spring App CI/CD Pipeline
 on:
   push:
     branches:
-      - test
+      - master
+  pull_request:
+    branches:
+      - master
   workflow_dispatch:
 
 jobs:
