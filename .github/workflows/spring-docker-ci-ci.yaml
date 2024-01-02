@@ -27,7 +27,7 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/pol-back:latest
         cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/pol-back:cache
-        cache-to: type=inline
+        cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/pol-back:cache,mode=max
 
   deploy:
     needs: build
