@@ -21,6 +21,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
@@ -38,8 +39,10 @@ public class VerifyMailService {
     public void sendVerifyMail(String email) throws MessagingException {
         String authCode;
         try {
-            authCode = generatedCode(email);
-        }catch (NoSuchAlgorithmException exception){
+            int seed = new Random().nextInt(63 - 8);
+            authCode = generatedCode(email).substring(seed, seed+8);
+        }
+        catch (NoSuchAlgorithmException exception){
             LOGGER.info("[sendVerifyMail] {}로 메일 전송 실패", email);
             throw new MailSendException("인증 메일 전송 중 오류 발생");
         }
@@ -60,7 +63,7 @@ public class VerifyMailService {
 
     public boolean checkValidCode(String email, String code){
         try {
-            return generatedCode(email).equals(code);
+            return generatedCode(email).contains(code);
         }catch (NoSuchAlgorithmException exception){
             return false;
         }
@@ -69,7 +72,8 @@ public class VerifyMailService {
     private String generatedCode(String email) throws NoSuchAlgorithmException {
         MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
         messageDigest.update((email + mailSecret).getBytes(StandardCharsets.UTF_8));
-        return String.format("%064x", new BigInteger(1, messageDigest.digest())).substring(0, 8);
+
+        return String.format("%064x", new BigInteger(1, messageDigest.digest()));
     }
 
     private MimeMessage createMessage(String toMail, Map<String, Object> variables) throws MessagingException {
