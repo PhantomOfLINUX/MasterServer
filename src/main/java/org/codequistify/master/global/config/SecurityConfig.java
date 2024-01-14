@@ -34,7 +34,7 @@ public class SecurityConfig {
                 .addFilterBefore(customCorsFilter, CorsFilter.class)
                 .addFilterBefore(customCsrfFilter, CsrfFilter.class)
                 .addFilterAt(customFormLoginFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(authenticationTokenFilter, AuthenticationTokenFilter.class)
+                .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
