@@ -3,7 +3,7 @@ name: Spring App Gradle Build for PR
 on:
   pull_request:
     branches:
-      - master
+      - test
 
 jobs:
   gradle-build:
