@@ -15,6 +15,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
@@ -24,18 +27,21 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final CustomCorsFilter customCorsFilter;
-    private final CustomCsrfFilter customCsrfFilter;
-    private final CustomFormLoginFilter customFormLoginFilter;
     private final AuthenticationTokenFilter authenticationTokenFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
-        return http
+        http
+                // CORS 설정
                 .addFilterBefore(customCorsFilter, CorsFilter.class)
-                .addFilterBefore(customCsrfFilter, CsrfFilter.class)
-                .addFilterAt(customFormLoginFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class)
-                .build();
+                // CSRF 비활성화
+                .csrf(csrf -> csrf.disable())
+                // 폼 로그인 비활성화
+                .formLogin(form -> form.disable())
+                // jwt 인증 토큰 설정
+                .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
     @Bean
