@@ -1,9 +1,13 @@
 package org.codequistify.master.domain.player.service.impl;
 
+import jakarta.persistence.EntityExistsException;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.domain.repository.PlayerRepository;
 import org.codequistify.master.domain.player.dto.OAuthResourceResponse;
 import org.codequistify.master.domain.player.dto.OAuthTokenResponse;
 import org.codequistify.master.domain.player.dto.PlayerDTO;
+import org.codequistify.master.domain.player.dto.SignRequest;
 import org.codequistify.master.domain.player.service.SocialSignService;
 import org.codequistify.master.global.config.OAuthKey;
 import org.slf4j.Logger;
@@ -20,6 +24,8 @@ import org.springframework.web.client.RestTemplate;
 @Service
 @RequiredArgsConstructor
 public class GoogleSocialSignService implements SocialSignService {
+    private final SignService signService;
+    private final PlayerRepository playerRepository;
     private final Logger LOGGER = LoggerFactory.getLogger(GoogleSocialSignService.class);
     private final OAuthKey oAuthKey;
 
@@ -41,16 +47,27 @@ public class GoogleSocialSignService implements SocialSignService {
     @Override
     public PlayerDTO socialLogin(String code) {
         String accessToken = getAccessToken(code);
-        OAuthResourceResponse response = getUserResource(accessToken);
+        OAuthResourceResponse resource = getUserResource(accessToken);
 
-        LOGGER.info("{} {} {}", response.id(), response.email(), response.name());
+        LOGGER.info("{} {} {}", resource.id(), resource.email(), resource.name());
 
-        return new PlayerDTO(
-                Long.parseLong(response.id()),
-                response.email(),
-                response.name(),
-                null, null, null
-        );
+        PlayerDTO response = playerRepository.findByEmail(resource.email())
+                .map(Player::toPlayerDTO)
+                .orElseGet(() -> {
+                    LOGGER.info("등록되지 않은 google 계정 {}", resource.email());
+                    return signService.signUpBySocial(new PlayerDTO(
+                        null,
+                        resource.email(),
+                        resource.name(),
+                        "google",
+                        Long.parseLong(resource.id()),
+                        0
+                        ));
+                });
+
+
+        LOGGER.info("{}", response.toString());
+        return response;
     }
 
     private String getAccessToken(String code){
