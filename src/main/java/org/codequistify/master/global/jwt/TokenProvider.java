@@ -73,7 +73,10 @@ public class TokenProvider {
 
     public String resolveToken(HttpServletRequest httpServletRequest){
         String authorization = httpServletRequest.getHeader("Authorization");
-        if (authorization.startsWith("Bearer ")){
+        if (authorization == null){
+            return null;
+        }
+        else if (authorization.startsWith("Bearer ")){
             return authorization.substring(7);
         }
         else {
