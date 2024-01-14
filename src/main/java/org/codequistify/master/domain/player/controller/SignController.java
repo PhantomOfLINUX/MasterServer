@@ -141,7 +141,7 @@ public class SignController {
             summary = "회원가입 인증메일 발송",
             description = "회원가입 인증메일을 발송하는 요청이다. 응답값이 존재하지 않는 요청이다."
     )
-    @PostMapping("sign-up/email/{email}")
+    @GetMapping("sign-up/email/{email}/verify")
     public ResponseEntity<Void> sendAuthMail(@PathVariable String email) throws MessagingException {
         verifyMailService.sendVerifyMail(email);
 
