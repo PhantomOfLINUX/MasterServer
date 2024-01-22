@@ -38,7 +38,6 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
         }
         if (!isAllowed) {
             filterChain.doFilter(request, response);
-            LOGGER.info(response.getHeader("Access-Control-Allow-Origin"));
             return;
         }
 
