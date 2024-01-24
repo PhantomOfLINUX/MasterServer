@@ -112,10 +112,11 @@ public class GoogleSocialSignService implements SocialSignService {
     }
 
     public PlayerDTO TEST_socialLogin(String code) {
+        LOGGER.info("[TEST_socialLogin]");
         String accessToken = TEST_getAccessToken(code);
         OAuthResourceResponse resource = TEST_getUserResource(accessToken);
 
-        LOGGER.info("{} {} {}", resource.id(), resource.email(), resource.name());
+        LOGGER.info("[TEST_socialLogin] {} {} {}", resource.id(), resource.email(), resource.name());
 
         PlayerDTO response = playerRepository.findByEmail(resource.email())
                 .map(Player::toPlayerDTO)
@@ -132,10 +133,11 @@ public class GoogleSocialSignService implements SocialSignService {
                 });
 
 
-        LOGGER.info("{}", response.toString());
+        LOGGER.info("[TEST_socialLogin] {}", response.toString());
         return response;
     }
     private String TEST_getAccessToken(String code){
+        LOGGER.info("[TEST_getAccessToken] call");
         RestTemplate restTemplate = new RestTemplate();
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
@@ -147,10 +149,12 @@ public class GoogleSocialSignService implements SocialSignService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        LOGGER.info("[TEST_getAccessToken] set body");
 
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
 
         OAuthTokenResponse response = restTemplate.postForObject(oAuthKey.getGOOGLE_TOKEN_URI(), entity, OAuthTokenResponse.class);
+        LOGGER.info("[TEST_getAccessToken] get token: {}", response.access_token());
 
         if (response.access_token() != null){
             return response.access_token();
@@ -159,14 +163,17 @@ public class GoogleSocialSignService implements SocialSignService {
         }
     }
     private OAuthResourceResponse TEST_getUserResource(String accessToken) {
+        LOGGER.info("[TEST_getUserResource] call");
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
+        LOGGER.info("[TEST_getUserResource] set entity");
 
         OAuthResourceResponse response = restTemplate.exchange("http://localhost"+oAuthKey.getGOOGLE_REDIRECT_URI().substring(16), HttpMethod.GET, entity, OAuthResourceResponse.class).getBody();
+        LOGGER.info("[TEST_getUserResource] get user resource {}", response.toString());
 
         if (response != null){
             return response;
