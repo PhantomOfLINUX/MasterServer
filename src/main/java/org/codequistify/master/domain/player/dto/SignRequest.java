@@ -13,7 +13,7 @@ public record SignRequest(
                 .name(name)
                 .email(email)
                 .password(password)
-                .authId(0L)
+                .authId("0")
                 .authType("pol")
                 .level(0).build();
     }
