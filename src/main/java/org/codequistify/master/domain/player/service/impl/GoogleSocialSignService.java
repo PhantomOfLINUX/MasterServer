@@ -173,7 +173,7 @@ public class GoogleSocialSignService implements SocialSignService {
         HttpEntity<String> entity = new HttpEntity<>(headers);
         LOGGER.info("[TEST_getUserResource] set entity");
 
-        OAuthResourceResponse response = restTemplate.exchange("http://localhost"+oAuthKey.getGOOGLE_REDIRECT_URI().substring(20), HttpMethod.GET, entity, OAuthResourceResponse.class).getBody();
+        OAuthResourceResponse response = restTemplate.exchange(oAuthKey.getKAKAO_RESOURCE_URI(), HttpMethod.GET, entity, OAuthResourceResponse.class).getBody();
         LOGGER.info("[TEST_getUserResource] get user resource {}", response.toString());
 
         if (response != null){
