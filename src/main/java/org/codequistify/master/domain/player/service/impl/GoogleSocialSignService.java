@@ -1,13 +1,11 @@
 package org.codequistify.master.domain.player.service.impl;
 
-import jakarta.persistence.EntityExistsException;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.repository.PlayerRepository;
 import org.codequistify.master.domain.player.dto.OAuthResourceResponse;
 import org.codequistify.master.domain.player.dto.OAuthTokenResponse;
 import org.codequistify.master.domain.player.dto.PlayerDTO;
-import org.codequistify.master.domain.player.dto.SignRequest;
 import org.codequistify.master.domain.player.service.SocialSignService;
 import org.codequistify.master.global.config.OAuthKey;
 import org.slf4j.Logger;
@@ -56,13 +54,13 @@ public class GoogleSocialSignService implements SocialSignService {
                 .orElseGet(() -> {
                     LOGGER.info("등록되지 않은 google 계정 {}", resource.email());
                     return signService.signUpBySocial(new PlayerDTO(
-                        null,
-                        resource.email(),
-                        resource.name(),
-                        "google",
-                        Long.parseLong(resource.id()),
-                        0
-                        ));
+                            null,
+                            resource.email(),
+                            resource.name(),
+                            "google",
+                            resource.id(),
+                            0)
+                    );
                 });
 
 
@@ -127,7 +125,7 @@ public class GoogleSocialSignService implements SocialSignService {
                             resource.email(),
                             resource.name(),
                             "google",
-                            Long.parseLong(resource.id()),
+                            resource.id(),
                             0
                     ));
                 });
@@ -174,9 +172,9 @@ public class GoogleSocialSignService implements SocialSignService {
         LOGGER.info("[TEST_getUserResource] set entity");
 
         OAuthResourceResponse response = restTemplate.exchange(oAuthKey.getGOOGLE_RESOURCE_URI(), HttpMethod.GET, entity, OAuthResourceResponse.class).getBody();
-        LOGGER.info("[TEST_getUserResource] get user resource {}", response.toString());
 
         if (response != null){
+            LOGGER.info("[TEST_getUserResource] get user resource {}", response);
             return response;
         }else {
             return null;

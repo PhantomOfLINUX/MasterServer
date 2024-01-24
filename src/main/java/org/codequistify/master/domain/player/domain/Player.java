@@ -30,7 +30,7 @@ public class Player {
     private String authType;
 
     @Column(name = "auth_id")
-    private Long authId;
+    private String authId;
 
     @Column(name = "level")
     private Integer level;
@@ -48,7 +48,7 @@ public class Player {
     }
 
     @Builder
-    public Player(String name, String email, String password, String authType, Long authId, Integer level) {
+    public Player(String name, String email, String password, String authType, String authId, Integer level) {
         this.name = name;
         this.email = email;
         this.password = password;

@@ -7,10 +7,10 @@ public record PlayerDTO(
         String email,
         String name,
         String authType,
-        Long authId,
+        String authId,
         Integer level
 ) {
-    public PlayerDTO of(Long id, String email, String name, String authType, Long authId, Integer level) {
+    public PlayerDTO of(Long id, String email, String name, String authType, String authId, Integer level) {
         return new PlayerDTO(id, email, name, authType, authId, level);
     }
 
