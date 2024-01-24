@@ -137,14 +137,14 @@ public class GoogleSocialSignService implements SocialSignService {
         return response;
     }
     private String TEST_getAccessToken(String code){
-        LOGGER.info("[TEST_getAccessToken] call");
+        LOGGER.info("[TEST_getAccessToken] call {}", code);
         RestTemplate restTemplate = new RestTemplate();
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("code", code);
         body.add("client_id", oAuthKey.getGOOGLE_CLIENT_ID());
         body.add("client_secret", oAuthKey.getGOOGLE_CLIENT_SECRET());
-        body.add("redirect_uri", "http://localhost"+oAuthKey.getGOOGLE_REDIRECT_URI().substring(0, 16));
+        body.add("redirect_uri", "http://localhost"+oAuthKey.getGOOGLE_REDIRECT_URI().substring(16));
         body.add("grant_type", "authorization_code");
 
         HttpHeaders headers = new HttpHeaders();
