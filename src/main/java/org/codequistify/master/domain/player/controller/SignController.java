@@ -56,6 +56,20 @@ public class SignController {
         LOGGER.info("{} google 로그인", playerDTO.id());
         return new ResponseEntity<>(playerDTO, HttpStatus.OK);
     }
+    @Operation(
+            summary = "TEST 구글 로그인 요청",
+            description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'name'을 반환받는다."
+    )
+    @PostMapping("oauth2/google/TEST")
+    public ResponseEntity<PlayerDTO> TEST_socialSignInGoogle(@RequestBody SignRequest request) {
+        if (request.code().isBlank()){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        PlayerDTO playerDTO = googleSocialSignService.TEST_socialLogin(request.code());
+
+        LOGGER.info("{} TEST google 로그인", playerDTO.id());
+        return new ResponseEntity<>(playerDTO, HttpStatus.OK);
+    }
 
     @Operation(
             summary = "카카오 로그인 url 발급",

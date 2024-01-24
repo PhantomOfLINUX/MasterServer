@@ -38,7 +38,7 @@ public class GoogleSocialSignService implements SocialSignService {
                 "client_id="+oAuthKey.getGOOGLE_CLIENT_ID() +
                 "&redirect_uri="+oAuthKey.getGOOGLE_REDIRECT_URI() +
                 "&response_type=code" +
-                "&scope=email profile";
+                "&scope=email%20profile";
     }
 
     /*
@@ -103,6 +103,70 @@ public class GoogleSocialSignService implements SocialSignService {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         OAuthResourceResponse response = restTemplate.exchange(oAuthKey.getGOOGLE_RESOURCE_URI(), HttpMethod.GET, entity, OAuthResourceResponse.class).getBody();
+
+        if (response != null){
+            return response;
+        }else {
+            return null;
+        }
+    }
+
+    public PlayerDTO TEST_socialLogin(String code) {
+        String accessToken = TEST_getAccessToken(code);
+        OAuthResourceResponse resource = TEST_getUserResource(accessToken);
+
+        LOGGER.info("{} {} {}", resource.id(), resource.email(), resource.name());
+
+        PlayerDTO response = playerRepository.findByEmail(resource.email())
+                .map(Player::toPlayerDTO)
+                .orElseGet(() -> {
+                    LOGGER.info("등록되지 않은 google 계정 {}", resource.email());
+                    return signService.signUpBySocial(new PlayerDTO(
+                            null,
+                            resource.email(),
+                            resource.name(),
+                            "google",
+                            Long.parseLong(resource.id()),
+                            0
+                    ));
+                });
+
+
+        LOGGER.info("{}", response.toString());
+        return response;
+    }
+    private String TEST_getAccessToken(String code){
+        RestTemplate restTemplate = new RestTemplate();
+
+        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+        body.add("code", code);
+        body.add("client_id", oAuthKey.getGOOGLE_CLIENT_ID());
+        body.add("client_secret", oAuthKey.getGOOGLE_CLIENT_SECRET());
+        body.add("redirect_uri", "http://localhost"+oAuthKey.getGOOGLE_REDIRECT_URI().substring(0, 16));
+        body.add("grant_type", "authorization_code");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
+
+        OAuthTokenResponse response = restTemplate.postForObject(oAuthKey.getGOOGLE_TOKEN_URI(), entity, OAuthTokenResponse.class);
+
+        if (response.access_token() != null){
+            return response.access_token();
+        }else {
+            return null;
+        }
+    }
+    private OAuthResourceResponse TEST_getUserResource(String accessToken) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+
+        OAuthResourceResponse response = restTemplate.exchange("http://localhost"+oAuthKey.getGOOGLE_REDIRECT_URI().substring(16), HttpMethod.GET, entity, OAuthResourceResponse.class).getBody();
 
         if (response != null){
             return response;
