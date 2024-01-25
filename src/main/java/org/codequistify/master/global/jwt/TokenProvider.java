@@ -34,6 +34,7 @@ public class TokenProvider {
     public String generateAccessToken(SignInResponse response){
         Claims claims = Jwts.claims();
         claims.put("name", response.name());
+        claims.put("id", response.id());
         Date now = new Date();
 
         String token = Jwts.builder()
@@ -52,6 +53,7 @@ public class TokenProvider {
     public String generateRefreshToken(SignInResponse response){
         Claims claims = Jwts.claims();
         claims.put("name", response.name());
+        claims.put("id", response.id());
         Date now = new Date();
 
         String token = Jwts.builder()
@@ -65,6 +67,39 @@ public class TokenProvider {
 
         LOGGER.info("[generateRefreshToken] {}", token);
         return token;
+    }
+
+    public Claims getClaims(String token) {
+        try{
+            Jws<Claims> claims = Jwts.parserBuilder()
+                    .setSigningKey(KEY)
+                    .build()
+                    .parseClaimsJws(token);
+
+            return claims.getBody();
+        } catch (ExpiredJwtException exception){
+            LOGGER.info("만료된 JWT 토큰");
+            return null;
+        } catch (IllegalArgumentException exception){
+            LOGGER.info("잘못된 JWT 토큰");
+            return null;
+        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+            LOGGER.info("잘못된 JWT 서명");
+            return null;
+        } catch (RuntimeException exception){
+            LOGGER.info("valid token error");
+            return null;
+        }
+    }
+
+    public boolean checkExpire(Claims claims) {
+        try {
+            return !claims.getExpiration().before(new Date());
+        } catch (ExpiredJwtException exception) {
+            LOGGER.info("만료된 JWT 토큰");
+            return false;
+        }
+
     }
 
     public boolean isValidatedToken(String token){

@@ -77,4 +77,5 @@ public class SignService {
         LOGGER.info("[updateRefreshToken] {}", id);
         playerRepository.updateRefreshToken(id, refreshToken);
     }
+
 }

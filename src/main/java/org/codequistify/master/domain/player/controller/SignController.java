@@ -1,5 +1,6 @@
 package org.codequistify.master.domain.player.controller;
 
+import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -9,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.dto.PlayerDTO;
 import org.codequistify.master.domain.player.dto.SignInResponse;
@@ -18,6 +20,8 @@ import org.codequistify.master.domain.player.service.impl.KakaoSocialSignService
 import org.codequistify.master.domain.player.service.impl.SignService;
 import org.codequistify.master.domain.player.service.impl.VerifyMailService;
 import org.codequistify.master.global.jwt.TokenProvider;
+import org.codequistify.master.global.jwt.dto.TokenRequest;
+import org.codequistify.master.global.jwt.dto.TokenResponse;
 import org.codequistify.master.global.util.BasicResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,19 +65,55 @@ public class SignController {
         String refreshToken = tokenProvider.generateRefreshToken(signInResponse);
         String accessToken = tokenProvider.generateAccessToken(signInResponse);
 
-        addTokensToCookies(accessToken, refreshToken, response);
+        addAccessTokensToCookies(accessToken, response);
+        addRefreshTokensToCookies(refreshToken, response);
         signService.updateRefreshToken(signInResponse.id(), refreshToken); // refresh token db에 저장
 
         LOGGER.info("{} 구글 로그인", signInResponse.email());
         return new ResponseEntity<>(signInResponse, HttpStatus.OK);
     }
 
-    private void addTokensToCookies(String accessToken, String refreshToken, HttpServletResponse response) {
+    @PostMapping("/refresh/{id}")
+    public ResponseEntity<TokenResponse> regenerateAccessToken(@RequestBody TokenRequest request, @PathVariable Long id, HttpServletResponse response) {
+        if (request.refreshToken().isBlank()) {
+            LOGGER.info("[regenerateAccessToken] {} 빈 요청", id);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        Claims claims = tokenProvider.getClaims(request.refreshToken());
+        if (!claims.get("id").equals(id)) {
+            LOGGER.info("[regenerateAccessToken] 일치하지 않는 id {}:{}", claims.get("id"), id);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        if (!tokenProvider.checkExpire(claims)) {
+            LOGGER.info("[regenerateAccessToken] 만료된 refresh token {}", id);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        String accessToken = tokenProvider.generateAccessToken(new SignInResponse(id,
+                claims.get("email").toString(),
+                claims.get("name").toString(),
+                null));
+
+        addAccessTokensToCookies(accessToken, response);
+        TokenResponse tokenResponse = new TokenResponse(request.refreshToken(), accessToken);
+        LOGGER.info("[regenerateAccessToken] {} AccessToken 재발급", id);
+
+        return new ResponseEntity<>(tokenResponse, HttpStatus.OK);
+    }
+
+    private void addAccessTokensToCookies(String accessToken, HttpServletResponse response) {
         Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(true);
         accessTokenCookie.setPath("/");
         accessTokenCookie.setMaxAge(60 * 60); // 한 시간
+
+        response.addCookie(accessTokenCookie);
+    }
+
+    private void addRefreshTokensToCookies(String refreshToken, HttpServletResponse response) {
 
         Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
@@ -81,9 +121,9 @@ public class SignController {
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(24 * 60 * 60); // 하루
 
-        response.addCookie(accessTokenCookie);
         response.addCookie(refreshTokenCookie);
     }
+
 
     @Operation(
             summary = "TEST 구글 로그인 요청",
