@@ -16,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -46,6 +47,7 @@ public class GoogleSocialSignService implements SocialSignService {
     code를 통한 소셜 로그인
      */
     @Override
+    @Transactional
     public SignInResponse socialLogin(String code) {
         String accessToken = getAccessToken(code);
         OAuthResourceResponse resource = getUserResource(accessToken);
@@ -121,6 +123,7 @@ public class GoogleSocialSignService implements SocialSignService {
         }
     }
 
+    @Transactional
     public PlayerDTO TEST_socialLogin(String code) {
         LOGGER.info("[TEST_socialLogin]");
         String accessToken = TEST_getAccessToken(code);

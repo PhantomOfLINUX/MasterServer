@@ -62,6 +62,7 @@ public class SignController {
         String accessToken = tokenProvider.generateAccessToken(signInResponse);
 
         addTokensToCookies(accessToken, refreshToken, response);
+        signService.updateRefreshToken(signInResponse.id(), refreshToken); // refresh token db에 저장
 
         LOGGER.info("{} 구글 로그인", signInResponse.email());
         return new ResponseEntity<>(signInResponse, HttpStatus.OK);

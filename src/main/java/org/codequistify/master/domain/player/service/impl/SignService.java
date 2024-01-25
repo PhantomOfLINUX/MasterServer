@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 
 @Service
@@ -23,6 +24,7 @@ public class SignService {
     @Value("${social.secret}")
     private String SOCIAL_SECRET;
 
+    @Transactional
     public PlayerDTO signUp(SignRequest request) {
         if (playerRepository.findByEmail(request.email()).isPresent()){
             LOGGER.info("[signUp] 이미 존재하는 email 입니다.");
@@ -39,6 +41,7 @@ public class SignService {
         return player.toPlayerDTO();
     }
 
+    @Transactional
     public PlayerDTO signUpBySocial(PlayerDTO playerDTO) {
         // 중복되지 않는 email만 처리하므로 중복 확인 안 함
 
@@ -51,6 +54,7 @@ public class SignService {
         return player.toPlayerDTO();
     }
 
+    @Transactional
     public PlayerDTO signIn(SignRequest request) {
         Player player = playerRepository.findByEmail(request.email())
                 .orElseThrow(() ->{
@@ -67,5 +71,10 @@ public class SignService {
 
     public boolean checkEmailDuplication(String email){
         return playerRepository.findByEmail(email).isPresent();
+    }
+
+    public void updateRefreshToken(Long id, String refreshToken) {
+        LOGGER.info("[updateRefreshToken] {}", id);
+        playerRepository.updateRefreshToken(id, refreshToken);
     }
 }
