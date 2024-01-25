@@ -6,6 +6,7 @@ import org.codequistify.master.domain.player.domain.repository.PlayerRepository;
 import org.codequistify.master.domain.player.dto.OAuthResourceResponse;
 import org.codequistify.master.domain.player.dto.OAuthTokenResponse;
 import org.codequistify.master.domain.player.dto.PlayerDTO;
+import org.codequistify.master.domain.player.dto.SignInResponse;
 import org.codequistify.master.domain.player.service.SocialSignService;
 import org.codequistify.master.global.config.OAuthKey;
 import org.slf4j.Logger;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -43,28 +46,37 @@ public class GoogleSocialSignService implements SocialSignService {
     code를 통한 소셜 로그인
      */
     @Override
-    public PlayerDTO socialLogin(String code) {
+    public SignInResponse socialLogin(String code) {
         String accessToken = getAccessToken(code);
         OAuthResourceResponse resource = getUserResource(accessToken);
 
         LOGGER.info("{} {} {}", resource.id(), resource.email(), resource.name());
 
-        PlayerDTO response = playerRepository.findByEmail(resource.email())
-                .map(Player::toPlayerDTO)
-                .orElseGet(() -> {
-                    LOGGER.info("등록되지 않은 google 계정 {}", resource.email());
-                    return signService.signUpBySocial(new PlayerDTO(
-                            null,
-                            resource.email(),
-                            resource.name(),
-                            "google",
-                            resource.id(),
-                            0)
-                    );
-                });
+        Optional<Player> playerOptional = playerRepository.findByEmail(resource.email());
 
+        // 등록되지 않은 계정인 경우 player 등록하기
+        if (playerOptional.isEmpty()) {
+            LOGGER.info("등록되지 않은 구글 계정 {}", resource.email());
+            signService.signUpBySocial(new PlayerDTO(
+                    null,
+                    resource.email(),
+                    resource.name(),
+                    "google",
+                    resource.id(),
+                    0)
+            );
 
-        LOGGER.info("{}", response.toString());
+            playerOptional = playerRepository.findByEmail(resource.email());
+        }
+
+        Player player = playerOptional.get();
+        player.updateOAuthAccessToken(accessToken);
+
+        playerRepository.save(player);
+
+        SignInResponse response = player.toSignInResponse();
+        LOGGER.info("[socialLogin] {} 구글 로그인", player.getEmail());
+
         return response;
     }
 

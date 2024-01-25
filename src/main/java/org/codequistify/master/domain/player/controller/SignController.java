@@ -7,13 +7,17 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.dto.PlayerDTO;
+import org.codequistify.master.domain.player.dto.SignInResponse;
 import org.codequistify.master.domain.player.dto.SignRequest;
 import org.codequistify.master.domain.player.service.impl.GoogleSocialSignService;
 import org.codequistify.master.domain.player.service.impl.KakaoSocialSignService;
 import org.codequistify.master.domain.player.service.impl.SignService;
 import org.codequistify.master.domain.player.service.impl.VerifyMailService;
+import org.codequistify.master.global.jwt.TokenProvider;
 import org.codequistify.master.global.util.BasicResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +36,7 @@ public class SignController {
     private final KakaoSocialSignService kakaoSocialSignService;
     private final SignService signService;
     private final VerifyMailService verifyMailService;
+    private final TokenProvider tokenProvider;
 
     @Operation(
             summary = "구글 로그인 url 발급",
@@ -47,15 +52,38 @@ public class SignController {
             description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'name'을 반환받는다."
     )
     @PostMapping("oauth2/google")
-    public ResponseEntity<PlayerDTO> socialSignInGoogle(@RequestBody SignRequest request) {
+    public ResponseEntity<SignInResponse> socialSignInGoogle(@RequestBody SignRequest request, HttpServletResponse response) {
         if (request.code().isBlank()){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        PlayerDTO playerDTO = googleSocialSignService.socialLogin(request.code());
+        SignInResponse signInResponse = googleSocialSignService.socialLogin(request.code());
 
-        LOGGER.info("{} google 로그인", playerDTO.id());
-        return new ResponseEntity<>(playerDTO, HttpStatus.OK);
+        String refreshToken = tokenProvider.generateRefreshToken(signInResponse);
+        String accessToken = tokenProvider.generateAccessToken(signInResponse);
+
+        addTokensToCookies(accessToken, refreshToken, response);
+
+        LOGGER.info("{} 구글 로그인", signInResponse.email());
+        return new ResponseEntity<>(signInResponse, HttpStatus.OK);
     }
+
+    private void addTokensToCookies(String accessToken, String refreshToken, HttpServletResponse response) {
+        Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(60 * 60); // 한 시간
+
+        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(24 * 60 * 60); // 하루
+
+        response.addCookie(accessTokenCookie);
+        response.addCookie(refreshTokenCookie);
+    }
+
     @Operation(
             summary = "TEST 구글 로그인 요청",
             description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'name'을 반환받는다."
@@ -85,14 +113,14 @@ public class SignController {
             description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'knickname'을 반환받는다."
     )
     @PostMapping("oauth2/kakao")
-    public ResponseEntity<PlayerDTO> socialSignInKakao(@RequestBody SignRequest request) {
+    public ResponseEntity<SignInResponse> socialSignInKakao(@RequestBody SignRequest request) {
         if (request.code().isBlank()){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        PlayerDTO playerDTO = kakaoSocialSignService.socialLogin(request.code());
+        SignInResponse signInResponse = kakaoSocialSignService.socialLogin(request.code());
 
-        LOGGER.info("{} kakao 로그인", playerDTO.id());
-        return new ResponseEntity<>(playerDTO, HttpStatus.OK);
+        LOGGER.info("{} kakao 로그인", signInResponse.email());
+        return new ResponseEntity<>(signInResponse, HttpStatus.OK);
     }
 
     @Operation(
@@ -191,18 +219,18 @@ public class SignController {
     //서버용인증
     @GetMapping("oauth2/google")
     @Operation(hidden = true)
-    public PlayerDTO googleLogin(@RequestParam String code) {
-        PlayerDTO playerDTO = googleSocialSignService.socialLogin(code);
+    public SignInResponse googleLogin(@RequestParam String code) {
+        SignInResponse response = googleSocialSignService.socialLogin(code);
 
-        return playerDTO;
+        return response;
     }
     //서버용인증
     @Operation(hidden = true)
     @GetMapping("oauth2/kakao")
-    public PlayerDTO kakaoLogin(@RequestParam String code) {
-        PlayerDTO playerDTO = kakaoSocialSignService.socialLogin(code);
+    public SignInResponse kakaoLogin(@RequestParam String code) {
+        SignInResponse response = kakaoSocialSignService.socialLogin(code);
 
-        return playerDTO;
+        return response;
     }
 
 }
