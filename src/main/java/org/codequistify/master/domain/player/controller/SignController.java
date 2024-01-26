@@ -71,7 +71,7 @@ public class SignController {
         addRefreshTokensToCookies(refreshToken, response);
         signService.updateRefreshToken(signInResponse.id(), refreshToken); // refresh token db에 저장
 
-        LOGGER.info("{} 구글 로그인", signInResponse.email());
+        LOGGER.info("[socialSignInGoogle] {} 구글 로그인", signInResponse.email());
         return new ResponseEntity<>(signInResponse, HttpStatus.OK);
     }
 
@@ -142,14 +142,21 @@ public class SignController {
             description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'name'을 반환받는다."
     )
     @PostMapping("oauth2/google/TEST")
-    public ResponseEntity<PlayerDTO> TEST_socialSignInGoogle(@RequestBody SignRequest request) {
+    public ResponseEntity<SignInResponse> TEST_socialSignInGoogle(@RequestBody SignRequest request, HttpServletResponse response) {
         if (request.code().isBlank()){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        PlayerDTO playerDTO = googleSocialSignService.TEST_socialLogin(request.code());
+        SignInResponse signInResponse = googleSocialSignService.socialLogin(request.code());
 
-        LOGGER.info("{} TEST google 로그인", playerDTO.id());
-        return new ResponseEntity<>(playerDTO, HttpStatus.OK);
+        String refreshToken = tokenProvider.generateRefreshToken(signInResponse);
+        String accessToken = tokenProvider.generateAccessToken(signInResponse);
+
+        addAccessTokensToCookies(accessToken, response);
+        addRefreshTokensToCookies(refreshToken, response);
+        signService.updateRefreshToken(signInResponse.id(), refreshToken); // refresh token db에 저장
+
+        LOGGER.info("[TEST_socialSignInGoogle] {} 구글 로그인", signInResponse.email());
+        return new ResponseEntity<>(signInResponse, HttpStatus.OK);
     }
 
     @Operation(
