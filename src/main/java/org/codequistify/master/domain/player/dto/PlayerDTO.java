@@ -6,20 +6,20 @@ public record PlayerDTO(
         Long id,
         String email,
         String name,
-        String authType,
-        String authId,
+        String oAuthType,
+        String oAuthId,
         Integer level
 ) {
-    public PlayerDTO of(Long id, String email, String name, String authType, String authId, Integer level) {
-        return new PlayerDTO(id, email, name, authType, authId, level);
+    public PlayerDTO of(Long id, String email, String name, String oAuthType, String oAuthId, Integer level) {
+        return new PlayerDTO(id, email, name, oAuthType, oAuthId, level);
     }
 
     public Player toPlayer(String password) {
         return Player.builder()
                 .email(this.email)
                 .name(this.name)
-                .authType(this.authType)
-                .authId(this.authId)
+                .oAuthType(this.oAuthType)
+                .oAuthId(this.oAuthId)
                 .level(this.level)
                 .password(password)
                 .build();

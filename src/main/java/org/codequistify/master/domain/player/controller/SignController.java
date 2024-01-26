@@ -1,5 +1,6 @@
 package org.codequistify.master.domain.player.controller;
 
+import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -7,13 +8,22 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.player.dto.LogOutRequest;
 import org.codequistify.master.domain.player.dto.PlayerDTO;
+import org.codequistify.master.domain.player.dto.SignInResponse;
 import org.codequistify.master.domain.player.dto.SignRequest;
 import org.codequistify.master.domain.player.service.impl.GoogleSocialSignService;
 import org.codequistify.master.domain.player.service.impl.KakaoSocialSignService;
 import org.codequistify.master.domain.player.service.impl.SignService;
 import org.codequistify.master.domain.player.service.impl.VerifyMailService;
+import org.codequistify.master.global.jwt.TokenProvider;
+import org.codequistify.master.global.jwt.dto.TokenRequest;
+import org.codequistify.master.global.jwt.dto.TokenResponse;
 import org.codequistify.master.global.util.BasicResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +42,7 @@ public class SignController {
     private final KakaoSocialSignService kakaoSocialSignService;
     private final SignService signService;
     private final VerifyMailService verifyMailService;
+    private final TokenProvider tokenProvider;
 
     @Operation(
             summary = "구글 로그인 url 발급",
@@ -47,15 +58,85 @@ public class SignController {
             description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'name'을 반환받는다."
     )
     @PostMapping("oauth2/google")
-    public ResponseEntity<PlayerDTO> socialSignInGoogle(@RequestBody SignRequest request) {
+    public ResponseEntity<SignInResponse> socialSignInGoogle(@RequestBody SignRequest request, HttpServletResponse response) {
         if (request.code().isBlank()){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        PlayerDTO playerDTO = googleSocialSignService.socialLogin(request.code());
+        SignInResponse signInResponse = googleSocialSignService.socialLogin(request.code());
 
-        LOGGER.info("{} google 로그인", playerDTO.id());
-        return new ResponseEntity<>(playerDTO, HttpStatus.OK);
+        String refreshToken = tokenProvider.generateRefreshToken(signInResponse);
+        String accessToken = tokenProvider.generateAccessToken(signInResponse);
+
+        addAccessTokensToCookies(accessToken, response);
+        addRefreshTokensToCookies(refreshToken, response);
+        signService.updateRefreshToken(signInResponse.id(), refreshToken); // refresh token db에 저장
+
+        LOGGER.info("{} 구글 로그인", signInResponse.email());
+        return new ResponseEntity<>(signInResponse, HttpStatus.OK);
     }
+
+    @Operation(
+            summary = "토큰 재발급",
+            description = "AccessToken을 재발급 한다. 재발급 받을 player의 id를 경로로 받는다.\n\n" +
+                    " RefreshToken 값을 body로 받는다. 이때 token은 'bearer' 없이 token 값만을 적어야 한다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "정상적으로 재발급"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청, id 불일치 또는 빈 요청 등"),
+                    @ApiResponse(responseCode = "401", description = "만료된 Refresh Token")
+            }
+    )
+    @PostMapping("/refresh/id/{id}")
+    public ResponseEntity<TokenResponse> regenerateAccessToken(@RequestBody TokenRequest request, @PathVariable Long id, HttpServletResponse response) {
+        if (request.refreshToken().isBlank()) {
+            LOGGER.info("[regenerateAccessToken] {} 빈 요청", id);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        Claims claims = tokenProvider.getClaims(request.refreshToken());
+        if (!claims.get("id").equals(id)) {
+            LOGGER.info("[regenerateAccessToken] 일치하지 않는 id {}:{}", claims.get("id"), id);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        if (!tokenProvider.checkExpire(claims)) {
+            LOGGER.info("[regenerateAccessToken] 만료된 refresh token {}", id);
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        String accessToken = tokenProvider.generateAccessToken(new SignInResponse(id,
+                claims.get("email").toString(),
+                claims.get("name").toString(),
+                null));
+
+        addAccessTokensToCookies(accessToken, response);
+        TokenResponse tokenResponse = new TokenResponse(request.refreshToken(), accessToken);
+        LOGGER.info("[regenerateAccessToken] {} AccessToken 재발급", id);
+
+        return new ResponseEntity<>(tokenResponse, HttpStatus.OK);
+    }
+
+    private void addAccessTokensToCookies(String accessToken, HttpServletResponse response) {
+        Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(60 * 60); // 한 시간
+
+        response.addCookie(accessTokenCookie);
+    }
+
+    private void addRefreshTokensToCookies(String refreshToken, HttpServletResponse response) {
+
+        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(24 * 60 * 60); // 하루
+
+        response.addCookie(refreshTokenCookie);
+    }
+
+
     @Operation(
             summary = "TEST 구글 로그인 요청",
             description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'name'을 반환받는다."
@@ -85,14 +166,14 @@ public class SignController {
             description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'knickname'을 반환받는다."
     )
     @PostMapping("oauth2/kakao")
-    public ResponseEntity<PlayerDTO> socialSignInKakao(@RequestBody SignRequest request) {
+    public ResponseEntity<SignInResponse> socialSignInKakao(@RequestBody SignRequest request) {
         if (request.code().isBlank()){
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        PlayerDTO playerDTO = kakaoSocialSignService.socialLogin(request.code());
+        SignInResponse signInResponse = kakaoSocialSignService.socialLogin(request.code());
 
-        LOGGER.info("{} kakao 로그인", playerDTO.id());
-        return new ResponseEntity<>(playerDTO, HttpStatus.OK);
+        LOGGER.info("{} kakao 로그인", signInResponse.email());
+        return new ResponseEntity<>(signInResponse, HttpStatus.OK);
     }
 
     @Operation(
@@ -100,15 +181,15 @@ public class SignController {
             description = "자체 회원가입이다. name, email, password를 필수로 입력받는다."
     )
     @PostMapping("sign-up/pol")
-    public ResponseEntity<PlayerDTO> polSignUp(@RequestBody SignRequest request){
+    public ResponseEntity<SignInResponse> polSignUp(@RequestBody SignRequest request){
         if(request.name().isBlank() || request.email().isBlank() || request.password().isBlank()){
             throw new IllegalArgumentException("email 또는 password, name이 비어있습니다.");
         }
 
-        PlayerDTO playerDTO = signService.signUp(request);
+        SignInResponse signInResponse = signService.signUp(request);
 
-        LOGGER.info("{} pol 로그인", playerDTO.id());
-        return new ResponseEntity<>(playerDTO, HttpStatus.OK);
+        LOGGER.info("{} pol 로그인", signInResponse.id());
+        return new ResponseEntity<>(signInResponse, HttpStatus.OK);
     }
 
     @Operation(
@@ -116,15 +197,45 @@ public class SignController {
             description = "자체 로그인기능이다. name, password를 필수로 입력받는다."
     )
     @PostMapping("sign-in/pol")
-    public ResponseEntity<PlayerDTO> polSignIn(@RequestBody SignRequest request){
+    public ResponseEntity<SignInResponse> polSignIn(@RequestBody SignRequest request) {
         if (request.email().isBlank() || request.password().isBlank()){
             throw new IllegalArgumentException("email 또는 password가 비어있습니다.");
         }
 
-        PlayerDTO playerDTO = signService.signIn(request);
+        SignInResponse signInResponse = signService.signIn(request);
 
-        LOGGER.info("{} pol 로그인", playerDTO.id());
-        return new ResponseEntity<>(playerDTO, HttpStatus.OK);
+        LOGGER.info("{} pol 로그인", signInResponse.id());
+        return new ResponseEntity<>(signInResponse, HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "로그아웃 요청",
+            description = "id를 인자로 받는다. Authorization에 토큰이 있어야 한다.",
+            responses = {
+                @ApiResponse(responseCode = "204", description = "로그아웃 성공"),
+                @ApiResponse(responseCode = "401", description = "잘못된 토큰 정보")
+            }
+    )
+    @PostMapping("log-out")
+    public ResponseEntity<Void> LogOut(@RequestBody LogOutRequest request, HttpServletRequest httpServletRequest) {
+        String token = tokenProvider.resolveToken(httpServletRequest);
+
+
+        if (token == null) {
+            LOGGER.info("[LogOut] 빈 token");
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        Claims claims = tokenProvider.getClaims(token);
+        if (claims == null) {
+            LOGGER.info("[LogOut] 유효하지 않은 token");
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        signService.LogOut(request, token);
+        LOGGER.info("[LogOut] {} 로그아웃 완료", request.id());
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @Operation(
@@ -191,18 +302,18 @@ public class SignController {
     //서버용인증
     @GetMapping("oauth2/google")
     @Operation(hidden = true)
-    public PlayerDTO googleLogin(@RequestParam String code) {
-        PlayerDTO playerDTO = googleSocialSignService.socialLogin(code);
+    public SignInResponse googleLogin(@RequestParam String code) {
+        SignInResponse response = googleSocialSignService.socialLogin(code);
 
-        return playerDTO;
+        return response;
     }
     //서버용인증
     @Operation(hidden = true)
     @GetMapping("oauth2/kakao")
-    public PlayerDTO kakaoLogin(@RequestParam String code) {
-        PlayerDTO playerDTO = kakaoSocialSignService.socialLogin(code);
+    public SignInResponse kakaoLogin(@RequestParam String code) {
+        SignInResponse response = kakaoSocialSignService.socialLogin(code);
 
-        return playerDTO;
+        return response;
     }
 
 }

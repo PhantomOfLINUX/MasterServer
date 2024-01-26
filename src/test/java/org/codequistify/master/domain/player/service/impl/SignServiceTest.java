@@ -3,7 +3,7 @@ package org.codequistify.master.domain.player.service.impl;
 import jakarta.persistence.EntityExistsException;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.repository.PlayerRepository;
-import org.codequistify.master.domain.player.dto.PlayerDTO;
+import org.codequistify.master.domain.player.dto.SignInResponse;
 import org.codequistify.master.domain.player.dto.SignRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,7 +13,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
@@ -31,7 +30,7 @@ class SignServiceTest {
     @Test
     public void 회원가입_성공_POL(){
         SignRequest request = new SignRequest(null, "name", "email", "password");
-        PlayerDTO result = signService.signUp(request);
+        SignInResponse result = signService.signUp(request);
 
         assertNotNull(result);
         assertEquals(request.name(), result.name());

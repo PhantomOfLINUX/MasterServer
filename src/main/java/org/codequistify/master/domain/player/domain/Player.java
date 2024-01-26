@@ -5,8 +5,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import org.codequistify.master.domain.player.dto.PlayerDTO;
+import org.codequistify.master.domain.player.dto.SignInResponse;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Entity
 @Getter
@@ -26,11 +26,17 @@ public class Player {
     @Column(name = "password")
     private String password;
 
-    @Column(name = "auth_type")
-    private String authType;
+    @Column(name = "oauth_type")
+    private String oAuthType;
 
-    @Column(name = "auth_id")
-    private String authId;
+    @Column(name = "oauth_id")
+    private String oAuthId;
+
+    @Column(name = "oauth_access_token")
+    private String oAuthAccessToken;
+
+    @Column(name = "refresh_token")
+    private String refreshToken;
 
     @Column(name = "level")
     private Integer level;
@@ -43,17 +49,33 @@ public class Player {
         return new BCryptPasswordEncoder().matches(password, this.password);
     }
 
+    public void updateOAuthAccessToken(String oAuthAccessToken) {
+        this.oAuthAccessToken = oAuthAccessToken;
+    }
+
+    public void clearOAuthAccessToken() {
+        this.oAuthAccessToken = "";
+    }
+
+    public void clearRefreshToken() {
+        this.refreshToken = "";
+    }
+
     public PlayerDTO toPlayerDTO(){
-        return new PlayerDTO(this.id, this.email, this.name, this.authType, this.authId, this.level);
+        return new PlayerDTO(this.id, this.email, this.name, this.oAuthType, this.oAuthId, this.level);
+    }
+
+    public SignInResponse toSignInResponse() {
+        return new SignInResponse(this.id, this.email, this.name, this.level);
     }
 
     @Builder
-    public Player(String name, String email, String password, String authType, String authId, Integer level) {
+    public Player(String name, String email, String password, String oAuthType, String oAuthId, Integer level) {
         this.name = name;
         this.email = email;
         this.password = password;
-        this.authType = authType;
-        this.authId = authId;
+        this.oAuthType = oAuthType;
+        this.oAuthId = oAuthId;
         this.level = level;
     }
 

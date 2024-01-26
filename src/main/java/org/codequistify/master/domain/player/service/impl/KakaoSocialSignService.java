@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.dto.OAuthResourceResponse;
 import org.codequistify.master.domain.player.dto.OAuthTokenResponse;
 import org.codequistify.master.domain.player.dto.PlayerDTO;
+import org.codequistify.master.domain.player.dto.SignInResponse;
 import org.codequistify.master.domain.player.service.SocialSignService;
 import org.codequistify.master.global.config.OAuthKey;
 import org.slf4j.Logger;
@@ -37,18 +38,13 @@ public class KakaoSocialSignService implements SocialSignService {
     code를 통한 소셜 로그인
      */
     @Override
-    public PlayerDTO socialLogin(String code) {
+    public SignInResponse socialLogin(String code) {
         String accessToken = getAccessToken(code);
         OAuthResourceResponse response = getUserResource(accessToken);
 
         LOGGER.info("{} {}", response.id(), response.properties().get("nickname"));
 
-        return new PlayerDTO(
-                Long.parseLong(response.id()),
-                response.email(),
-                response.properties().get("nickname"),
-                null, null, null
-        );
+        return null;
     }
 
     private String getAccessToken(String code){
