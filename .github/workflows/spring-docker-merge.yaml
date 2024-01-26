@@ -17,6 +17,7 @@ jobs:
         echo "${{ secrets.APPLICATION_DB }}" > src/main/resources/application-db.properties
         echo "${{ secrets.APPLICATION_MAIL }}" > src/main/resources/application-mail.properties
         echo "${{ secrets.APPLICATION_SECURITY }}" > src/main/resources/application-security.properties
+        echo "${{ secrets.APPLICATION_HOST }}" > src/main/resources/application-host.properties
     - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
