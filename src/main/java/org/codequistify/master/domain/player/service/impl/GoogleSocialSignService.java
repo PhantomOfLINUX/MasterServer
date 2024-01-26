@@ -157,8 +157,8 @@ public class GoogleSocialSignService implements SocialSignService {
         body.add("code", code);
         body.add("client_id", oAuthKey.getGOOGLE_CLIENT_ID());
         body.add("client_secret", oAuthKey.getGOOGLE_CLIENT_SECRET());
-        body.add("redirect_uri", "http://localhost"+oAuthKey.getGOOGLE_REDIRECT_URI().substring(20));
-        System.out.println("http://localhost"+oAuthKey.getGOOGLE_REDIRECT_URI().substring(20));
+        body.add("redirect_uri", "http://localhost"+oAuthKey.getGOOGLE_REDIRECT_URI().substring(21));
+        System.out.println("http://localhost"+oAuthKey.getGOOGLE_REDIRECT_URI().substring(21));
         body.add("grant_type", "authorization_code");
 
         HttpHeaders headers = new HttpHeaders();
