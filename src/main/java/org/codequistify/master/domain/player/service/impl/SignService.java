@@ -5,15 +5,22 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.repository.PlayerRepository;
+import org.codequistify.master.domain.player.dto.LogOutRequest;
 import org.codequistify.master.domain.player.dto.PlayerDTO;
+import org.codequistify.master.domain.player.dto.SignInResponse;
 import org.codequistify.master.domain.player.dto.SignRequest;
 import org.codequistify.master.global.util.BasicResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +32,7 @@ public class SignService {
     private String SOCIAL_SECRET;
 
     @Transactional
-    public PlayerDTO signUp(SignRequest request) {
+    public SignInResponse signUp(SignRequest request) {
         if (playerRepository.findByEmail(request.email()).isPresent()){
             LOGGER.info("[signUp] 이미 존재하는 email 입니다.");
             throw new EntityExistsException("이미 존재하는 email입니다.");
@@ -38,7 +45,7 @@ public class SignService {
 
         LOGGER.info("[signIn] {} player 회원가입 완료", player.getId());
 
-        return player.toPlayerDTO();
+        return player.toSignInResponse();
     }
 
     @Transactional
@@ -55,7 +62,7 @@ public class SignService {
     }
 
     @Transactional
-    public PlayerDTO signIn(SignRequest request) {
+    public SignInResponse signIn(SignRequest request) {
         Player player = playerRepository.findByEmail(request.email())
                 .orElseThrow(() ->{
                     LOGGER.info("[signIn] 존재하지 않는 email 입니다.");
@@ -63,9 +70,44 @@ public class SignService {
                 });
 
         if (player.decodePassword(request.password())){
-            return player.toPlayerDTO();
+            return player.toSignInResponse();
         }else {
             throw new IllegalArgumentException("email 또는 password가 잘못되었습니다");
+        }
+    }
+
+    @Transactional
+    public void LogOut(LogOutRequest request, String token) {
+        Player player = playerRepository.findById(request.id())
+                .orElseThrow(() -> {
+                    LOGGER.info("[LogOut] 존재하지 않는 id 입니다.");
+                    return new EntityNotFoundException("존재하지 않는 id 입니다");
+                });
+
+        if (!player.getOAuthAccessToken().isBlank()) {
+            revokeTokenForGoogle(player.getOAuthAccessToken());
+            player.clearOAuthAccessToken();
+        }
+
+        player.clearRefreshToken();
+
+        playerRepository.save(player);
+        LOGGER.info("{LogOut] {} 로그아웃", request.id());
+    }
+
+    private void revokeTokenForGoogle(String token) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        String url = "https://accounts.google.com/o/oauth2/revoke?token=" + token;
+
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(url, request, String.class);
+        } catch (RuntimeException exception) {
+            LOGGER.info("[revokeTokenForGoogle] 만료시킬 수 없는 토큰");
         }
     }
 

@@ -53,6 +53,14 @@ public class Player {
         this.oAuthAccessToken = oAuthAccessToken;
     }
 
+    public void clearOAuthAccessToken() {
+        this.oAuthAccessToken = "";
+    }
+
+    public void clearRefreshToken() {
+        this.refreshToken = "";
+    }
+
     public PlayerDTO toPlayerDTO(){
         return new PlayerDTO(this.id, this.email, this.name, this.oAuthType, this.oAuthId, this.level);
     }

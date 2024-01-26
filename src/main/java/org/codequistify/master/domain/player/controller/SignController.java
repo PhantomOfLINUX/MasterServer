@@ -9,9 +9,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.player.dto.LogOutRequest;
 import org.codequistify.master.domain.player.dto.PlayerDTO;
 import org.codequistify.master.domain.player.dto.SignInResponse;
 import org.codequistify.master.domain.player.dto.SignRequest;
@@ -73,7 +75,17 @@ public class SignController {
         return new ResponseEntity<>(signInResponse, HttpStatus.OK);
     }
 
-    @PostMapping("/refresh/{id}")
+    @Operation(
+            summary = "토큰 재발급",
+            description = "AccessToken을 재발급 한다. 재발급 받을 player의 id를 경로로 받는다.\n\n" +
+                    " RefreshToken 값을 body로 받는다. 이때 token은 'bearer' 없이 token 값만을 적어야 한다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "정상적으로 재발급"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청, id 불일치 또는 빈 요청 등"),
+                    @ApiResponse(responseCode = "401", description = "만료된 Refresh Token")
+            }
+    )
+    @PostMapping("/refresh/id/{id}")
     public ResponseEntity<TokenResponse> regenerateAccessToken(@RequestBody TokenRequest request, @PathVariable Long id, HttpServletResponse response) {
         if (request.refreshToken().isBlank()) {
             LOGGER.info("[regenerateAccessToken] {} 빈 요청", id);
@@ -88,7 +100,7 @@ public class SignController {
 
         if (!tokenProvider.checkExpire(claims)) {
             LOGGER.info("[regenerateAccessToken] 만료된 refresh token {}", id);
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
         String accessToken = tokenProvider.generateAccessToken(new SignInResponse(id,
@@ -169,15 +181,15 @@ public class SignController {
             description = "자체 회원가입이다. name, email, password를 필수로 입력받는다."
     )
     @PostMapping("sign-up/pol")
-    public ResponseEntity<PlayerDTO> polSignUp(@RequestBody SignRequest request){
+    public ResponseEntity<SignInResponse> polSignUp(@RequestBody SignRequest request){
         if(request.name().isBlank() || request.email().isBlank() || request.password().isBlank()){
             throw new IllegalArgumentException("email 또는 password, name이 비어있습니다.");
         }
 
-        PlayerDTO playerDTO = signService.signUp(request);
+        SignInResponse signInResponse = signService.signUp(request);
 
-        LOGGER.info("{} pol 로그인", playerDTO.id());
-        return new ResponseEntity<>(playerDTO, HttpStatus.OK);
+        LOGGER.info("{} pol 로그인", signInResponse.id());
+        return new ResponseEntity<>(signInResponse, HttpStatus.OK);
     }
 
     @Operation(
@@ -185,15 +197,45 @@ public class SignController {
             description = "자체 로그인기능이다. name, password를 필수로 입력받는다."
     )
     @PostMapping("sign-in/pol")
-    public ResponseEntity<PlayerDTO> polSignIn(@RequestBody SignRequest request){
+    public ResponseEntity<SignInResponse> polSignIn(@RequestBody SignRequest request) {
         if (request.email().isBlank() || request.password().isBlank()){
             throw new IllegalArgumentException("email 또는 password가 비어있습니다.");
         }
 
-        PlayerDTO playerDTO = signService.signIn(request);
+        SignInResponse signInResponse = signService.signIn(request);
 
-        LOGGER.info("{} pol 로그인", playerDTO.id());
-        return new ResponseEntity<>(playerDTO, HttpStatus.OK);
+        LOGGER.info("{} pol 로그인", signInResponse.id());
+        return new ResponseEntity<>(signInResponse, HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "로그아웃 요청",
+            description = "id를 인자로 받는다. Authorization에 토큰이 있어야 한다.",
+            responses = {
+                @ApiResponse(responseCode = "204", description = "로그아웃 성공"),
+                @ApiResponse(responseCode = "401", description = "잘못된 토큰 정보")
+            }
+    )
+    @PostMapping("log-out")
+    public ResponseEntity<Void> LogOut(@RequestBody LogOutRequest request, HttpServletRequest httpServletRequest) {
+        String token = tokenProvider.resolveToken(httpServletRequest);
+
+
+        if (token == null) {
+            LOGGER.info("[LogOut] 빈 token");
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        Claims claims = tokenProvider.getClaims(token);
+        if (claims == null) {
+            LOGGER.info("[LogOut] 유효하지 않은 token");
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        signService.LogOut(request, token);
+        LOGGER.info("[LogOut] {} 로그아웃 완료", request.id());
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @Operation(

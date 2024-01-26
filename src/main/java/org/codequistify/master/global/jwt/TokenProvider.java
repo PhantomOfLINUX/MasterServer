@@ -77,9 +77,6 @@ public class TokenProvider {
                     .parseClaimsJws(token);
 
             return claims.getBody();
-        } catch (ExpiredJwtException exception){
-            LOGGER.info("만료된 JWT 토큰");
-            return null;
         } catch (IllegalArgumentException exception){
             LOGGER.info("잘못된 JWT 토큰");
             return null;
