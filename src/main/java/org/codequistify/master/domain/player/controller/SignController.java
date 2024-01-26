@@ -188,14 +188,21 @@ public class SignController {
             description = "자체 회원가입이다. name, email, password를 필수로 입력받는다."
     )
     @PostMapping("sign-up/pol")
-    public ResponseEntity<SignInResponse> polSignUp(@RequestBody SignRequest request){
+    public ResponseEntity<SignInResponse> polSignUp(@RequestBody SignRequest request, HttpServletResponse httpServletResponse){
         if(request.name().isBlank() || request.email().isBlank() || request.password().isBlank()){
             throw new IllegalArgumentException("email 또는 password, name이 비어있습니다.");
         }
 
         SignInResponse signInResponse = signService.signUp(request);
 
-        LOGGER.info("{} pol 로그인", signInResponse.id());
+        String refreshToken = tokenProvider.generateRefreshToken(signInResponse);
+        String accessToken = tokenProvider.generateAccessToken(signInResponse);
+
+        addAccessTokensToCookies(accessToken, httpServletResponse);
+        addRefreshTokensToCookies(refreshToken, httpServletResponse);
+        signService.updateRefreshToken(signInResponse.id(), refreshToken); // refresh token db에 저장
+
+        LOGGER.info("[polSignUp] {} pol 회원가입 ", signInResponse.id());
         return new ResponseEntity<>(signInResponse, HttpStatus.OK);
     }
 
@@ -204,14 +211,22 @@ public class SignController {
             description = "자체 로그인기능이다. name, password를 필수로 입력받는다."
     )
     @PostMapping("sign-in/pol")
-    public ResponseEntity<SignInResponse> polSignIn(@RequestBody SignRequest request) {
+    public ResponseEntity<SignInResponse> polSignIn(@RequestBody SignRequest request, HttpServletResponse httpServletResponse) {
         if (request.email().isBlank() || request.password().isBlank()){
             throw new IllegalArgumentException("email 또는 password가 비어있습니다.");
         }
 
         SignInResponse signInResponse = signService.signIn(request);
 
-        LOGGER.info("{} pol 로그인", signInResponse.id());
+        String refreshToken = tokenProvider.generateRefreshToken(signInResponse);
+        String accessToken = tokenProvider.generateAccessToken(signInResponse);
+
+        addAccessTokensToCookies(accessToken, httpServletResponse);
+        addRefreshTokensToCookies(refreshToken, httpServletResponse);
+        signService.updateRefreshToken(signInResponse.id(), refreshToken); // refresh token db에 저장
+
+
+        LOGGER.info("[polSignIn] {} pol 로그인", signInResponse.id());
         return new ResponseEntity<>(signInResponse, HttpStatus.OK);
     }
 
