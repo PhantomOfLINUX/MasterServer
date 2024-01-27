@@ -6,12 +6,13 @@ import lombok.Getter;
 import lombok.ToString;
 import org.codequistify.master.domain.player.dto.PlayerDTO;
 import org.codequistify.master.domain.player.dto.SignInResponse;
+import org.codequistify.master.global.util.BaseTimeEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @Entity
 @Getter
 @ToString
-public class Player {
+public class Player extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "player_id")
