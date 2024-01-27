@@ -5,10 +5,24 @@
     <title>home</title>
 </head>
 <body>
-<div>
-    <h1>Home</h1>
-    <button id="signIn">Sign In</button>
-    <a href="https://accounts.google.com/o/oauth2/auth?client_id=924893231358-8mi0j1go0nto6ra6ns9p63o5fqfu52kg.apps.googleusercontent.com&redirect_uri=http://localhost:8080/api/sign/oauth2/google&response_type=code&scope=https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile">a</a>
-</div>
+<h1>Email Verification</h1>
+<form id="emailForm">
+    <label for="email">Enter your email:</label>
+    <input type="email" id="email" required />
+    <button type="submit" id="getEmail">Get Email Data</button>
+    <button type="button" id="sendEmail">
+        Send Verification Email
+    </button>
+    <button type="button" id="getOAuthURL">Get OAuth URL</button>
+</form>
+<h2>Login Section</h2>
+<form id="loginForm">
+    <label for="loginEmail">Email:</label>
+    <input type="email" id="loginEmail" required />
+    <label for="loginPassword">Password:</label>
+    <input type="password" id="loginPassword" required />
+    <button type="submit">Login</button>
+</form>
+<script src="/index.js"></script>
 </body>
 </html>
