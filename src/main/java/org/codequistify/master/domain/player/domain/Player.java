@@ -4,8 +4,9 @@ import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
-import org.codequistify.master.domain.player.dto.PlayerDTO;
-import org.codequistify.master.domain.player.dto.SignInResponse;
+import org.codequistify.master.domain.player.dto.details.PlayerInfoResponse;
+import org.codequistify.master.domain.player.dto.sign.PlayerDTO;
+import org.codequistify.master.domain.player.dto.sign.SignInResponse;
 import org.codequistify.master.global.util.BaseTimeEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
@@ -42,25 +43,39 @@ public class Player extends BaseTimeEntity {
     @Column(name = "level")
     private Integer level;
 
+    // 비밀번호 암호화
     public void encodePassword(){
         this.password = new BCryptPasswordEncoder().encode(this.password);
     }
+    public void encodePassword(String password){
+        this.password = new BCryptPasswordEncoder().encode(password);
+    }
 
+    // 비밀번호 일치 판정
     public boolean decodePassword(String password){
         return new BCryptPasswordEncoder().matches(password, this.password);
     }
 
+    // OAuth 발급 AccessToken 설정
     public void updateOAuthAccessToken(String oAuthAccessToken) {
         this.oAuthAccessToken = oAuthAccessToken;
     }
 
+    // OAuth 발급 AccessToken 초기화
     public void clearOAuthAccessToken() {
         this.oAuthAccessToken = "";
     }
 
+    // OAuth 발급 RefreshToken 초기화
     public void clearRefreshToken() {
         this.refreshToken = "";
     }
+
+    public int increaseLevelPoint(int point) {
+        this.level += point;
+        return this.level;
+    }
+
 
     public PlayerDTO toPlayerDTO(){
         return new PlayerDTO(this.id, this.email, this.name, this.oAuthType, this.oAuthId, this.level);
@@ -68,6 +83,10 @@ public class Player extends BaseTimeEntity {
 
     public SignInResponse toSignInResponse() {
         return new SignInResponse(this.id, this.email, this.name, this.level);
+    }
+
+    public PlayerInfoResponse toPlayerInfoResponse() {
+        return new PlayerInfoResponse(this.id, this.email, this.name, this.level);
     }
 
     @Builder
