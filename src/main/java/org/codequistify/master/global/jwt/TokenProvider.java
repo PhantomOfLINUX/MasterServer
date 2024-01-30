@@ -4,7 +4,7 @@ import io.jsonwebtoken.*;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.player.dto.SignInResponse;
+import org.codequistify.master.domain.player.dto.sign.SignInResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;

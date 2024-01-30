@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.player.dto;
+package org.codequistify.master.domain.player.dto.sign;
 
 import org.codequistify.master.domain.player.domain.Player;
 

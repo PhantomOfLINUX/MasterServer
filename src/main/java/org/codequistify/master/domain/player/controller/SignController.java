@@ -11,12 +11,10 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.player.dto.LogOutRequest;
-import org.codequistify.master.domain.player.dto.PlayerDTO;
-import org.codequistify.master.domain.player.dto.SignInResponse;
-import org.codequistify.master.domain.player.dto.SignRequest;
+import org.codequistify.master.domain.player.dto.sign.LogOutRequest;
+import org.codequistify.master.domain.player.dto.sign.SignInResponse;
+import org.codequistify.master.domain.player.dto.sign.SignRequest;
 import org.codequistify.master.domain.player.service.impl.GoogleSocialSignService;
 import org.codequistify.master.domain.player.service.impl.KakaoSocialSignService;
 import org.codequistify.master.domain.player.service.impl.SignService;
@@ -33,8 +31,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin("*")
-@Tag(name = "Player")
+@Tag(name = "Sign")
 @RequestMapping("api")
 public class SignController {
     private final Logger LOGGER = LoggerFactory.getLogger(SignController.class);
@@ -85,7 +82,7 @@ public class SignController {
                     @ApiResponse(responseCode = "401", description = "만료된 Refresh Token")
             }
     )
-    @PostMapping("/refresh/id/{id}")
+    @PostMapping("refresh/id/{id}")
     public ResponseEntity<TokenResponse> regenerateAccessToken(@RequestBody TokenRequest request, @PathVariable Long id, HttpServletResponse response) {
         if (request.refreshToken().isBlank()) {
             LOGGER.info("[regenerateAccessToken] {} 빈 요청", id);

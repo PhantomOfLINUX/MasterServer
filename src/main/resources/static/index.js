@@ -31,7 +31,7 @@ document.getElementById("sendEmail").addEventListener("click", function () {
 });
 
 document.getElementById("getOAuthURL").addEventListener("click", function () {
-    const oauthUrl = "https://api.pol.or.kr:8080/api/oauth2/google-url";
+    const oauthUrl = "https://api.pol.or.kr/api/oauth2/google-url";
 
     fetch(oauthUrl, {
         headers: {

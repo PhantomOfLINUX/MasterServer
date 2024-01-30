@@ -5,11 +5,10 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.repository.PlayerRepository;
-import org.codequistify.master.domain.player.dto.LogOutRequest;
-import org.codequistify.master.domain.player.dto.PlayerDTO;
-import org.codequistify.master.domain.player.dto.SignInResponse;
-import org.codequistify.master.domain.player.dto.SignRequest;
-import org.codequistify.master.global.util.BasicResponse;
+import org.codequistify.master.domain.player.dto.sign.LogOutRequest;
+import org.codequistify.master.domain.player.dto.sign.PlayerDTO;
+import org.codequistify.master.domain.player.dto.sign.SignInResponse;
+import org.codequistify.master.domain.player.dto.sign.SignRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +18,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.client.RestTemplate;
 
 @Service
@@ -66,7 +64,7 @@ public class SignService {
         Player player = playerRepository.findByEmail(request.email())
                 .orElseThrow(() ->{
                     LOGGER.info("[signIn] 존재하지 않는 email 입니다.");
-                    return new EntityNotFoundException("존재하지 않는 email 입니다");
+                    return new IllegalArgumentException("email 또는 password가 잘못되었습니다");
                 });
 
         if (player.decodePassword(request.password())){
