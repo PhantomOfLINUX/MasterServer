@@ -2,7 +2,11 @@ package org.codequistify.master.yumin;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.time.DateUtils;
+import org.codequistify.master.yumin.domain.Task;
+import org.codequistify.master.yumin.domain.TaskRepository;
+import org.codequistify.master.yumin.domain.TodoList;
+import org.codequistify.master.yumin.domain.TodoListRepository;
+import org.codequistify.master.yumin.dto.ListSaveRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -10,6 +14,9 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class YuminService {
+    private final TaskRepository taskRepository;
+    private final TodoListRepository todoListRepository;
+
     private Date start;
     private Date end;
 
@@ -35,8 +42,6 @@ public class YuminService {
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
 
-        sb.append("yumin-");
-
         int k;
         char ch;
         for (int i = 0; i < 6; i++) {
@@ -50,34 +55,48 @@ public class YuminService {
                 sb.append(ch);
             }
         }
+
         return sb.toString();
     }
 
-    public List<Task> getTaskList(String code){
-        String pk = "";
+    public String saveTodoList(ListSaveRequest listSaveRequest) {
+        // code 발급
+        String code = generateCode(listSaveRequest.author());
 
-        if (code.equals("abc")) {
-            pk = "yumin-abc-";
-            List<Task> taskList = new ArrayList<>();
-            taskList.add(new Task(pk + "0","리액트 개념 공부하기", start, end, true));
-            taskList.add(new Task(pk + "1","TODO LIST 만들기", start, end, true));
-            taskList.add(new Task(pk + "2","GET 요청 실습하기", start, end, false));
-            taskList.add(new Task(pk + "3","POST 요청 실습하기", start, end, false));
-            taskList.add(new Task(pk + "4","http status code로 response 구분해보기", start, end, false));
-            return taskList;
+        // list 목록저장
+        TodoList todoList = new TodoList(code, listSaveRequest.author(), listSaveRequest.taskList().size());
+
+        todoListRepository.save(todoList);
+
+        List<Task> taskList = new ArrayList<>();
+        for (int i = 0; i < listSaveRequest.taskList().size(); i++) {
+            String idx = String.valueOf(i);
+            Task task = new Task(
+                    listSaveRequest.author() + "-" + code + "-" + idx,
+                    listSaveRequest.taskList().get(i).description(),
+                    listSaveRequest.taskList().get(i).startDate(),
+                    listSaveRequest.taskList().get(i).endDate(),
+                    listSaveRequest.taskList().get(i).isDone());
+            taskList.add(task);
         }
-        else if (code.equals("123")) {
-            pk = "yumin-123-";
-            List<Task> taskList = new ArrayList<>();
-            taskList.add(new Task(pk + "0", "리액트란 무엇인가", start, end, false));
-            taskList.add(new Task(pk + "1", "CORS란 무엇인가", start, end, false));
-            taskList.add(new Task(pk + "2","훅이란? 활용법 확인", start, end, false));
-            taskList.add(new Task(pk + "3","Fetch와 Axios 비교해보기", start, end, false));
-            return taskList;
-        }
-        else {
-            List<Task> taskList = new ArrayList<>();
-            return taskList;
-        }
+
+        taskRepository.saveAll(taskList);
+
+        return code;
+    }
+
+    public List<Task> getTaskList(String code) {
+
+        return taskRepository.findByIdContainingCode(code);
+    }
+
+    public String findAuthor(String code) {
+        TodoList todoList = todoListRepository.getReferenceById(code);
+
+        return todoList.getAuthor();
+    }
+
+    public List<TodoList> findTodoList() {
+        return todoListRepository.findAll();
     }
 }
