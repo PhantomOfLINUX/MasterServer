@@ -1,8 +1,11 @@
-package org.codequistify.master.yumin;
+package org.codequistify.master.yumin.dto;
+
+import org.codequistify.master.yumin.domain.Task;
 
 import java.util.Date;
+import java.util.List;
 
-public record Task(
+public record TaskDTO(
         String id,
         String description,
         Date startDate,
