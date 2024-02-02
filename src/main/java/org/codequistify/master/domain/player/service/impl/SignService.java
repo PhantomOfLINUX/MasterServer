@@ -4,7 +4,7 @@ import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.player.domain.repository.PlayerRepository;
+import org.codequistify.master.domain.player.repository.PlayerRepository;
 import org.codequistify.master.domain.player.dto.sign.LogOutRequest;
 import org.codequistify.master.domain.player.dto.sign.PlayerDTO;
 import org.codequistify.master.domain.player.dto.sign.SignInResponse;

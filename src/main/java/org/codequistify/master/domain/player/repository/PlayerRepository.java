@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.player.domain.repository;
+package org.codequistify.master.domain.player.repository;
 
 import org.codequistify.master.domain.player.domain.Player;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -3,7 +3,7 @@ package org.codequistify.master.domain.player.service.impl;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.player.domain.repository.PlayerRepository;
+import org.codequistify.master.domain.player.repository.PlayerRepository;
 import org.codequistify.master.domain.player.dto.details.ResetPasswordRequest;
 import org.codequistify.master.domain.player.dto.details.UpdateDetailsRequest;
 import org.slf4j.Logger;

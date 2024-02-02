@@ -2,7 +2,7 @@ package org.codequistify.master.domain.player.service.impl;
 
 import jakarta.persistence.EntityExistsException;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.player.domain.repository.PlayerRepository;
+import org.codequistify.master.domain.player.repository.PlayerRepository;
 import org.codequistify.master.domain.player.dto.sign.SignInResponse;
 import org.codequistify.master.domain.player.dto.sign.SignRequest;
 import org.junit.jupiter.api.Test;
