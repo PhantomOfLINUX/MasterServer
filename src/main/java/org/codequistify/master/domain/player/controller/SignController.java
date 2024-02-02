@@ -15,10 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.dto.sign.LogOutRequest;
 import org.codequistify.master.domain.player.dto.sign.SignInResponse;
 import org.codequistify.master.domain.player.dto.sign.SignRequest;
-import org.codequistify.master.domain.player.service.impl.GoogleSocialSignService;
-import org.codequistify.master.domain.player.service.impl.KakaoSocialSignService;
-import org.codequistify.master.domain.player.service.impl.SignService;
-import org.codequistify.master.domain.player.service.impl.VerifyMailService;
+import org.codequistify.master.domain.player.service.impl.*;
 import org.codequistify.master.global.jwt.TokenProvider;
 import org.codequistify.master.global.jwt.dto.TokenRequest;
 import org.codequistify.master.global.jwt.dto.TokenResponse;
@@ -37,6 +34,7 @@ public class SignController {
     private final Logger LOGGER = LoggerFactory.getLogger(SignController.class);
     private final GoogleSocialSignService googleSocialSignService;
     private final KakaoSocialSignService kakaoSocialSignService;
+    private final NaverSocialSignService naverSocialSignService;
     private final SignService signService;
     private final VerifyMailService verifyMailService;
     private final TokenProvider tokenProvider;
@@ -155,6 +153,27 @@ public class SignController {
         LOGGER.info("[TEST_socialSignInGoogle] {} 구글 로그인", signInResponse.email());
         return new ResponseEntity<>(signInResponse, HttpStatus.OK);
     }
+    @Operation(
+            summary = "TEST 네이버 로그인 요청",
+            description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'name'을 반환받는다."
+    )
+    @PostMapping("oauth2/naver/TEST")
+    public ResponseEntity<SignInResponse> TEST_socialSignInNaver(@RequestBody SignRequest request, HttpServletResponse response) {
+        if (request.code().isBlank()){
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        SignInResponse signInResponse = naverSocialSignService.socialLogin(request.code());
+
+        String refreshToken = tokenProvider.generateRefreshToken(signInResponse);
+        String accessToken = tokenProvider.generateAccessToken(signInResponse);
+
+        addAccessTokensToCookies(accessToken, response);
+        addRefreshTokensToCookies(refreshToken, response);
+        signService.updateRefreshToken(signInResponse.id(), refreshToken); // refresh token db에 저장
+
+        LOGGER.info("[TEST_socialSignInGoogle] {} 네이버 로그인", signInResponse.email());
+        return new ResponseEntity<>(signInResponse, HttpStatus.OK);
+    }
 
     @Operation(
             summary = "카카오 로그인 url 발급",
@@ -178,6 +197,15 @@ public class SignController {
 
         LOGGER.info("{} kakao 로그인", signInResponse.email());
         return new ResponseEntity<>(signInResponse, HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "네이버 로그인 url 발급",
+            description = "네이버 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다."
+    )
+    @GetMapping("oauth2/naver-url")
+    public String loginUrlNaver() {
+        return naverSocialSignService.getSocialSignInURL();
     }
 
     @Operation(
@@ -331,6 +359,15 @@ public class SignController {
     @GetMapping("oauth2/kakao")
     public SignInResponse kakaoLogin(@RequestParam String code) {
         SignInResponse response = kakaoSocialSignService.socialLogin(code);
+
+        return response;
+    }
+    //서버용인증
+    @GetMapping("auth/callback/naver")
+    @Operation(hidden = true)
+    public SignInResponse naverLogin(@RequestParam String code) {
+        LOGGER.info("code: {}", code);
+        SignInResponse response = naverSocialSignService.socialLogin(code);
 
         return response;
     }

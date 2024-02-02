@@ -6,6 +6,7 @@ public record OAuthResourceResponse(
         String id,
         String email,
         String name,
-        Map<String, String> properties
+        Map<String, String> properties,
+        Map<String, String> response
 ) {
 }

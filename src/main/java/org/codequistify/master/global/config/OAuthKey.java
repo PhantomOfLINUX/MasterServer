@@ -28,4 +28,16 @@ public class OAuthKey {
     private String KAKAO_TOKEN_URI;
     @Value("${oauth2.kakao.resource-uri}")
     private String KAKAO_RESOURCE_URI;
+
+    // Naver
+    @Value("${oauth2.naver.client-id}")
+    private String NAVER_CLIENT_ID;
+    @Value("${oauth2.naver.client-secret}")
+    private String NAVER_CLIENT_SECRET;
+    @Value("${oauth2.naver.redirect-uri}")
+    private String NAVER_REDIRECT_URI;
+    @Value("${oauth2.naver.token-uri}")
+    private String NAVER_TOKEN_URI;
+    @Value("${oauth2.naver.resource-uri}")
+    private String NAVER_RESOURCE_URI;
 }
