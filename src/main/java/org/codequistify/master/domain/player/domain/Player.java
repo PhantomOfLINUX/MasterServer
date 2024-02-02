@@ -1,9 +1,7 @@
 package org.codequistify.master.domain.player.domain;
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import org.codequistify.master.domain.player.dto.details.PlayerInfoResponse;
 import org.codequistify.master.domain.player.dto.sign.PlayerDTO;
 import org.codequistify.master.domain.player.dto.sign.SignInResponse;
@@ -13,9 +11,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @Entity
 @Getter
 @ToString
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Player extends BaseTimeEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "player_id")
     private Long id;
 
@@ -97,8 +95,5 @@ public class Player extends BaseTimeEntity {
         this.oAuthType = oAuthType;
         this.oAuthId = oAuthId;
         this.level = level;
-    }
-
-    public Player() {
     }
 }
