@@ -1,5 +1,6 @@
 package org.codequistify.master.global.filter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -7,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.global.jwt.TokenProvider;
+import org.codequistify.master.global.util.BasicResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,7 +21,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -62,10 +63,15 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
             }
         }
         else {
-            response.setHeader("Authorization", token);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("INVALID TOKEN");
-            LOGGER.info("INVALID TOKEN");
+
+            response.getWriter().write(
+                    new ObjectMapper().writeValueAsString(new BasicResponse(null, ""))
+            );
+
+            LOGGER.info("[TokenFilter] 올바르지 않은 토큰 정보입니다.");
             return;
         }
 
