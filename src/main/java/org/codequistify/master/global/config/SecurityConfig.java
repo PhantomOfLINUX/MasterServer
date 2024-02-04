@@ -29,8 +29,14 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 // 폼 로그인 비활성화
                 .formLogin(form -> form.disable())
+                .authorizeHttpRequests((authorize) -> authorize
+                        .requestMatchers("/api/refresh/").permitAll()
+                        .requestMatchers("/api/oauth2").permitAll()
+                        .anyRequest().authenticated())
+
                 // jwt 인증 토큰 설정
                 .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
+
 
         return http.build();
     }

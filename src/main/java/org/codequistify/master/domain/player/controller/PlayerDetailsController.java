@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Player")
-@RequestMapping("api/players")
+@RequestMapping("api/player")
 public class PlayerDetailsController {
     private final PlayerDetailsService playerDetailsService;
 
     private final Logger LOGGER = LoggerFactory.getLogger(PlayerDetailsController.class);
 
-    @PutMapping("player/{id}/password")
+    @PutMapping("{id}/password")
     public ResponseEntity<BasicResponse> resetPassword(@PathVariable Long id, @RequestBody ResetPasswordRequest request) {
         if (!request.id().equals(id)) {
             LOGGER.info("[resetPassword] 요청 id가 일치하지 않습니다 {} : {}", id, request.id());
@@ -35,7 +35,7 @@ public class PlayerDetailsController {
                 new BasicResponse("비밀번호가 재설정 되었습니다.", null), HttpStatus.OK);
     }
 
-    @PutMapping("player/{id}/level")
+    @PutMapping("{id}/level")
     public ResponseEntity<PlayerInfoResponse> addLevelPoint(@PathVariable Long id, @RequestBody UpdateDetailsRequest request) {
         if (!request.id().equals(id)) {
             LOGGER.info("[addLevelPoint] 요청 id가 일치하지 않습니다 {} : {}", id, request.id());
