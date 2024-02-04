@@ -10,4 +10,8 @@ public enum PlayerAccessType {
     PlayerAccessType(String permission) {
         this.permission = permission;
     }
+
+    public String getPermission() {
+        return permission;
+    }
 }

@@ -10,4 +10,8 @@ public enum PlayerRoleType {
     PlayerRoleType(String role) {
         this.role = role;
     }
+
+    public String getRole() {
+        return this.role;
+    }
 }
