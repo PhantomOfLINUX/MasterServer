@@ -1,5 +1,6 @@
 package org.codequistify.master.domain.player.dto.sign;
 
+import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
 
 public record SignRequest(
@@ -14,7 +15,7 @@ public record SignRequest(
                 .email(email)
                 .password(password)
                 .oAuthId("0")
-                .oAuthType("pol")
+                .oAuthType(OAuthType.POL)
                 .level(0).build();
     }
 }

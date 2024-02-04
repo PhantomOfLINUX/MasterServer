@@ -40,7 +40,13 @@ class SignServiceTest {
 
     @Test
     public void 중복_회원가입_실패(){
-        Player player = new Player("name", "email", "password", "pol", "", 0);
+        Player player = Player.builder()
+                .name("name")
+                .email("email")
+                .password("password")
+                .oAuthType("pol")
+                .oAuthId("")
+                .level(0).build();
         playerRepository.save(player);
 
         SignRequest request = new SignRequest(null, "name", "email", "password");

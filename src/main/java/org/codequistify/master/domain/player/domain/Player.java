@@ -1,18 +1,29 @@
 package org.codequistify.master.domain.player.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.codequistify.master.domain.player.dto.details.PlayerInfoResponse;
 import org.codequistify.master.domain.player.dto.sign.PlayerDTO;
 import org.codequistify.master.domain.player.dto.sign.SignInResponse;
 import org.codequistify.master.global.util.BaseTimeEntity;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Getter
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Player extends BaseTimeEntity{
+@AllArgsConstructor
+@Builder
+public class Player extends BaseTimeEntity implements UserDetails {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "player_id")
     private Long id;
@@ -24,13 +35,22 @@ public class Player extends BaseTimeEntity{
     private String email;
 
     @Column(name = "password")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @Column(name = "oauth_type")
-    private String oAuthType;
+    @Enumerated(EnumType.STRING)
+    private OAuthType oAuthType;
 
     @Column(name = "oauth_id")
     private String oAuthId;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Builder.Default
+    private List<String> roles = new ArrayList<>();
+
+    @Column(name = "locked")
+    private Boolean isLocked;
 
     // 수정 많음 테이블 분할 필요
 
@@ -42,6 +62,42 @@ public class Player extends BaseTimeEntity{
 
     @Column(name = "level")
     private Integer level;
+
+    @Override
+    public String getUsername() {
+        return this.name;
+    }
+
+    @Override
+    public String getPassword() {
+        return this.password;
+    }
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return this.roles.stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return !isLocked;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
 
     // 비밀번호 암호화
     public void encodePassword(){
@@ -86,15 +142,5 @@ public class Player extends BaseTimeEntity{
 
     public PlayerInfoResponse toPlayerInfoResponse() {
         return new PlayerInfoResponse(this.id, this.email, this.name, this.level);
-    }
-
-    @Builder
-    public Player(String name, String email, String password, String oAuthType, String oAuthId, Integer level) {
-        this.name = name;
-        this.email = email;
-        this.password = password;
-        this.oAuthType = oAuthType;
-        this.oAuthId = oAuthId;
-        this.level = level;
     }
 }
