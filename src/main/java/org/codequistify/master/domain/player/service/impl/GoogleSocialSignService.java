@@ -29,6 +29,7 @@ import java.util.Optional;
 public class GoogleSocialSignService implements SocialSignService {
     private final SignService signService;
     private final PlayerRepository playerRepository;
+    private final RestTemplate restTemplate;
     private final Logger LOGGER = LoggerFactory.getLogger(GoogleSocialSignService.class);
     private final OAuthKey oAuthKey;
 
@@ -84,8 +85,6 @@ public class GoogleSocialSignService implements SocialSignService {
     }
 
     private String getAccessToken(String code){
-        RestTemplate restTemplate = new RestTemplate();
-
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("code", code);
         body.add("client_id", oAuthKey.getGOOGLE_CLIENT_ID());
@@ -108,8 +107,6 @@ public class GoogleSocialSignService implements SocialSignService {
     }
 
     private OAuthResourceResponse getUserResource(String accessToken) {
-        RestTemplate restTemplate = new RestTemplate();
-
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
 
@@ -152,7 +149,6 @@ public class GoogleSocialSignService implements SocialSignService {
     }
     private String TEST_getAccessToken(String code){
         LOGGER.info("[TEST_getAccessToken] call {}", code);
-        RestTemplate restTemplate = new RestTemplate();
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("code", code);
@@ -179,7 +175,6 @@ public class GoogleSocialSignService implements SocialSignService {
     }
     private OAuthResourceResponse TEST_getUserResource(String accessToken) {
         LOGGER.info("[TEST_getUserResource] call");
-        RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);

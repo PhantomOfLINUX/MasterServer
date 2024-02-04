@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 @Service
 @RequiredArgsConstructor
 public class KakaoSocialSignService implements SocialSignService {
+    private final RestTemplate restTemplate;
     private final Logger LOGGER = LoggerFactory.getLogger(KakaoSocialSignService.class);
     private final OAuthKey oAuthKey;
     /*
@@ -47,8 +48,6 @@ public class KakaoSocialSignService implements SocialSignService {
     }
 
     private String getAccessToken(String code){
-        RestTemplate restTemplate = new RestTemplate();
-
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("code", code);
         body.add("client_id", oAuthKey.getKAKAO_CLIENT_ID());
@@ -70,8 +69,6 @@ public class KakaoSocialSignService implements SocialSignService {
     }
 
     private OAuthResourceResponse getUserResource(String accessToken) {
-        RestTemplate restTemplate = new RestTemplate();
-
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
 
