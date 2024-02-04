@@ -212,8 +212,8 @@ public class SignController {
             summary = "POL 자체 회원가입",
             description = "자체 회원가입이다. name, email, password를 필수로 입력받는다."
     )
-    @PostMapping("sign-up/pol")
-    public ResponseEntity<SignInResponse> polSignUp(@RequestBody SignRequest request, HttpServletResponse httpServletResponse){
+    @PostMapping("signup/pol")
+    public ResponseEntity<SignInResponse> SignUpPOL(@RequestBody SignRequest request, HttpServletResponse httpServletResponse){
         if(request.name().isBlank() || request.email().isBlank() || request.password().isBlank()){
             throw new IllegalArgumentException("email 또는 password, name이 비어있습니다.");
         }
@@ -227,7 +227,7 @@ public class SignController {
         addRefreshTokensToCookies(refreshToken, httpServletResponse);
         signService.updateRefreshToken(signInResponse.id(), refreshToken); // refresh token db에 저장
 
-        LOGGER.info("[polSignUp] {} pol 회원가입 ", signInResponse.id());
+        LOGGER.info("[SignUpPOL] {} pol 회원가입 ", signInResponse.id());
         return new ResponseEntity<>(signInResponse, HttpStatus.OK);
     }
 
@@ -235,8 +235,8 @@ public class SignController {
             summary = "POL 자체 로그인",
             description = "자체 로그인기능이다. name, password를 필수로 입력받는다."
     )
-    @PostMapping("sign-in/pol")
-    public ResponseEntity<SignInResponse> polSignIn(@RequestBody SignRequest request, HttpServletResponse httpServletResponse) {
+    @PostMapping("login/pol")
+    public ResponseEntity<SignInResponse> LogInPOL(@RequestBody SignRequest request, HttpServletResponse httpServletResponse) {
         if (request.email().isBlank() || request.password().isBlank()){
             throw new IllegalArgumentException("email 또는 password가 비어있습니다.");
         }
@@ -251,7 +251,7 @@ public class SignController {
         signService.updateRefreshToken(signInResponse.id(), refreshToken); // refresh token db에 저장
 
 
-        LOGGER.info("[polSignIn] {} pol 로그인", signInResponse.id());
+        LOGGER.info("[LogInPOL] {} pol 로그인", signInResponse.id());
         return new ResponseEntity<>(signInResponse, HttpStatus.OK);
     }
 
@@ -263,7 +263,7 @@ public class SignController {
                 @ApiResponse(responseCode = "401", description = "잘못된 토큰 정보")
             }
     )
-    @PostMapping("log-out")
+    @PostMapping("logout")
     public ResponseEntity<Void> LogOut(@RequestBody LogOutRequest request, HttpServletRequest httpServletRequest) {
         String token = tokenProvider.resolveToken(httpServletRequest);
 
@@ -298,7 +298,7 @@ public class SignController {
                                     schema = @Schema(implementation = BasicResponse.class),
                                     examples = @ExampleObject(value = "{\"error\":\"Already Exist This Email\"}")))}
     )
-    @GetMapping("sign-up/email/{email}")
+    @GetMapping("signup/email/{email}")
     public ResponseEntity<BasicResponse> checkEmailDuplication(@PathVariable String email){
         if (signService.checkEmailDuplication(email)){
             BasicResponse response = new BasicResponse(null, "Already Exist This Email");
@@ -313,7 +313,7 @@ public class SignController {
             summary = "회원가입 인증메일 발송",
             description = "회원가입 인증메일을 발송하는 요청이다. 응답값이 존재하지 않는 요청이다."
     )
-    @GetMapping("sign-up/email/{email}/verify")
+    @GetMapping("signup/email/{email}/verify")
     public ResponseEntity<Void> sendAuthMail(@PathVariable String email) throws MessagingException {
         verifyMailService.sendVerifyMail(email);
 
@@ -332,7 +332,7 @@ public class SignController {
                                             @ExampleObject(name = "올바른 코드", value = "{\"response\":\"true\"}"),
                                             @ExampleObject(name = "잘못된 코드", value = "{\"response\":\"false\"}")}))}
     )
-    @GetMapping("sign-up/email/{email}/code/{code}")
+    @GetMapping("signup/email/{email}/code/{code}")
     public ResponseEntity<BasicResponse> verifyCode(@PathVariable String email, @PathVariable String code){
         code = code.trim();
 
