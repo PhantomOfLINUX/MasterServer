@@ -27,12 +27,15 @@ public class SecurityConfig {
                 .addFilterBefore(customCorsFilter, CorsFilter.class)
                 // CSRF 비활성화
                 .csrf(csrf -> csrf.disable())
+                // Session 비활성화
+                .sessionManagement(session -> session.disable())
                 // 폼 로그인 비활성화
                 .formLogin(form -> form.disable())
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/api/refresh/").permitAll()
-                        .requestMatchers("/api/oauth2").permitAll()
-                        .requestMatchers("/api/signup/", "/api/login/", "/api/logout").permitAll()
+                        .requestMatchers("/home/**", "/swagger-ui/**", "v3/**", "api/todo-list").permitAll()
+                        .requestMatchers("/api/refresh/**").permitAll()
+                        .requestMatchers("/api/oauth2/**").permitAll()
+                        .requestMatchers("/api/signup/**", "/api/login/**", "/api/logout/**").permitAll()
                         .anyRequest().authenticated())
 
                 // jwt 인증 토큰 설정
