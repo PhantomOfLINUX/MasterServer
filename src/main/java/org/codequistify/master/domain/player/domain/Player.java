@@ -12,7 +12,10 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -27,6 +30,9 @@ public class Player extends BaseTimeEntity implements UserDetails {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "player_id")
     private Long id;
+
+    @Column(name = "uid")
+    private String uid; // pol 고유 식별 번호
 
     @Column(name = "name")
     private String name;
@@ -65,7 +71,7 @@ public class Player extends BaseTimeEntity implements UserDetails {
 
     @Override
     public String getUsername() {
-        return this.name;
+        return this.uid;
     }
 
     @Override
@@ -142,5 +148,50 @@ public class Player extends BaseTimeEntity implements UserDetails {
 
     public PlayerInfoResponse toPlayerInfoResponse() {
         return new PlayerInfoResponse(this.id, this.email, this.name, this.level);
+    }
+
+    @PrePersist
+    protected void onPrePersist() {
+        if (email != null && !email.isEmpty()) {
+            LocalDate today = LocalDate.now();
+            String formattedDate = today.format(DateTimeFormatter.ofPattern("yyMMddMM"));
+            StringBuilder sb = new StringBuilder();
+
+            sb.append("POL").append("-");
+
+            // 년도 변환
+            String year = formattedDate.substring(0, 2);
+            for (char digit : year.toCharArray()) {
+                if (digit == '0') {
+                    sb.append('0');
+                } else {
+                    sb.append((char) ('A' + digit - '1'));
+                }
+            }
+
+            // 월 변환
+            String month = formattedDate.substring(2, 4);
+            sb.append((char) ('A' + Integer.parseInt(month) - 1));
+
+            // 일 변환
+            String day = formattedDate.substring(4, 6);
+            int dayInt = Integer.parseInt(day);
+            if (dayInt <= 26) {
+                char dayChar = (char) ('A' + dayInt - 1);
+                sb.append(dayChar).append(Character.toLowerCase(dayChar));
+            } else {
+                sb.append("Z").append(dayInt - 26);
+            }
+
+            // 시간 변환
+            String hour = formattedDate.substring(6, 8);
+            sb.append((char) ('A' + Integer.parseInt(hour) - 1)).append("-");
+
+            // 이메일 변환
+            sb.append(Base64.getEncoder().withoutPadding().encodeToString(
+                    email.substring(0, email.indexOf('@')).getBytes()));
+
+            this.uid = sb.toString();
+        }
     }
 }

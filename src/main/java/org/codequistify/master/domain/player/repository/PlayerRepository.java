@@ -15,4 +15,6 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
     @Transactional
     @Query("UPDATE Player p SET p.refreshToken = :refreshToken WHERE p.id = :id")
     void updateRefreshToken(Long id, String refreshToken);
+
+    Player findByUid(String uid);
 }

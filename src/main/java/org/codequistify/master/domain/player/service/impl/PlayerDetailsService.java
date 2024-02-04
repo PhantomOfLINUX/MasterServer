@@ -24,7 +24,8 @@ public class PlayerDetailsService implements UserDetailsService {
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return null;
+        LOGGER.info("[loadUserByUsername] loadUserByUsernam: {}", username);
+        return playerRepository.findByUid(username);
     }
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
