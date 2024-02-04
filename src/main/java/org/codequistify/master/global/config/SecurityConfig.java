@@ -32,6 +32,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/api/refresh/").permitAll()
                         .requestMatchers("/api/oauth2").permitAll()
+                        .requestMatchers("/api/signup/", "/api/login/", "/api/logout").permitAll()
                         .anyRequest().authenticated())
 
                 // jwt 인증 토큰 설정

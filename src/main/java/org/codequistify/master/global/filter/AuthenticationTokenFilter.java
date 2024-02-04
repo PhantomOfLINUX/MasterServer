@@ -50,7 +50,7 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
         }
 
         String token = tokenProvider.resolveToken(request);
-        LOGGER.info("token : {}", token);
+        LOGGER.info("[TokenFilter] token: {}", token);
         Claims claims = tokenProvider.getClaims(token);
         if (claims != null && tokenProvider.checkExpire(claims)){
             String aud = claims.getAudience();
