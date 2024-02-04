@@ -2,9 +2,10 @@ package org.codequistify.master.domain.player.service.impl;
 
 import jakarta.persistence.EntityExistsException;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.player.repository.PlayerRepository;
 import org.codequistify.master.domain.player.dto.sign.SignInResponse;
 import org.codequistify.master.domain.player.dto.sign.SignRequest;
+import org.codequistify.master.domain.player.repository.PlayerRepository;
+import org.codequistify.master.domain.player.service.SignService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;

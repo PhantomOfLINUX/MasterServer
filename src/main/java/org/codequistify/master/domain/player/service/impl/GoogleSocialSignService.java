@@ -2,11 +2,12 @@ package org.codequistify.master.domain.player.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.player.repository.PlayerRepository;
 import org.codequistify.master.domain.player.dto.sign.OAuthResourceResponse;
 import org.codequistify.master.domain.player.dto.sign.OAuthTokenResponse;
 import org.codequistify.master.domain.player.dto.sign.PlayerDTO;
 import org.codequistify.master.domain.player.dto.sign.SignInResponse;
+import org.codequistify.master.domain.player.repository.PlayerRepository;
+import org.codequistify.master.domain.player.service.SignService;
 import org.codequistify.master.domain.player.service.SocialSignService;
 import org.codequistify.master.global.config.OAuthKey;
 import org.slf4j.Logger;

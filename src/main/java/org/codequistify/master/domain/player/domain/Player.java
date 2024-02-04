@@ -12,7 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @Getter
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Player extends BaseTimeEntity {
+public class Player extends BaseTimeEntity{
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "player_id")
     private Long id;
@@ -31,6 +31,8 @@ public class Player extends BaseTimeEntity {
 
     @Column(name = "oauth_id")
     private String oAuthId;
+
+    // 수정 많음 테이블 분할 필요
 
     @Column(name = "oauth_access_token")
     private String oAuthAccessToken;
@@ -73,7 +75,6 @@ public class Player extends BaseTimeEntity {
         this.level += point;
         return this.level;
     }
-
 
     public PlayerDTO toPlayerDTO(){
         return new PlayerDTO(this.id, this.email, this.name, this.oAuthType, this.oAuthId, this.level);
