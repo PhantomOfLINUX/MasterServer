@@ -1,6 +1,7 @@
 package org.codequistify.master.domain.player.service.impl;
 
 import jakarta.persistence.EntityExistsException;
+import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.sign.LogInResponse;
 import org.codequistify.master.domain.player.dto.sign.SignRequest;
@@ -44,7 +45,7 @@ class SignServiceTest {
                 .name("name")
                 .email("email")
                 .password("password")
-                .oAuthType("pol")
+                .oAuthType(OAuthType.POL)
                 .oAuthId("")
                 .level(0).build();
         playerRepository.save(player);
