@@ -3,21 +3,17 @@ package org.codequistify.master.domain.player.domain;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
-import org.codequistify.master.domain.player.dto.details.PlayerInfoResponse;
-import org.codequistify.master.domain.player.dto.sign.PlayerDTO;
-import org.codequistify.master.domain.player.dto.sign.SignInResponse;
 import org.codequistify.master.global.util.BaseTimeEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
-import java.time.LocalDate;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
@@ -138,60 +134,68 @@ public class Player extends BaseTimeEntity implements UserDetails {
         return this.level;
     }
 
-    public PlayerDTO toPlayerDTO(){
-        return new PlayerDTO(this.id, this.email, this.name, this.oAuthType, this.oAuthId, this.level);
-    }
-
-    public SignInResponse toSignInResponse() {
-        return new SignInResponse(this.id, this.email, this.name, this.level);
-    }
-
-    public PlayerInfoResponse toPlayerInfoResponse() {
-        return new PlayerInfoResponse(this.id, this.email, this.name, this.level);
+    public void addRoles(List<PlayerRoleType> roles, List<PlayerAccessType> permissions) {
+        for (PlayerRoleType role : roles) {
+            this.roles.add(role.getRole());
+        }
+        for (PlayerAccessType permission : permissions) {
+            this.roles.add(permission.getPermission());
+        }
     }
 
     @PrePersist
     protected void onPrePersist() {
         if (email != null && !email.isEmpty()) {
-            LocalDate today = LocalDate.now();
-            String formattedDate = today.format(DateTimeFormatter.ofPattern("yyMMddMM"));
-            StringBuilder sb = new StringBuilder();
-
-            sb.append("POL").append("-");
-
-            // 년도 변환
-            String year = formattedDate.substring(0, 2);
-            for (char digit : year.toCharArray()) {
-                if (digit == '0') {
-                    sb.append('0');
-                } else {
-                    sb.append((char) ('A' + digit - '1'));
-                }
-            }
-
-            // 월 변환
-            String month = formattedDate.substring(2, 4);
-            sb.append((char) ('A' + Integer.parseInt(month) - 1));
-
-            // 일 변환
-            String day = formattedDate.substring(4, 6);
-            int dayInt = Integer.parseInt(day);
-            if (dayInt <= 26) {
-                char dayChar = (char) ('A' + dayInt - 1);
-                sb.append(dayChar).append(Character.toLowerCase(dayChar));
-            } else {
-                sb.append("Z").append(dayInt - 26);
-            }
-
-            // 시간 변환
-            String hour = formattedDate.substring(6, 8);
-            sb.append((char) ('A' + Integer.parseInt(hour) - 1)).append("-");
-
-            // 이메일 변환
-            sb.append(Base64.getEncoder().withoutPadding().encodeToString(
-                    email.substring(0, email.indexOf('@')).getBytes()));
-
-            this.uid = sb.toString();
+            this.uid = generateUID();
         }
+        addRoles(Arrays.asList(PlayerRoleType.PLAYER), Arrays.asList(PlayerAccessType.BASIC_PROBLEMS_ACCESS));
+    }
+
+    private String generateUID() {
+        LocalDateTime now = LocalDateTime.now();
+        String formattedDate = now.format(DateTimeFormatter.ofPattern("yyMMddHH"));
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("POL").append("-");
+
+        // 년도 변환
+        String year = formattedDate.substring(0, 2);
+        for (char digit : year.toCharArray()) {
+            if (digit == '0') {
+                sb.append('0');
+            } else {
+                sb.append((char) ('A' + digit - '1'));
+            }
+        }
+
+        // 월 변환
+        String month = formattedDate.substring(2, 4);
+        sb.append((char) ('A' + Integer.parseInt(month) - 1));
+
+        // 일 변환
+        String day = formattedDate.substring(4, 6);
+        int dayInt = Integer.parseInt(day);
+        if (dayInt <= 26) {
+            char dayChar = (char) ('A' + dayInt - 1);
+            sb.append(dayChar).append(Character.toLowerCase(dayChar));
+        } else {
+            sb.append("Z").append(dayInt - 26);
+        }
+
+        // 시간 변환
+        String hour = formattedDate.substring(6, 8);
+        sb.append((char) ('a' + Integer.parseInt(hour) - 1));
+
+        // 이메일 변환
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(email.getBytes());
+
+            sb.append("-").append(Base64.getEncoder().withoutPadding().encodeToString(md.digest()).substring(0,10));
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+
+        return sb.toString();
     }
 }

@@ -4,7 +4,7 @@ import io.jsonwebtoken.*;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.player.dto.sign.SignInResponse;
+import org.codequistify.master.domain.player.dto.sign.LogInResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,15 +31,13 @@ public class TokenProvider {
         KEY = new SecretKeySpec(JWT_SECRET.getBytes(StandardCharsets.UTF_8), SignatureAlgorithm.HS256.getJcaName());
     }
 
-    public String generateAccessToken(SignInResponse response){
+    public String generateAccessToken(LogInResponse response){
         Claims claims = Jwts.claims();
-        claims.put("name", response.name());
-        claims.put("id", response.id());
         Date now = new Date();
 
         String token = Jwts.builder()
                 .setClaims(claims)
-                .setAudience(response.email())
+                .setAudience(response.uid())
                 .setIssuedAt(now)
                 .setIssuer(ISS)
                 .setExpiration(new Date(now.getTime() + ACCESS_VALIDITY_TIME))
@@ -50,15 +48,13 @@ public class TokenProvider {
         return token;
     }
 
-    public String generateRefreshToken(SignInResponse response){
+    public String generateRefreshToken(LogInResponse response){
         Claims claims = Jwts.claims();
-        claims.put("name", response.name());
-        claims.put("id", response.id());
         Date now = new Date();
 
         String token = Jwts.builder()
                 .setClaims(claims)
-                .setAudience(response.email())
+                .setAudience(response.uid())
                 .setIssuedAt(now)
                 .setIssuer(ISS)
                 .setExpiration(new Date(now.getTime() + REFRESH_VALIDITY_TIME))
