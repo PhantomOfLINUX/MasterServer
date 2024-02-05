@@ -7,9 +7,11 @@ import org.hibernate.annotations.ColumnDefault;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "stage")
+@Getter
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -36,4 +38,17 @@ public class Stage extends BaseTimeEntity {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "stage_id")
     private List<Question> questions = new ArrayList<>();
+
+    @PostPersist
+    protected void onPostPersist() {
+        this.questions = questions.stream()
+                .peek(question -> {
+                    String id = this.id +
+                            "-" +
+                            String.format("%02d", question.getIndex()) +
+                            "-" +
+                            question.getAnswerType().getCode();
+                    question.setId(id);
+                }).collect(Collectors.toList());
+    }
 }

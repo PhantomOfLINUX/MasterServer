@@ -39,11 +39,19 @@ public class Question extends BaseTimeEntity {
     @Builder.Default
     private List<String> options = new ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "stage_id")
+    private Stage stage;
+
     public List<String> getOptions() {
         return this.options;
     }
 
-
-
+    public void setId(String id) {
+        this.id = id;
+    }
+    public void setIndex(int index) {
+        this.index = index;
+    }
 
 }
