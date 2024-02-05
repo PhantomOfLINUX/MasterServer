@@ -3,7 +3,7 @@ package org.codequistify.master.domain.stage.domain;
 import lombok.Getter;
 
 @Getter
-public enum DifficultyLevel {
+public enum DifficultyLevelType {
     VERY_EASY(1),
     EASY(2),
     NORMAL(3),
@@ -11,7 +11,7 @@ public enum DifficultyLevel {
     VERY_HARD(5);
 
     private final int level;
-    DifficultyLevel(int level) {
+    DifficultyLevelType(int level) {
         this.level = level;
     }
 }
