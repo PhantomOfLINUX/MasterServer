@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.player.domain.repository;
+package org.codequistify.master.domain.player.repository;
 
 import org.codequistify.master.domain.player.domain.Player;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,6 +13,9 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
 
     @Modifying
     @Transactional
-    @Query("UPDATE Player p SET p.refreshToken = :refreshToken WHERE p.id = :id")
-    void updateRefreshToken(Long id, String refreshToken);
+    @Query("UPDATE Player p SET p.refreshToken = :refreshToken WHERE p.uid = :uid")
+    void updateRefreshToken(String uid, String refreshToken);
+
+    Player getPlayerByUid(String uid);
+    Optional<Player> findByUid(String uid);
 }

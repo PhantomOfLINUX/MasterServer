@@ -1,9 +1,9 @@
 package org.codequistify.master.domain.player.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.player.dto.sign.LogInResponse;
 import org.codequistify.master.domain.player.dto.sign.OAuthResourceResponse;
 import org.codequistify.master.domain.player.dto.sign.OAuthTokenResponse;
-import org.codequistify.master.domain.player.dto.sign.SignInResponse;
 import org.codequistify.master.domain.player.service.SocialSignService;
 import org.codequistify.master.global.config.OAuthKey;
 import org.slf4j.Logger;
@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 @Service
 @RequiredArgsConstructor
 public class KakaoSocialSignService implements SocialSignService {
+    private final RestTemplate restTemplate;
     private final Logger LOGGER = LoggerFactory.getLogger(KakaoSocialSignService.class);
     private final OAuthKey oAuthKey;
     /*
@@ -37,7 +38,7 @@ public class KakaoSocialSignService implements SocialSignService {
     code를 통한 소셜 로그인
      */
     @Override
-    public SignInResponse socialLogin(String code) {
+    public LogInResponse socialLogin(String code) {
         String accessToken = getAccessToken(code);
         OAuthResourceResponse response = getUserResource(accessToken);
 
@@ -47,8 +48,6 @@ public class KakaoSocialSignService implements SocialSignService {
     }
 
     private String getAccessToken(String code){
-        RestTemplate restTemplate = new RestTemplate();
-
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("code", code);
         body.add("client_id", oAuthKey.getKAKAO_CLIENT_ID());
@@ -70,8 +69,6 @@ public class KakaoSocialSignService implements SocialSignService {
     }
 
     private OAuthResourceResponse getUserResource(String accessToken) {
-        RestTemplate restTemplate = new RestTemplate();
-
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
 

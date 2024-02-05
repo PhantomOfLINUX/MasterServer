@@ -13,19 +13,19 @@
 
 <div style="max-width: 600px; text-align: center; margin: 50px auto; background-color: #ffffff; padding: 20px; border-radius: 5px; box-shadow: 0px 2px 10px rgba(0,0,0,0.1);">
     <div style="text-align: center;">
-        <img src="" alt="POL Logo" style="max-width: 200px;">
+        <img src="/static/POL.webp" alt="POL Logo" style="width: 25%; height: 80px; object-fit: cover; object-position: center 50%;">
     </div>
-    <h2 style="text-align: center; color: #657eff; margin-top: 0; font-weight: bolder">POL Auth Code</h2>
+    <h2 style="text-align: center; color: #E7322D; margin-top: 0; font-weight: bolder">POL Auth Code</h2>
     <p style="color: #666666; font-size: 16px; line-height: 1.5; margin-bottom: 20px;">
         POL 회원가입 인증메일입니다.<br>다음 코드 8자리를 인증칸에 입력해주세요.
     </p>
 
     <div style="text-align: center; margin-bottom: 30px;">
-        <p th:text="${authCode}" style="text-decoration: none; display: inline-block; padding: 10px 20px; border-radius: 5px; background-color: #657eff; color: #ffffff; font-size: 18px; letter-spacing: 0.1em">
+        <p th:text="${authCode}" style="text-decoration: none; display: inline-block; padding: 10px 20px; border-radius: 5px; background-color: #E7322D; color: #ffffff; font-size: 18px; letter-spacing: 0.1em">
         </p>
     </div>
 
-    <p style="color: #666666; font-size: 16px; line-height: 1.5;">인증메일에 문제가 있는 경우 <a th:href="@{'http://api.pol.or.kr:8080/api/sign-up/mail/' + ${email}}" href="#" style="text-decoration: none; color: #657eff">재발송</a>을 눌러주세요.</p>
+    <p style="color: #666666; font-size: 16px; line-height: 1.5;">인증메일에 문제가 있는 경우 <a th:href="@{'http://api.pol.or.kr:8080/api/sign-up/mail/' + ${email}}" href="#" style="text-decoration: none; color: #E7322D">재발송</a>을 눌러주세요.</p>
 
     <p style="color: #666666; font-size: 16px; line-height: 1.5; margin-top: 30px;">감사합니다.</p>
     <hr>

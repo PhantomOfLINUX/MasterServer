@@ -1,6 +1,5 @@
 package org.codequistify.master.yumin;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.yumin.domain.Task;
 import org.codequistify.master.yumin.domain.TaskRepository;
@@ -9,34 +8,15 @@ import org.codequistify.master.yumin.domain.TodoListRepository;
 import org.codequistify.master.yumin.dto.ListSaveRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
 public class YuminService {
     private final TaskRepository taskRepository;
     private final TodoListRepository todoListRepository;
-
-    private Date start;
-    private Date end;
-
-    @PostConstruct
-    private void serDate(){
-        Calendar calendar = Calendar.getInstance();
-
-        // 1월 1일 설정
-        calendar.set(Calendar.YEAR, 2024);
-        calendar.set(Calendar.MONTH, Calendar.JANUARY);
-        calendar.set(Calendar.DAY_OF_MONTH, 1);
-        this.start = calendar.getTime();
-
-        // 3월 1일 설정
-        calendar.set(Calendar.MONTH, Calendar.MARCH);
-        calendar.set(Calendar.DAY_OF_MONTH, 1);
-        this.end = calendar.getTime();
-
-        System.out.println(generateCode("yumin"));
-    }
 
     private static String generateCode(String username) {
         StringBuilder sb = new StringBuilder();
