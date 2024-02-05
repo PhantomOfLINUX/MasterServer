@@ -30,7 +30,7 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
     private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationTokenFilter.class);
 
     private final List<String> antMatchURIs = Arrays.asList(
-            "/home/", "/swagger-ui/", "/v3/", "/api/todo-list",
+            "/home", "/swagger-ui/", "/v3/", "/api/todo-list", "/favicon.ico",
             "/api/oauth2/", "/api/refresh/",
             "/api/signup/", "/api/login/", "/api/logout/"
     );
