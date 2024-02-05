@@ -25,7 +25,7 @@ public class PlayerDetailsService implements UserDetailsService {
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         LOGGER.info("[loadUserByUsername] loadUserByUsernam: {}", username);
-        return playerRepository.findByUid(username);
+        return playerRepository.getPlayerByUid(username);
     }
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {

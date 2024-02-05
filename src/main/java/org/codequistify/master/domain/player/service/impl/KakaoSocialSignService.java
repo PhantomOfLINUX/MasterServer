@@ -1,9 +1,9 @@
 package org.codequistify.master.domain.player.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.player.dto.sign.LogInResponse;
 import org.codequistify.master.domain.player.dto.sign.OAuthResourceResponse;
 import org.codequistify.master.domain.player.dto.sign.OAuthTokenResponse;
-import org.codequistify.master.domain.player.dto.sign.SignInResponse;
 import org.codequistify.master.domain.player.service.SocialSignService;
 import org.codequistify.master.global.config.OAuthKey;
 import org.slf4j.Logger;
@@ -38,7 +38,7 @@ public class KakaoSocialSignService implements SocialSignService {
     code를 통한 소셜 로그인
      */
     @Override
-    public SignInResponse socialLogin(String code) {
+    public LogInResponse socialLogin(String code) {
         String accessToken = getAccessToken(code);
         OAuthResourceResponse response = getUserResource(accessToken);
 

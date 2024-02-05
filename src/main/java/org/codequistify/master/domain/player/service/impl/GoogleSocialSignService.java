@@ -1,15 +1,13 @@
 package org.codequistify.master.domain.player.service.impl;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.player.converter.PlayerConverter;
 import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.dto.sign.LogInResponse;
 import org.codequistify.master.domain.player.dto.sign.OAuthResourceResponse;
 import org.codequistify.master.domain.player.dto.sign.OAuthTokenResponse;
-import org.codequistify.master.domain.player.dto.sign.PlayerDTO;
-import org.codequistify.master.domain.player.dto.sign.SignInResponse;
 import org.codequistify.master.domain.player.repository.PlayerRepository;
-import org.codequistify.master.domain.player.service.SignService;
 import org.codequistify.master.domain.player.service.SocialSignService;
 import org.codequistify.master.global.config.OAuthKey;
 import org.slf4j.Logger;
@@ -31,9 +29,10 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class GoogleSocialSignService implements SocialSignService {
-    private final SignService signService;
     private final PlayerRepository playerRepository;
     private final RestTemplate restTemplate;
+
+    private final PlayerConverter playerConverter;
     private final Logger LOGGER = LoggerFactory.getLogger(GoogleSocialSignService.class);
     private final OAuthKey oAuthKey;
 
@@ -54,7 +53,7 @@ public class GoogleSocialSignService implements SocialSignService {
      */
     @Override
     @Transactional
-    public SignInResponse socialLogin(String code) {
+    public LogInResponse socialLogin(String code) {
         String accessToken = getAccessToken(code);
         OAuthResourceResponse resource = getUserResource(accessToken);
 
@@ -66,21 +65,13 @@ public class GoogleSocialSignService implements SocialSignService {
         Player player;
         if (playerOptional.isEmpty()) {
             LOGGER.info("등록되지 않은 구글 계정 {}", resource.email());
-            signService.signUpBySocial(new PlayerDTO(
-                    null,
-                    resource.email(),
-                    resource.name(),
-                    OAuthType.GOOGLE,
-                    resource.id(),
-                    0)
+            player = playerRepository.save(
+                    Player.builder()
+                            .name(resource.name())
+                            .email(resource.email())
+                            .oAuthType(OAuthType.GOOGLE)
+                            .oAuthId(resource.id()).build()
             );
-
-            player = playerRepository.findByEmail(resource.email())
-                    .orElseThrow(() -> {
-                        LOGGER.info("[socialLogin] 등록되지 않은 구글 계정 {}", resource.email());
-                        return new EntityNotFoundException("존재하지 않는 email 입니다.");
-                    });
-
             LOGGER.info("[socialLogin] 등록");
         } else {
             player = playerOptional.get();
@@ -90,7 +81,7 @@ public class GoogleSocialSignService implements SocialSignService {
 
         playerRepository.save(player);
 
-        SignInResponse response = player.toSignInResponse();
+        LogInResponse response = playerConverter.convert(player);
         LOGGER.info("[socialLogin] {} 구글 로그인", player.getEmail());
 
         return response;

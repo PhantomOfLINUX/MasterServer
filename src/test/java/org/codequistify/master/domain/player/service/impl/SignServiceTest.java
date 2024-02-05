@@ -2,7 +2,7 @@ package org.codequistify.master.domain.player.service.impl;
 
 import jakarta.persistence.EntityExistsException;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.player.dto.sign.SignInResponse;
+import org.codequistify.master.domain.player.dto.sign.LogInResponse;
 import org.codequistify.master.domain.player.dto.sign.SignRequest;
 import org.codequistify.master.domain.player.repository.PlayerRepository;
 import org.codequistify.master.domain.player.service.SignService;
@@ -31,7 +31,7 @@ class SignServiceTest {
     @Test
     public void 회원가입_성공_POL(){
         SignRequest request = new SignRequest(null, "name", "email", "password");
-        SignInResponse result = signService.signUp(request);
+        LogInResponse result = signService.signUp(request);
 
         assertNotNull(result);
         assertEquals(request.name(), result.name());
