@@ -302,10 +302,10 @@ public class SignController {
     @GetMapping("signup/email/{email}")
     public ResponseEntity<BasicResponse> checkEmailDuplication(@PathVariable String email){
         if (signService.checkEmailDuplication(email)){
-            BasicResponse response = new BasicResponse(null, "Already Exist This Email");
+            BasicResponse response = new BasicResponse(null, "이미 존재하는 이메일입니다.");
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-        }else {
-            BasicResponse response = new BasicResponse("Non Exist This Email", null);
+        } else {
+            BasicResponse response = new BasicResponse("사용가능한 이메일입니다.", null);
             return new ResponseEntity<>(response, HttpStatus.OK);
         }
     }
