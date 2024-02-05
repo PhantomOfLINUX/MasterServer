@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.player.domain.PlayerRoleType;
 import org.codequistify.master.global.jwt.TokenProvider;
 import org.codequistify.master.global.util.BasicResponse;
 import org.slf4j.Logger;
@@ -19,7 +20,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -29,25 +29,10 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
     private final TokenProvider tokenProvider;
     private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationTokenFilter.class);
 
-    private final ArrayList<String> allowedPaths = new ArrayList<>(List.of(
-            "/api/admin/",
-            "/api/stage/"));
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String path = request.getRequestURI();
         LOGGER.info("host: {}, path: {}", request.getRemoteHost(), path);
-        boolean isAllowed = false;
-
-        for (String allowedPath : allowedPaths) {
-            if (path.startsWith(allowedPath)) {
-                isAllowed = true;
-                break;
-            }
-        }
-        if (!isAllowed) { //동록되지 않은 path는 통과
-            filterChain.doFilter(request, response);
-            return;
-        }
 
         String token = tokenProvider.resolveToken(request);
         LOGGER.info("[TokenFilter] token: {}", token);
@@ -56,7 +41,7 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
             String aud = claims.getAudience();
 
             if (aud != null && !aud.isBlank()) {
-                List<GrantedAuthority> authorities = Arrays.asList(new SimpleGrantedAuthority("ROLE_USER"));
+                List<GrantedAuthority> authorities = Arrays.asList(new SimpleGrantedAuthority(PlayerRoleType.PLAYER.getRole()));
                 UsernamePasswordAuthenticationToken auth
                         = new UsernamePasswordAuthenticationToken(aud, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(auth);
