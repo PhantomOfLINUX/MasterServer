@@ -20,10 +20,10 @@ public class PlayerDetailsController {
 
     private final Logger LOGGER = LoggerFactory.getLogger(PlayerDetailsController.class);
 
-    @PutMapping("{id}/password")
-    public ResponseEntity<BasicResponse> resetPassword(@PathVariable Long id, @RequestBody ResetPasswordRequest request) {
-        if (!request.id().equals(id)) {
-            LOGGER.info("[resetPassword] 요청 id가 일치하지 않습니다 {} : {}", id, request.id());
+    @PutMapping("{uid}/password")
+    public ResponseEntity<BasicResponse> resetPassword(@PathVariable String uid, @RequestBody ResetPasswordRequest request) {
+        if (!request.uid().equals(uid)) {
+            LOGGER.info("[resetPassword] 요청 id가 일치하지 않습니다 {} : {}", uid, request.uid());
             throw new IllegalArgumentException("요청된 id가 일치하지 않습니다");
         }
 
