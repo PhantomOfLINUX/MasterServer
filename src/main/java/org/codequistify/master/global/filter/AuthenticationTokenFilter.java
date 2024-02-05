@@ -29,10 +29,23 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
     private final TokenProvider tokenProvider;
     private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationTokenFilter.class);
 
+    private final List<String> antMatchURIs = Arrays.asList(
+            "/home/", "/swagger-ui/", "/v3/", "/api/todo-list",
+            "/api/oauth2/", "/api/refresh/",
+            "/api/signup/", "/api/login/", "/api/logout/"
+    );
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String path = request.getRequestURI();
         LOGGER.info("host: {}, path: {}", request.getRemoteHost(), path);
+
+        for (String antMatchURI : antMatchURIs) {
+            if (path.startsWith(antMatchURI)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+        }
 
         String token = tokenProvider.resolveToken(request);
         LOGGER.info("[TokenFilter] token: {}", token);
@@ -53,7 +66,7 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
             response.getWriter().write(
-                    new ObjectMapper().writeValueAsString(new BasicResponse(null, ""))
+                    new ObjectMapper().writeValueAsString(new BasicResponse(null, "올바르지 않은 토큰 정보입니다."))
             );
 
             LOGGER.info("[TokenFilter] 올바르지 않은 토큰 정보입니다.");
