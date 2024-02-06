@@ -1,12 +1,10 @@
 package org.codequistify.master.domain.player.service;
 
 import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.converter.PlayerConverter;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.sign.LogInResponse;
-import org.codequistify.master.domain.player.dto.sign.LogOutRequest;
 import org.codequistify.master.domain.player.dto.sign.SignRequest;
 import org.codequistify.master.domain.player.repository.PlayerRepository;
 import org.slf4j.Logger;
@@ -60,14 +58,8 @@ public class SignService {
     }
 
     @Transactional
-    public void LogOut(LogOutRequest request, String token) {
-        Player player = playerRepository.findByUid(request.uid())
-                .orElseThrow(() -> {
-                    LOGGER.info("[LogOut] 존재하지 않는 id 입니다.");
-                    return new EntityNotFoundException("존재하지 않는 id 입니다");
-                });
-
-        if (!player.getOAuthAccessToken().isBlank()) {
+    public void LogOut(Player player) {
+        if (player.getOAuthAccessToken() != null && !player.getOAuthAccessToken().isBlank()) {
             revokeTokenForGoogle(player.getOAuthAccessToken());
             player.clearOAuthAccessToken();
         }
@@ -75,7 +67,6 @@ public class SignService {
         player.clearRefreshToken();
 
         playerRepository.save(player);
-        LOGGER.info("{LogOut] {} 로그아웃", request.uid());
     }
 
     private void revokeTokenForGoogle(String token) {
