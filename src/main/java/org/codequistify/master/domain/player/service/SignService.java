@@ -1,12 +1,10 @@
 package org.codequistify.master.domain.player.service;
 
 import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.converter.PlayerConverter;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.sign.LogInResponse;
-import org.codequistify.master.domain.player.dto.sign.LogOutRequest;
 import org.codequistify.master.domain.player.dto.sign.SignRequest;
 import org.codequistify.master.domain.player.repository.PlayerRepository;
 import org.slf4j.Logger;
@@ -29,7 +27,7 @@ public class SignService {
 
     @Transactional
     public LogInResponse signUp(SignRequest request) {
-        if (playerRepository.findByEmail(request.email()).isPresent()){
+        if (playerRepository.findByEmail(request.email()).isPresent()) {
             LOGGER.info("[signUp] 이미 존재하는 email 입니다.");
             throw new EntityExistsException("이미 존재하는 email입니다.");
         }
@@ -47,27 +45,21 @@ public class SignService {
     @Transactional
     public LogInResponse signIn(SignRequest request) {
         Player player = playerRepository.findByEmail(request.email())
-                .orElseThrow(() ->{
+                .orElseThrow(() -> {
                     LOGGER.info("[signIn] 존재하지 않는 email 입니다.");
                     return new IllegalArgumentException("email 또는 password가 잘못되었습니다");
                 });
 
-        if (player.decodePassword(request.password())){
+        if (player.decodePassword(request.password())) {
             return playerConverter.convert(player);
-        }else {
+        } else {
             throw new IllegalArgumentException("email 또는 password가 잘못되었습니다");
         }
     }
 
     @Transactional
-    public void LogOut(LogOutRequest request, String token) {
-        Player player = playerRepository.findByUid(request.uid())
-                .orElseThrow(() -> {
-                    LOGGER.info("[LogOut] 존재하지 않는 id 입니다.");
-                    return new EntityNotFoundException("존재하지 않는 id 입니다");
-                });
-
-        if (!player.getOAuthAccessToken().isBlank()) {
+    public void LogOut(Player player) {
+        if (player.getOAuthAccessToken() != null && !player.getOAuthAccessToken().isBlank()) {
             revokeTokenForGoogle(player.getOAuthAccessToken());
             player.clearOAuthAccessToken();
         }
@@ -75,7 +67,6 @@ public class SignService {
         player.clearRefreshToken();
 
         playerRepository.save(player);
-        LOGGER.info("{LogOut] {} 로그아웃", request.uid());
     }
 
     private void revokeTokenForGoogle(String token) {
@@ -94,7 +85,7 @@ public class SignService {
         }
     }
 
-    public boolean checkEmailDuplication(String email){
+    public boolean checkEmailDuplication(String email) {
         return playerRepository.findByEmail(email).isPresent();
     }
 

@@ -17,5 +17,6 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
     void updateRefreshToken(String uid, String refreshToken);
 
     Player getPlayerByUid(String uid);
+
     Optional<Player> findByUid(String uid);
 }

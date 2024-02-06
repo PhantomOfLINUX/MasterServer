@@ -23,17 +23,18 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Builder
 public class Player extends BaseTimeEntity implements UserDetails {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "player_id")
     private Long id;
 
-    @Column(name = "uid")
+    @Column(name = "uid", unique = true)
     private String uid; // pol 고유 식별 번호
 
     @Column(name = "name")
     private String name;
 
-    @Column(name = "email")
+    @Column(name = "email", unique = true)
     private String email;
 
     @Column(name = "password")
@@ -74,6 +75,7 @@ public class Player extends BaseTimeEntity implements UserDetails {
     public String getPassword() {
         return this.password;
     }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return this.roles.stream()
@@ -102,15 +104,16 @@ public class Player extends BaseTimeEntity implements UserDetails {
     }
 
     // 비밀번호 암호화
-    public void encodePassword(){
+    public void encodePassword() {
         this.password = new BCryptPasswordEncoder().encode(this.password);
     }
-    public void encodePassword(String password){
+
+    public void encodePassword(String password) {
         this.password = new BCryptPasswordEncoder().encode(password);
     }
 
     // 비밀번호 일치 판정
-    public boolean decodePassword(String password){
+    public boolean decodePassword(String password) {
         return new BCryptPasswordEncoder().matches(password, this.password);
     }
 
@@ -191,7 +194,8 @@ public class Player extends BaseTimeEntity implements UserDetails {
             MessageDigest md = MessageDigest.getInstance("MD5");
             md.update(email.getBytes());
 
-            sb.append("-").append(Base64.getEncoder().withoutPadding().encodeToString(md.digest()).substring(0,10));
+            int r = new Random().nextInt(0, 3);
+            sb.append("-").append(Base64.getEncoder().withoutPadding().encodeToString(md.digest()), r, r + 10);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }

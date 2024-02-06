@@ -7,39 +7,38 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.player.domain.PlayerRoleType;
+import org.codequistify.master.domain.player.service.impl.PlayerDetailsService;
 import org.codequistify.master.global.jwt.TokenProvider;
 import org.codequistify.master.global.util.BasicResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class AuthenticationTokenFilter extends OncePerRequestFilter {
     private final TokenProvider tokenProvider;
+    private final PlayerDetailsService playerDetailsService;
     private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationTokenFilter.class);
 
-    private final List<String> antMatchURIs = Arrays.asList(
-            "/home", "/swagger-ui/", "/v3/", "/api/todo-list", "/favicon.ico",
-            "/api/oauth2/", "/api/refresh/",
-            "/api/signup/", "/api/login/", "/api/logout/"
-    );
+    @Value("${host.develop.api.ant-match.uri}")
+    private List<String> antMatchURIs = new ArrayList<>();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String path = request.getRequestURI();
         LOGGER.info("host: {}, path: {}", request.getRemoteHost(), path);
 
+        // 토큰 비검사 uri
         for (String antMatchURI : antMatchURIs) {
             if (path.startsWith(antMatchURI)) {
                 filterChain.doFilter(request, response);
@@ -48,32 +47,43 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
         }
 
         String token = tokenProvider.resolveToken(request);
-        LOGGER.info("[TokenFilter] token: {}", token);
-        Claims claims = tokenProvider.getClaims(token);
-        if (claims != null && tokenProvider.checkExpire(claims)){
-            String aud = claims.getAudience();
-
-            if (aud != null && !aud.isBlank()) {
-                List<GrantedAuthority> authorities = Arrays.asList(new SimpleGrantedAuthority(PlayerRoleType.PLAYER.getRole()));
-                UsernamePasswordAuthenticationToken auth
-                        = new UsernamePasswordAuthenticationToken(aud, null, authorities);
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            }
-        }
-        else {
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-
-            response.getWriter().write(
-                    new ObjectMapper().writeValueAsString(new BasicResponse(null, "올바르지 않은 토큰 정보입니다."))
-            );
-
-            LOGGER.info("[TokenFilter] 올바르지 않은 토큰 정보입니다.");
+        if (token == null) {
+            LOGGER.info("[TokenFilter] 토큰이 비어 있는 요청");
+            doFalseAction(response);
             return;
         }
 
+        Claims claims = tokenProvider.getClaims(token);
+        if (claims == null || !tokenProvider.checkExpire(claims)) {
+            LOGGER.info("[TokenFilter] 올바르지 않은 토큰 상태");
+            doFalseAction(response);
+            return;
+        }
+
+        String aud = claims.getAudience();
+        if (aud == null || aud.isBlank()) {
+            LOGGER.info("[TokenFilter] 올바르지 않은 aud 값");
+            doFalseAction(response);
+            return;
+        }
+
+        UserDetails userDetails = playerDetailsService.loadUserByUsername(aud);
+        UsernamePasswordAuthenticationToken authenticationToken
+                = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
         response.setHeader("Authorization", token);
         filterChain.doFilter(request, response);
+    }
+
+    private void doFalseAction(HttpServletResponse response) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+
+        response.getWriter().write(
+                new ObjectMapper().writeValueAsString(new BasicResponse(null, "올바르지 않은 토큰 정보입니다."))
+        );
     }
 }

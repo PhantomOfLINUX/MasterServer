@@ -27,11 +27,11 @@ public class TokenProvider {
     private final Logger LOGGER = LoggerFactory.getLogger(TokenProvider.class);
 
     @PostConstruct
-    protected void init(){
+    protected void init() {
         KEY = new SecretKeySpec(JWT_SECRET.getBytes(StandardCharsets.UTF_8), SignatureAlgorithm.HS256.getJcaName());
     }
 
-    public String generateAccessToken(LogInResponse response){
+    public String generateAccessToken(LogInResponse response) {
         Claims claims = Jwts.claims();
         Date now = new Date();
 
@@ -48,7 +48,7 @@ public class TokenProvider {
         return token;
     }
 
-    public String generateRefreshToken(LogInResponse response){
+    public String generateRefreshToken(LogInResponse response) {
         Claims claims = Jwts.claims();
         Date now = new Date();
 
@@ -66,20 +66,20 @@ public class TokenProvider {
     }
 
     public Claims getClaims(String token) {
-        try{
+        try {
             Jws<Claims> claims = Jwts.parserBuilder()
                     .setSigningKey(KEY)
                     .build()
                     .parseClaimsJws(token);
 
             return claims.getBody();
-        } catch (IllegalArgumentException exception){
+        } catch (IllegalArgumentException exception) {
             LOGGER.info("잘못된 JWT 토큰");
             return null;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             LOGGER.info("잘못된 JWT 서명");
             return null;
-        } catch (RuntimeException exception){
+        } catch (RuntimeException exception) {
             LOGGER.info("valid token error");
             return null;
         }
@@ -95,38 +95,36 @@ public class TokenProvider {
 
     }
 
-    public boolean isValidatedToken(String token){
-        try{
+    public boolean isValidatedToken(String token) {
+        try {
             Jws<Claims> claims = Jwts.parserBuilder()
                     .setSigningKey(KEY)
                     .build()
                     .parseClaimsJws(token);
 
             return !claims.getBody().getExpiration().before(new Date());
-        } catch (ExpiredJwtException exception){
+        } catch (ExpiredJwtException exception) {
             LOGGER.info("만료된 JWT 토큰");
             return false;
-        } catch (IllegalArgumentException exception){
+        } catch (IllegalArgumentException exception) {
             LOGGER.info("잘못된 JWT 토큰");
             return false;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             LOGGER.info("잘못된 JWT 서명");
             return false;
-        } catch (RuntimeException exception){
+        } catch (RuntimeException exception) {
             LOGGER.info("valid token error");
             return false;
         }
     }
 
-    public String resolveToken(HttpServletRequest httpServletRequest){
+    public String resolveToken(HttpServletRequest httpServletRequest) {
         String authorization = httpServletRequest.getHeader("Authorization");
-        if (authorization == null){
+        if (authorization == null) {
             return null;
-        }
-        else if (authorization.startsWith("Bearer ")){
+        } else if (authorization.startsWith("Bearer ")) {
             return authorization.substring(7);
-        }
-        else {
+        } else {
             return authorization;
         }
     }

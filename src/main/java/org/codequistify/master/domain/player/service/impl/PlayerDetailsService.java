@@ -1,6 +1,5 @@
 package org.codequistify.master.domain.player.service.impl;
 
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.details.ResetPasswordRequest;
@@ -28,17 +27,11 @@ public class PlayerDetailsService implements UserDetailsService {
     }
 
     @Transactional
-    public void resetPassword(ResetPasswordRequest request) {
-        Player player = playerRepository.findByUid(request.uid())
-                .orElseThrow(() -> {
-                    LOGGER.info("[resetPassword] 존재하지 않는 player {}", request.uid());
-                    return new EntityNotFoundException("존재하지 않는 player 입니다");
-                });
-
+    public void resetPassword(Player player, ResetPasswordRequest request) {
         player.encodePassword(request.newPassword());
-
         playerRepository.save(player);
-        LOGGER.info("[resetPassword] {} 비밀번호 재설정 성공", request.uid());
+
+        LOGGER.info("[resetPassword] Player: {}, 비밀번호 재설정 성공", player.getUid());
     }
 
 
