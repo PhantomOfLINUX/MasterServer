@@ -58,7 +58,7 @@ public class SignController {
     )
     @PostMapping("oauth2/google")
     public ResponseEntity<LogInResponse> socialSignInGoogle(@RequestBody SignRequest request, HttpServletResponse response) {
-        if (request.code().isBlank()){
+        if (request.code().isBlank()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         LogInResponse logInResponse = googleSocialSignService.socialLogin(request.code());
@@ -139,7 +139,7 @@ public class SignController {
     )
     @PostMapping("oauth2/google/TEST")
     public ResponseEntity<LogInResponse> TEST_socialSignInGoogle(@RequestBody SignRequest request, HttpServletResponse response) {
-        if (request.code().isBlank()){
+        if (request.code().isBlank()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         LogInResponse logInResponse = googleSocialSignService.socialLogin(request.code());
@@ -154,13 +154,14 @@ public class SignController {
         LOGGER.info("[TEST_socialSignInGoogle] {} 구글 로그인", logInResponse.email());
         return new ResponseEntity<>(logInResponse, HttpStatus.OK);
     }
+
     @Operation(
             summary = "TEST 네이버 로그인 요청",
             description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'name'을 반환받는다."
     )
     @PostMapping("oauth2/naver/TEST")
     public ResponseEntity<LogInResponse> TEST_socialSignInNaver(@RequestBody SignRequest request, HttpServletResponse response) {
-        if (request.code().isBlank()){
+        if (request.code().isBlank()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         LogInResponse logInResponse = naverSocialSignService.socialLogin(request.code());
@@ -191,7 +192,7 @@ public class SignController {
     )
     @PostMapping("oauth2/kakao")
     public ResponseEntity<LogInResponse> socialSignInKakao(@RequestBody SignRequest request) {
-        if (request.code().isBlank()){
+        if (request.code().isBlank()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         LogInResponse logInResponse = kakaoSocialSignService.socialLogin(request.code());
@@ -214,8 +215,8 @@ public class SignController {
             description = "자체 회원가입이다. name, email, password를 필수로 입력받는다."
     )
     @PostMapping("signup/pol")
-    public ResponseEntity<LogInResponse> SignUpPOL(@RequestBody SignRequest request, HttpServletResponse httpServletResponse){
-        if(request.name().isBlank() || request.email().isBlank() || request.password().isBlank()){
+    public ResponseEntity<LogInResponse> SignUpPOL(@RequestBody SignRequest request, HttpServletResponse httpServletResponse) {
+        if (request.name().isBlank() || request.email().isBlank() || request.password().isBlank()) {
             throw new IllegalArgumentException("email 또는 password, name이 비어있습니다.");
         }
 
@@ -238,7 +239,7 @@ public class SignController {
     )
     @PostMapping("login/pol")
     public ResponseEntity<LogInResponse> LogInPOL(@RequestBody SignRequest request, HttpServletResponse httpServletResponse) {
-        if (request.email().isBlank() || request.password().isBlank()){
+        if (request.email().isBlank() || request.password().isBlank()) {
             throw new IllegalArgumentException("email 또는 password가 비어있습니다.");
         }
 
@@ -260,8 +261,8 @@ public class SignController {
             summary = "로그아웃 요청",
             description = "id를 인자로 받는다. Authorization에 토큰이 있어야 한다.",
             responses = {
-                @ApiResponse(responseCode = "204", description = "로그아웃 성공"),
-                @ApiResponse(responseCode = "401", description = "잘못된 토큰 정보")
+                    @ApiResponse(responseCode = "204", description = "로그아웃 성공"),
+                    @ApiResponse(responseCode = "401", description = "잘못된 토큰 정보")
             }
     )
     @PostMapping("logout")
@@ -300,8 +301,8 @@ public class SignController {
                                     examples = @ExampleObject(value = "{\"error\":\"Already Exist This Email\"}")))}
     )
     @GetMapping("signup/email/{email}")
-    public ResponseEntity<BasicResponse> checkEmailDuplication(@PathVariable String email){
-        if (signService.checkEmailDuplication(email)){
+    public ResponseEntity<BasicResponse> checkEmailDuplication(@PathVariable String email) {
+        if (signService.checkEmailDuplication(email)) {
             BasicResponse response = new BasicResponse(null, "이미 존재하는 이메일입니다.");
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         } else {
@@ -334,7 +335,7 @@ public class SignController {
                                             @ExampleObject(name = "잘못된 코드", value = "{\"response\":\"false\"}")}))}
     )
     @GetMapping("signup/email/{email}/code/{code}")
-    public ResponseEntity<BasicResponse> verifyCode(@PathVariable String email, @PathVariable String code){
+    public ResponseEntity<BasicResponse> verifyCode(@PathVariable String email, @PathVariable String code) {
         code = code.trim();
 
         BasicResponse response = new BasicResponse(Boolean.toString(verifyMailService.checkValidCode(email, code)), null);
@@ -342,9 +343,6 @@ public class SignController {
         LOGGER.info("[verifyCode] {} 회원가입 메일 코드 인증 {}", email, response.response());
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
-
-
-
 
 
     //서버용인증
@@ -355,6 +353,7 @@ public class SignController {
 
         return response;
     }
+
     //서버용인증
     @Operation(hidden = true)
     @GetMapping("oauth2/kakao")
@@ -363,6 +362,7 @@ public class SignController {
 
         return response;
     }
+
     //서버용인증
     @GetMapping("auth/callback/naver")
     @Operation(hidden = true)

@@ -17,7 +17,8 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Builder
 public class Stage extends BaseTimeEntity {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "stage_id")
     private Long id;
 

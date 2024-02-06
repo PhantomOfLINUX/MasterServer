@@ -40,9 +40,8 @@ public class VerifyMailService {
         String authCode;
         try {
             int seed = new Random().nextInt(63 - 8);
-            authCode = generatedCode(email).substring(seed, seed+8);
-        }
-        catch (NoSuchAlgorithmException exception){
+            authCode = generatedCode(email).substring(seed, seed + 8);
+        } catch (NoSuchAlgorithmException exception) {
             LOGGER.info("[sendVerifyMail] {}로 메일 전송 실패", email);
             throw new MailSendException("인증 메일 전송 중 오류 발생");
         }
@@ -61,10 +60,10 @@ public class VerifyMailService {
         LOGGER.info("[sendVerifyMail] {}로 메일 전송 완료", email);
     }
 
-    public boolean checkValidCode(String email, String code){
+    public boolean checkValidCode(String email, String code) {
         try {
             return generatedCode(email).contains(code);
-        }catch (NoSuchAlgorithmException exception){
+        } catch (NoSuchAlgorithmException exception) {
             return false;
         }
     }

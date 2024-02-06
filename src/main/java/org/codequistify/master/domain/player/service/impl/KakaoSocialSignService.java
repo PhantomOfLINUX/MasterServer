@@ -23,14 +23,15 @@ public class KakaoSocialSignService implements SocialSignService {
     private final RestTemplate restTemplate;
     private final Logger LOGGER = LoggerFactory.getLogger(KakaoSocialSignService.class);
     private final OAuthKey oAuthKey;
+
     /*
     카카오 소셜 로그인 주소 반환
      */
     @Override
-    public String getSocialSignInURL(){
+    public String getSocialSignInURL() {
         return "https://kauth.kakao.com/oauth/authorize?response_type=code" +
-                "&client_id="+oAuthKey.getKAKAO_CLIENT_ID() +
-                "&redirect_uri="+oAuthKey.getKAKAO_REDIRECT_URI();
+                "&client_id=" + oAuthKey.getKAKAO_CLIENT_ID() +
+                "&redirect_uri=" + oAuthKey.getKAKAO_REDIRECT_URI();
     }
 
 
@@ -47,7 +48,7 @@ public class KakaoSocialSignService implements SocialSignService {
         return null;
     }
 
-    private String getAccessToken(String code){
+    private String getAccessToken(String code) {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("code", code);
         body.add("client_id", oAuthKey.getKAKAO_CLIENT_ID());
@@ -61,9 +62,9 @@ public class KakaoSocialSignService implements SocialSignService {
 
         OAuthTokenResponse response = restTemplate.postForObject(oAuthKey.getKAKAO_TOKEN_URI(), entity, OAuthTokenResponse.class);
 
-        if (response.access_token() != null){
+        if (response.access_token() != null) {
             return response.access_token();
-        }else {
+        } else {
             return null;
         }
     }
@@ -76,9 +77,9 @@ public class KakaoSocialSignService implements SocialSignService {
 
         OAuthResourceResponse response = restTemplate.exchange(oAuthKey.getKAKAO_RESOURCE_URI(), HttpMethod.GET, entity, OAuthResourceResponse.class).getBody();
 
-        if (response != null){
+        if (response != null) {
             return response;
-        }else {
+        } else {
             return null;
         }
     }

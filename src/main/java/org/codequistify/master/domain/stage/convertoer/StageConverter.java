@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class StageConverter {
     private final QuestionConverter questionConverter;
+
     public Stage convert(StageRegistryRequest request) {
 
         return Stage.builder()

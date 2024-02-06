@@ -18,6 +18,7 @@ public class StageService {
 
     private final StageConverter stageConverter;
     private final Logger LOGGER = LoggerFactory.getLogger(StageService.class);
+
     public void saveStage(StageRegistryRequest request) {
         Stage stage = stageConverter.convert(request);
 

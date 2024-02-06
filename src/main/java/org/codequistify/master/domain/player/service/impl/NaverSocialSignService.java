@@ -43,12 +43,12 @@ public class NaverSocialSignService implements SocialSignService {
     네이버 소셜 로그인 주소 반환
      */
     @Override
-    public String getSocialSignInURL(){
+    public String getSocialSignInURL() {
         return "https://nid.naver.com/oauth2.0/authorize?" +
-                "client_id="+oAuthKey.getNAVER_CLIENT_ID() +
-                "&redirect_uri="+ URLEncoder.encode(oAuthKey.getNAVER_REDIRECT_URI(), StandardCharsets.UTF_8) +
+                "client_id=" + oAuthKey.getNAVER_CLIENT_ID() +
+                "&redirect_uri=" + URLEncoder.encode(oAuthKey.getNAVER_REDIRECT_URI(), StandardCharsets.UTF_8) +
                 "&response_type=code" +
-                "&state="+URLEncoder.encode("pol", StandardCharsets.UTF_8);
+                "&state=" + URLEncoder.encode("pol", StandardCharsets.UTF_8);
     }
 
     /*
@@ -76,8 +76,7 @@ public class NaverSocialSignService implements SocialSignService {
                             .oAuthId(resource.id()).build()
             );
             LOGGER.info("[socialLogin] 등록");
-        }
-        else {
+        } else {
             player = playerOptional.get();
         }
 

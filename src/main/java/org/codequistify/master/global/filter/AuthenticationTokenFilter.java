@@ -50,7 +50,7 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
         String token = tokenProvider.resolveToken(request);
         LOGGER.info("[TokenFilter] token: {}", token);
         Claims claims = tokenProvider.getClaims(token);
-        if (claims != null && tokenProvider.checkExpire(claims)){
+        if (claims != null && tokenProvider.checkExpire(claims)) {
             String aud = claims.getAudience();
 
             if (aud != null && !aud.isBlank()) {
@@ -59,8 +59,7 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
                         = new UsernamePasswordAuthenticationToken(aud, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
-        }
-        else {
+        } else {
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

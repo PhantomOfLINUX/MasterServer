@@ -40,10 +40,10 @@ public class GoogleSocialSignService implements SocialSignService {
     구글 소셜 로그인 주소 반환
      */
     @Override
-    public String getSocialSignInURL(){
+    public String getSocialSignInURL() {
         return "https://accounts.google.com/o/oauth2/auth?" +
-                "client_id="+oAuthKey.getGOOGLE_CLIENT_ID() +
-                "&redirect_uri="+oAuthKey.getGOOGLE_REDIRECT_URI() +
+                "client_id=" + oAuthKey.getGOOGLE_CLIENT_ID() +
+                "&redirect_uri=" + oAuthKey.getGOOGLE_REDIRECT_URI() +
                 "&response_type=code" +
                 "&scope=email%20profile";
     }
@@ -87,7 +87,7 @@ public class GoogleSocialSignService implements SocialSignService {
         return response;
     }
 
-    private String getAccessToken(String code){
+    private String getAccessToken(String code) {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("code", code);
         body.add("client_id", oAuthKey.getGOOGLE_CLIENT_ID());
