@@ -35,9 +35,9 @@ public class SignService {
         Player player = playerConverter.convert(request);
 
         player.encodePassword();
-        playerRepository.save(player);
+        player = playerRepository.save(player);
 
-        LOGGER.info("[signIn] {} player 회원가입 완료", player.getId());
+        LOGGER.info("[signIn] Player: {}, 회원가입 완료", player.getUid());
 
         return playerConverter.convert(player);
     }

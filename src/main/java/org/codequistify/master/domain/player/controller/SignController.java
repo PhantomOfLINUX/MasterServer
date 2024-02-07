@@ -208,7 +208,7 @@ public class SignController {
         signService.updateRefreshToken(logInResponse.uid(), refreshToken); // refresh token db에 저장
 
 
-        LOGGER.info("[LogInPOL] {} pol 로그인", logInResponse.uid());
+        LOGGER.info("[LogInPOL] Player: {}, pol 로그인", logInResponse.uid());
         return new ResponseEntity<>(logInResponse, HttpStatus.OK);
     }
 
