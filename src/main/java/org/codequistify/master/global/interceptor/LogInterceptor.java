@@ -17,7 +17,7 @@ public class LogInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String requestURI = request.getRequestURI();
-        String requestHost = request.getRemoteHost();
+        String requestAddr = getOriginRemoteAddr(request);
         String requestID = UUID.randomUUID().toString();
 
         request.setAttribute("RequestID", requestID);
@@ -26,7 +26,7 @@ public class LogInterceptor implements HandlerInterceptor {
             HandlerMethod handlerMethod = (HandlerMethod) handler;
         }
 
-        LOGGER.info("[API Request] RequestID: {}, RequestURI: {}, RequestHost: {} Handler: {}", requestID, requestURI, requestHost, handler);
+        LOGGER.info("[API Request]  RequestID: {}, RequestURI: {}, RequestHost: {} Handler: {}", requestID, requestURI, requestAddr, handler);
         return true;
     }
 
@@ -40,5 +40,15 @@ public class LogInterceptor implements HandlerInterceptor {
         if (ex != null) {
             LOGGER.error("[API Response] Error: ", ex);
         }
+    }
+
+    private static String getOriginRemoteAddr(HttpServletRequest request) {
+        String originAddr = request.getHeader("X-Real-IP");
+
+        if (originAddr == null || originAddr.isBlank()) {
+            originAddr = request.getRemoteAddr();
+        }
+
+        return originAddr;
     }
 }
