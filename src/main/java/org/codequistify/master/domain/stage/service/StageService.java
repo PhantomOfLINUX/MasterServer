@@ -24,4 +24,9 @@ public class StageService {
 
         stage = stageRepository.save(stage);
     }
+
+    public void findStage(Long page, Long size) {
+
+    }
+
 }
