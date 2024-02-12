@@ -4,7 +4,7 @@ document
         event.preventDefault();
 
         const email = document.getElementById("email").value;
-        const getUrl = `https://api.pol.or.kr/api/sign-up/email/${email}`;
+        const getUrl = `https://api.pol.or.kr/api/signup/email/${email}`;
 
         fetch(getUrl)
             .then((response) => response.json())
@@ -18,7 +18,7 @@ document
 
 document.getElementById("sendEmail").addEventListener("click", function () {
     const email = document.getElementById("email").value;
-    const verifyUrl = `https://api.pol.or.kr/api/sign-up/email/${email}/verify`;
+    const verifyUrl = `https://api.pol.or.kr/api/signup/email/${email}/verify`;
 
     fetch(verifyUrl)
         .then((response) => response.json())
@@ -54,7 +54,7 @@ document
 
         const email = document.getElementById("loginEmail").value;
         const password = document.getElementById("loginPassword").value;
-        const loginUrl = "https://api.pol.or.kr/api/sign-in/pol";
+        const loginUrl = "https://api.pol.or.kr/api/login/pol";
 
         fetch(loginUrl, {
             method: "POST",
