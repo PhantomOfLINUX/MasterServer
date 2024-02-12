@@ -1,8 +1,8 @@
-package org.codequistify.master.domain.player.dto.sign;
+package org.codequistify.master.domain.player.vo;
 
 import java.util.Map;
 
-public record OAuthResourceResponse(
+public record OAuthResourceVO(
         String id,
         String email,
         String name,

@@ -1,8 +1,8 @@
 package org.codequistify.master.domain.player.dto.details;
 
-import lombok.NonNull;
+import jakarta.validation.constraints.NotBlank;
 
 public record ResetPasswordRequest(
-        @NonNull String newPassword
+        @NotBlank String newPassword
 ) {
 }

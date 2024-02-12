@@ -4,8 +4,9 @@ import jakarta.persistence.EntityExistsException;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.converter.PlayerConverter;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.dto.sign.LogInRequest;
 import org.codequistify.master.domain.player.dto.sign.LogInResponse;
-import org.codequistify.master.domain.player.dto.sign.SignRequest;
+import org.codequistify.master.domain.player.dto.sign.SignUpRequest;
 import org.codequistify.master.domain.player.repository.PlayerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,7 @@ public class SignService {
     private final Logger LOGGER = LoggerFactory.getLogger(SignService.class);
 
     @Transactional
-    public LogInResponse signUp(SignRequest request) {
+    public LogInResponse signUp(SignUpRequest request) {
         if (playerRepository.findByEmail(request.email()).isPresent()) {
             LOGGER.info("[signUp] 이미 존재하는 email 입니다.");
             throw new EntityExistsException("이미 존재하는 email입니다.");
@@ -43,7 +44,7 @@ public class SignService {
     }
 
     @Transactional
-    public LogInResponse logIn(SignRequest request) {
+    public LogInResponse logIn(LogInRequest request) {
         Player player = playerRepository.findByEmail(request.email())
                 .orElseThrow(() -> {
                     LOGGER.info("[logIn] 존재하지 않는 email 입니다.");

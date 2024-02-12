@@ -12,8 +12,10 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.dto.sign.LogInRequest;
 import org.codequistify.master.domain.player.dto.sign.LogInResponse;
-import org.codequistify.master.domain.player.dto.sign.SignRequest;
+import org.codequistify.master.domain.player.dto.sign.SignUpRequest;
+import org.codequistify.master.domain.player.dto.sign.SocialLogInRequest;
 import org.codequistify.master.domain.player.service.SignService;
 import org.codequistify.master.domain.player.service.VerifyMailService;
 import org.codequistify.master.domain.player.service.impl.GoogleSocialSignService;
@@ -57,10 +59,7 @@ public class SignController {
             description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'name'을 반환받는다."
     )
     @PostMapping("oauth2/google")
-    public ResponseEntity<LogInResponse> socialSignInGoogle(@RequestBody SignRequest request, HttpServletResponse response) {
-        if (request.code().isBlank()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<LogInResponse> socialSignInGoogle(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
         LogInResponse logInResponse = googleSocialSignService.socialLogIn(request.code());
 
         String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
@@ -86,10 +85,6 @@ public class SignController {
     )
     @PostMapping("refresh/id/{uid}")
     public ResponseEntity<TokenResponse> regenerateAccessToken(@RequestBody TokenRequest request, @PathVariable String uid, HttpServletResponse response) {
-        if (request.refreshToken().isBlank()) {
-            LOGGER.info("[regenerateAccessToken] {} 빈 요청", uid);
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
 
         Claims claims = tokenProvider.getClaims(request.refreshToken());
         if (!claims.getAudience().equals(uid)) {
@@ -146,10 +141,7 @@ public class SignController {
             description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'knickname'을 반환받는다."
     )
     @PostMapping("oauth2/kakao")
-    public ResponseEntity<LogInResponse> socialSignInKakao(@RequestBody SignRequest request) {
-        if (request.code().isBlank()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+    public ResponseEntity<LogInResponse> socialLogInKakao(@RequestBody SocialLogInRequest request) {
         LogInResponse logInResponse = kakaoSocialSignService.socialLogIn(request.code());
 
         LOGGER.info("{} kakao 로그인", logInResponse.email());
@@ -170,11 +162,7 @@ public class SignController {
             description = "자체 회원가입이다. name, email, password를 필수로 입력받는다."
     )
     @PostMapping("signup/pol")
-    public ResponseEntity<LogInResponse> SignUpPOL(@RequestBody SignRequest request, HttpServletResponse httpServletResponse) {
-        if (request.name().isBlank() || request.email().isBlank() || request.password().isBlank()) {
-            throw new IllegalArgumentException("email 또는 password, name이 비어있습니다.");
-        }
-
+    public ResponseEntity<LogInResponse> SignUpPOL(@RequestBody SignUpRequest request, HttpServletResponse httpServletResponse) {
         LogInResponse logInResponse = signService.signUp(request);
 
         String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
@@ -193,11 +181,7 @@ public class SignController {
             description = "자체 로그인기능이다. name, password를 필수로 입력받는다."
     )
     @PostMapping("login/pol")
-    public ResponseEntity<LogInResponse> LogInPOL(@RequestBody SignRequest request, HttpServletResponse httpServletResponse) {
-        if (request.email().isBlank() || request.password().isBlank()) {
-            throw new IllegalArgumentException("email 또는 password가 비어있습니다.");
-        }
-
+    public ResponseEntity<LogInResponse> LogInPOL(@RequestBody LogInRequest request, HttpServletResponse httpServletResponse) {
         LogInResponse logInResponse = signService.logIn(request);
 
         String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
@@ -307,75 +291,21 @@ public class SignController {
     @GetMapping("oauth2/google")
     @Operation(hidden = true)
     public LogInResponse googleLogin(@RequestParam String code) {
-        LogInResponse response = googleSocialSignService.socialLogIn(code);
-
-        return response;
+        return googleSocialSignService.socialLogIn(code);
     }
 
     //서버용인증
     @Operation(hidden = true)
     @GetMapping("oauth2/kakao")
     public LogInResponse kakaoLogin(@RequestParam String code) {
-        LogInResponse response = kakaoSocialSignService.socialLogIn(code);
-
-        return response;
+        return kakaoSocialSignService.socialLogIn(code);
     }
 
     //서버용인증
     @GetMapping("auth/callback/naver")
     @Operation(hidden = true)
     public LogInResponse naverLogin(@RequestParam String code) {
-        LOGGER.info("code: {}", code);
-        LogInResponse response = naverSocialSignService.socialLogIn(code);
-
-        return response;
+        return naverSocialSignService.socialLogIn(code);
     }
-
-
-
-    @Operation(
-            summary = "TEST 구글 로그인 요청",
-            description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'name'을 반환받는다."
-    )
-    @PostMapping("oauth2/google/TEST")
-    public ResponseEntity<LogInResponse> TEST_socialSignInGoogle(@RequestBody SignRequest request, HttpServletResponse response) {
-        if (request.code().isBlank()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        LogInResponse logInResponse = googleSocialSignService.socialLogIn(request.code());
-
-        String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
-        String accessToken = tokenProvider.generateAccessToken(logInResponse);
-
-        addAccessTokensToCookies(accessToken, response);
-        addRefreshTokensToCookies(refreshToken, response);
-        signService.updateRefreshToken(logInResponse.uid(), refreshToken); // refresh token db에 저장
-
-        LOGGER.info("[TEST_socialSignInGoogle] {} 구글 로그인", logInResponse.email());
-        return new ResponseEntity<>(logInResponse, HttpStatus.OK);
-    }
-
-    @Operation(
-            summary = "TEST 네이버 로그인 요청",
-            description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'name'을 반환받는다."
-    )
-    @PostMapping("oauth2/naver/TEST")
-    public ResponseEntity<LogInResponse> TEST_socialSignInNaver(@RequestBody SignRequest request, HttpServletResponse response) {
-        if (request.code().isBlank()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-        LogInResponse logInResponse = naverSocialSignService.socialLogIn(request.code());
-
-        String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
-        String accessToken = tokenProvider.generateAccessToken(logInResponse);
-
-        addAccessTokensToCookies(accessToken, response);
-        addRefreshTokensToCookies(refreshToken, response);
-        signService.updateRefreshToken(logInResponse.uid(), refreshToken); // refresh token db에 저장
-
-        LOGGER.info("[TEST_socialSignInGoogle] {} 네이버 로그인", logInResponse.email());
-        return new ResponseEntity<>(logInResponse, HttpStatus.OK);
-    }
-
 
 }

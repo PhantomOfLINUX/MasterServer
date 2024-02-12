@@ -5,10 +5,10 @@ import org.codequistify.master.domain.player.converter.PlayerConverter;
 import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.sign.LogInResponse;
-import org.codequistify.master.domain.player.dto.sign.OAuthResourceResponse;
-import org.codequistify.master.domain.player.dto.sign.OAuthTokenResponse;
 import org.codequistify.master.domain.player.repository.PlayerRepository;
 import org.codequistify.master.domain.player.service.SocialSignService;
+import org.codequistify.master.domain.player.vo.OAuthResourceVO;
+import org.codequistify.master.domain.player.vo.OAuthTokenVO;
 import org.codequistify.master.global.config.OAuthKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +58,7 @@ public class NaverSocialSignService implements SocialSignService {
     @Transactional
     public LogInResponse socialLogIn(String code) {
         String accessToken = getAccessToken(code);
-        OAuthResourceResponse resource = getUserResource(accessToken);
+        OAuthResourceVO resource = getUserResource(accessToken);
 
         LOGGER.info("{} {} {}", resource.id(), resource.email(), resource.name());
 
@@ -83,8 +83,9 @@ public class NaverSocialSignService implements SocialSignService {
         return response;
     }
 
+    @Override
     @Transactional
-    public Player socialSignUp(OAuthResourceResponse resource) {
+    public Player socialSignUp(OAuthResourceVO resource) {
         Player player = Player.builder()
                 .name(resource.name())
                 .email(resource.email())
@@ -109,7 +110,7 @@ public class NaverSocialSignService implements SocialSignService {
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
 
         try {
-            OAuthTokenResponse response = restTemplate.postForObject(oAuthKey.getNAVER_TOKEN_URI(), entity, OAuthTokenResponse.class);
+            OAuthTokenVO response = restTemplate.postForObject(oAuthKey.getNAVER_TOKEN_URI(), entity, OAuthTokenVO.class);
             return Objects.requireNonNull(response).access_token();
         } catch (RestClientException exception) {
             LOGGER.info("[getAccessToken] 토큰 요청 실패");
@@ -117,18 +118,17 @@ public class NaverSocialSignService implements SocialSignService {
         }
     }
 
-    private OAuthResourceResponse getUserResource(String accessToken) {
+    private OAuthResourceVO getUserResource(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        Map<String, String> map = restTemplate.exchange(oAuthKey.getNAVER_RESOURCE_URI(), HttpMethod.GET, entity, OAuthResourceResponse.class).getBody().response();
-
         try {
-            OAuthResourceResponse response = new OAuthResourceResponse(map.get("id"), map.get("email"), convertUnicodeToString(map.get("name")), null, null);
+            Map<String, String> map = restTemplate.exchange(oAuthKey.getNAVER_RESOURCE_URI(), HttpMethod.GET, entity, OAuthResourceVO.class).getBody().response();
+            OAuthResourceVO response = new OAuthResourceVO(map.get("id"), map.get("email"), convertUnicodeToString(map.get("name")), null, null);
             return response;
-        } catch (RestClientException exception) {
+        } catch (NullPointerException | RestClientException exception) {
             LOGGER.info("[getUserResource] 정보 요청 실패");
             return null;
         }
