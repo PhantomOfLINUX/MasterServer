@@ -43,7 +43,7 @@ public class NaverSocialSignService implements SocialSignService {
     네이버 소셜 로그인 주소 반환
      */
     @Override
-    public String getSocialSignInURL() {
+    public String getSocialLogInURL() {
         return "https://nid.naver.com/oauth2.0/authorize?" +
                 "client_id=" + oAuthKey.getNAVER_CLIENT_ID() +
                 "&redirect_uri=" + URLEncoder.encode(oAuthKey.getNAVER_REDIRECT_URI(), StandardCharsets.UTF_8) +
@@ -56,7 +56,7 @@ public class NaverSocialSignService implements SocialSignService {
      */
     @Override
     @Transactional
-    public LogInResponse socialLogin(String code) {
+    public LogInResponse socialLogIn(String code) {
         String accessToken = getAccessToken(code);
         OAuthResourceResponse resource = getUserResource(accessToken);
 
@@ -68,14 +68,7 @@ public class NaverSocialSignService implements SocialSignService {
         Player player;
         if (playerOptional.isEmpty()) {
             LOGGER.info("등록되지 않은 네이버 계정 {}", resource.email());
-            player = playerRepository.save(
-                    Player.builder()
-                            .name(resource.name())
-                            .email(resource.email())
-                            .oAuthType(OAuthType.GOOGLE)
-                            .oAuthId(resource.id()).build()
-            );
-            LOGGER.info("[socialLogin] 등록");
+            player = socialSignUp(resource);
         } else {
             player = playerOptional.get();
         }
@@ -88,6 +81,18 @@ public class NaverSocialSignService implements SocialSignService {
         LOGGER.info("[socialLogin] {} 네이버 로그인", player.getEmail());
 
         return response;
+    }
+
+    @Transactional
+    public Player socialSignUp(OAuthResourceResponse resource) {
+        Player player = Player.builder()
+                .name(resource.name())
+                .email(resource.email())
+                .oAuthType(OAuthType.NAVER)
+                .oAuthId(resource.id()).build();
+        player = playerRepository.save(player);
+        LOGGER.info("[socialSignUp] 등록");
+        return player;
     }
 
     private String getAccessToken(String code) {

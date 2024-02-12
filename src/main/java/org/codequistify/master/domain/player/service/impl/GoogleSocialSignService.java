@@ -40,7 +40,7 @@ public class GoogleSocialSignService implements SocialSignService {
     구글 소셜 로그인 주소 반환
      */
     @Override
-    public String getSocialSignInURL() {
+    public String getSocialLogInURL() {
         return "https://accounts.google.com/o/oauth2/auth?" +
                 "client_id=" + oAuthKey.getGOOGLE_CLIENT_ID() +
                 "&redirect_uri=" + oAuthKey.getGOOGLE_REDIRECT_URI() +
@@ -53,7 +53,7 @@ public class GoogleSocialSignService implements SocialSignService {
      */
     @Override
     @Transactional
-    public LogInResponse socialLogin(String code) {
+    public LogInResponse socialLogIn(String code) {
         String accessToken = getAccessToken(code);
         OAuthResourceResponse resource = getUserResource(accessToken);
 
@@ -65,14 +65,7 @@ public class GoogleSocialSignService implements SocialSignService {
         Player player;
         if (playerOptional.isEmpty()) {
             LOGGER.info("등록되지 않은 구글 계정 {}", resource.email());
-            player = playerRepository.save(
-                    Player.builder()
-                            .name(resource.name())
-                            .email(resource.email())
-                            .oAuthType(OAuthType.GOOGLE)
-                            .oAuthId(resource.id()).build()
-            );
-            LOGGER.info("[socialLogin] 등록");
+            player = socialSignUp(resource);
         } else {
             player = playerOptional.get();
         }
@@ -85,6 +78,18 @@ public class GoogleSocialSignService implements SocialSignService {
         LOGGER.info("[socialLogin] {} 구글 로그인", player.getEmail());
 
         return response;
+    }
+
+    @Transactional
+    public Player socialSignUp(OAuthResourceResponse resource) {
+        Player player = Player.builder()
+                .name(resource.name())
+                .email(resource.email())
+                .oAuthType(OAuthType.GOOGLE)
+                .oAuthId(resource.id()).build();
+        player = playerRepository.save(player);
+        LOGGER.info("[socialSignUp] 등록");
+        return player;
     }
 
     private String getAccessToken(String code) {

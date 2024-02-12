@@ -37,16 +37,16 @@ public class SignService {
         player.encodePassword();
         player = playerRepository.save(player);
 
-        LOGGER.info("[signIn] Player: {}, 회원가입 완료", player.getUid());
+        LOGGER.info("[signUp] Player: {}, 회원가입 완료", player.getUid());
 
         return playerConverter.convert(player);
     }
 
     @Transactional
-    public LogInResponse signIn(SignRequest request) {
+    public LogInResponse logIn(SignRequest request) {
         Player player = playerRepository.findByEmail(request.email())
                 .orElseThrow(() -> {
-                    LOGGER.info("[signIn] 존재하지 않는 email 입니다.");
+                    LOGGER.info("[logIn] 존재하지 않는 email 입니다.");
                     return new IllegalArgumentException("email 또는 password가 잘못되었습니다");
                 });
 
@@ -58,7 +58,7 @@ public class SignService {
     }
 
     @Transactional
-    public void LogOut(Player player) {
+    public void logOut(Player player) {
         if (player.getOAuthAccessToken() != null && !player.getOAuthAccessToken().isBlank()) {
             revokeTokenForGoogle(player.getOAuthAccessToken());
             player.clearOAuthAccessToken();

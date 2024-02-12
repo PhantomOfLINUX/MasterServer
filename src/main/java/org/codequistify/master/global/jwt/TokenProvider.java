@@ -76,7 +76,7 @@ public class TokenProvider {
         } catch (IllegalArgumentException exception) {
             LOGGER.info("잘못된 JWT 토큰");
             return null;
-        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+        } catch (SecurityException | MalformedJwtException exception) {
             LOGGER.info("잘못된 JWT 서명");
             return null;
         } catch (RuntimeException exception) {
