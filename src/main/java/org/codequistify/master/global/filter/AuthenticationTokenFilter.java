@@ -36,7 +36,6 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String path = request.getRequestURI();
-        LOGGER.info("host: {}, path: {}", request.getRemoteHost(), path);
 
         // 토큰 비검사 uri
         for (String antMatchURI : antMatchURIs) {

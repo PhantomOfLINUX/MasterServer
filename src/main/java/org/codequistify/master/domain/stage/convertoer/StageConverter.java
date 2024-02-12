@@ -17,6 +17,7 @@ public class StageConverter {
         return Stage.builder()
                 .title(request.title())
                 .description(request.description())
+                .groupType(request.groupType())
                 .difficultyLevel(request.difficultyLevel())
                 .questionCount(request.questions().size())
                 .questions(

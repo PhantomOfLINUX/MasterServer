@@ -28,11 +28,15 @@ public class Stage extends BaseTimeEntity {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "stage_group")
+    @Enumerated(EnumType.STRING)
+    private StageGroupType groupType;
+
     @Column(name = "difficulty_level")
     @Enumerated(EnumType.STRING)
     private DifficultyLevelType difficultyLevel;
 
-    @Column(name = "question_count")
+    @Column(name = "count")
     @ColumnDefault("0")
     private Integer questionCount;
 
@@ -42,9 +46,10 @@ public class Stage extends BaseTimeEntity {
 
     @PostPersist
     protected void onPostPersist() {
+        // question id 할당
         this.questions = questions.stream()
                 .peek(question -> {
-                    String id = this.id +
+                    String id = String.format("%03d", this.id) +
                             "-" +
                             String.format("%02d", question.getIndex()) +
                             "-" +
