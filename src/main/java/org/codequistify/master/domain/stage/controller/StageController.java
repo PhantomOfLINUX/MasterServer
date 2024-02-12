@@ -5,14 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.dto.StageRegistryRequest;
 import org.codequistify.master.domain.stage.service.StageService;
+import org.codequistify.master.global.util.BasicResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,6 +20,10 @@ public class StageController {
     private final StageService stageService;
     private final Logger LOGGER = LoggerFactory.getLogger(Stage.class);
     // 스테이지 목록 조회
+    @GetMapping()
+    public ResponseEntity<Void> getStagePage(@RequestParam Long page, @RequestParam Long size) {
+        return null;
+    }
 
     // 스테이지 문항 조회 -> 정답은 클라이언트에게 제공 안 됨, 옵션들은 전부 제공되어야 함
 
@@ -29,10 +31,12 @@ public class StageController {
 
     // 스테이지 등록
     @PostMapping()
-    public ResponseEntity<Void> registryStage(@RequestBody StageRegistryRequest request) {
+    public ResponseEntity<BasicResponse> registryStage(@RequestBody StageRegistryRequest request) {
         stageService.saveStage(request);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        LOGGER.info("[registryStage] 스테이지 등록 완료");
+        BasicResponse response = new BasicResponse("SUCCESS", null);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     // 스테이지 수정

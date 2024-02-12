@@ -49,7 +49,7 @@ public class SignController {
     )
     @GetMapping("oauth2/google-url")
     public String loginUrlGoogle() {
-        return googleSocialSignService.getSocialSignInURL();
+        return googleSocialSignService.getSocialLogInURL();
     }
 
     @Operation(
@@ -61,7 +61,7 @@ public class SignController {
         if (request.code().isBlank()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        LogInResponse logInResponse = googleSocialSignService.socialLogin(request.code());
+        LogInResponse logInResponse = googleSocialSignService.socialLogIn(request.code());
 
         String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
         String accessToken = tokenProvider.generateAccessToken(logInResponse);
@@ -138,7 +138,7 @@ public class SignController {
     )
     @GetMapping("oauth2/kakao-url")
     public String loginUrlKakao() {
-        return kakaoSocialSignService.getSocialSignInURL();
+        return kakaoSocialSignService.getSocialLogInURL();
     }
 
     @Operation(
@@ -150,7 +150,7 @@ public class SignController {
         if (request.code().isBlank()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        LogInResponse logInResponse = kakaoSocialSignService.socialLogin(request.code());
+        LogInResponse logInResponse = kakaoSocialSignService.socialLogIn(request.code());
 
         LOGGER.info("{} kakao 로그인", logInResponse.email());
         return new ResponseEntity<>(logInResponse, HttpStatus.OK);
@@ -162,7 +162,7 @@ public class SignController {
     )
     @GetMapping("oauth2/naver-url")
     public String loginUrlNaver() {
-        return naverSocialSignService.getSocialSignInURL();
+        return naverSocialSignService.getSocialLogInURL();
     }
 
     @Operation(
@@ -198,7 +198,7 @@ public class SignController {
             throw new IllegalArgumentException("email 또는 password가 비어있습니다.");
         }
 
-        LogInResponse logInResponse = signService.signIn(request);
+        LogInResponse logInResponse = signService.logIn(request);
 
         String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
         String accessToken = tokenProvider.generateAccessToken(logInResponse);
@@ -222,7 +222,7 @@ public class SignController {
     )
     @PostMapping("logout")
     public ResponseEntity<Void> LogOut(@AuthenticationPrincipal Player player) {
-        signService.LogOut(player);
+        signService.logOut(player);
         LOGGER.info("[LogOut] Player: {}, 로그아웃 완료", player.getUid());
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -307,7 +307,7 @@ public class SignController {
     @GetMapping("oauth2/google")
     @Operation(hidden = true)
     public LogInResponse googleLogin(@RequestParam String code) {
-        LogInResponse response = googleSocialSignService.socialLogin(code);
+        LogInResponse response = googleSocialSignService.socialLogIn(code);
 
         return response;
     }
@@ -316,7 +316,7 @@ public class SignController {
     @Operation(hidden = true)
     @GetMapping("oauth2/kakao")
     public LogInResponse kakaoLogin(@RequestParam String code) {
-        LogInResponse response = kakaoSocialSignService.socialLogin(code);
+        LogInResponse response = kakaoSocialSignService.socialLogIn(code);
 
         return response;
     }
@@ -326,7 +326,7 @@ public class SignController {
     @Operation(hidden = true)
     public LogInResponse naverLogin(@RequestParam String code) {
         LOGGER.info("code: {}", code);
-        LogInResponse response = naverSocialSignService.socialLogin(code);
+        LogInResponse response = naverSocialSignService.socialLogIn(code);
 
         return response;
     }
@@ -342,7 +342,7 @@ public class SignController {
         if (request.code().isBlank()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        LogInResponse logInResponse = googleSocialSignService.socialLogin(request.code());
+        LogInResponse logInResponse = googleSocialSignService.socialLogIn(request.code());
 
         String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
         String accessToken = tokenProvider.generateAccessToken(logInResponse);
@@ -364,7 +364,7 @@ public class SignController {
         if (request.code().isBlank()) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        LogInResponse logInResponse = naverSocialSignService.socialLogin(request.code());
+        LogInResponse logInResponse = naverSocialSignService.socialLogIn(request.code());
 
         String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
         String accessToken = tokenProvider.generateAccessToken(logInResponse);

@@ -14,6 +14,7 @@ public class PlayerConverter {
                 .name(request.name())
                 .password(request.password())
                 .oAuthType(OAuthType.POL)
+                .oAuthId("0")
                 .isLocked(false)
                 .level(0)
                 .build();

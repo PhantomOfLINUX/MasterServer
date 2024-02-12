@@ -28,7 +28,7 @@ public class KakaoSocialSignService implements SocialSignService {
     카카오 소셜 로그인 주소 반환
      */
     @Override
-    public String getSocialSignInURL() {
+    public String getSocialLogInURL() {
         return "https://kauth.kakao.com/oauth/authorize?response_type=code" +
                 "&client_id=" + oAuthKey.getKAKAO_CLIENT_ID() +
                 "&redirect_uri=" + oAuthKey.getKAKAO_REDIRECT_URI();
@@ -39,7 +39,7 @@ public class KakaoSocialSignService implements SocialSignService {
     code를 통한 소셜 로그인
      */
     @Override
-    public LogInResponse socialLogin(String code) {
+    public LogInResponse socialLogIn(String code) {
         String accessToken = getAccessToken(code);
         OAuthResourceResponse response = getUserResource(accessToken);
 

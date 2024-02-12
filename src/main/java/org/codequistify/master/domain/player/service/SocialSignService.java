@@ -3,7 +3,7 @@ package org.codequistify.master.domain.player.service;
 import org.codequistify.master.domain.player.dto.sign.LogInResponse;
 
 public interface SocialSignService {
-    String getSocialSignInURL();
+    String getSocialLogInURL();
 
-    LogInResponse socialLogin(String code);
+    LogInResponse socialLogIn(String code);
 }
