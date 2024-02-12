@@ -194,8 +194,7 @@ public class Player extends BaseTimeEntity implements UserDetails {
             MessageDigest md = MessageDigest.getInstance("MD5");
             md.update(email.getBytes());
 
-            int r = new Random().nextInt(3);
-            sb.append("-").append(Base64.getEncoder().withoutPadding().encodeToString(md.digest()), r, r + 10);
+            sb.append("-").append(Base64.getEncoder().withoutPadding().encodeToString(md.digest()), 0, 10);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
