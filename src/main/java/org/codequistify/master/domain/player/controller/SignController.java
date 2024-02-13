@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.sign.LogInRequest;
@@ -164,7 +165,7 @@ public class SignController {
             description = "자체 회원가입이다. name, email, password를 필수로 입력받는다."
     )
     @PostMapping("signup/pol")
-    public ResponseEntity<LogInResponse> SignUpPOL(@RequestBody SignUpRequest request, HttpServletResponse httpServletResponse) {
+    public ResponseEntity<LogInResponse> SignUpPOL(@Valid @RequestBody SignUpRequest request, HttpServletResponse httpServletResponse) {
         LogInResponse logInResponse = signService.signUp(request);
 
         String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
@@ -183,7 +184,7 @@ public class SignController {
             description = "자체 로그인기능이다. name, password를 필수로 입력받는다."
     )
     @PostMapping("login/pol")
-    public ResponseEntity<LogInResponse> LogInPOL(@RequestBody LogInRequest request, HttpServletResponse httpServletResponse) {
+    public ResponseEntity<LogInResponse> LogInPOL(@Valid @RequestBody LogInRequest request, HttpServletResponse httpServletResponse) {
         LogInResponse logInResponse = signService.logIn(request);
 
         String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
@@ -207,11 +208,12 @@ public class SignController {
             }
     )
     @PostMapping("logout")
-    public ResponseEntity<Void> LogOut(@AuthenticationPrincipal Player player) {
+    public ResponseEntity<BasicResponse> LogOut(@AuthenticationPrincipal Player player) {
         signService.logOut(player);
         LOGGER.info("[LogOut] Player: {}, 로그아웃 완료", player.getUid());
 
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(BasicResponse.of("SUCCESS"));
     }
 
     @Operation(
@@ -232,7 +234,9 @@ public class SignController {
         if (signService.checkEmailDuplication(email)) {
             throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
         } else {
-            return ResponseEntity.status(HttpStatus.OK).body(BasicResponse.of("사용가능한 이메일입니다."));
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(BasicResponse.of("사용가능한 이메일입니다."));
         }
     }
 
@@ -245,7 +249,9 @@ public class SignController {
         verifyMailService.sendVerifyMail(email);
 
         LOGGER.info("[sendAuthMail] {} 인증 메일 전송", email);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(null);
     }
 
     @Operation(

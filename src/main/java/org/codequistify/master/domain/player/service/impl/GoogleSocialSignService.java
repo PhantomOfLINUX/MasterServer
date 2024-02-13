@@ -10,12 +10,11 @@ import org.codequistify.master.domain.player.service.SocialSignService;
 import org.codequistify.master.domain.player.vo.OAuthResourceVO;
 import org.codequistify.master.domain.player.vo.OAuthTokenVO;
 import org.codequistify.master.global.config.OAuthKey;
+import org.codequistify.master.global.exception.common.BusinessException;
+import org.codequistify.master.global.exception.common.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
@@ -111,7 +110,7 @@ public class GoogleSocialSignService implements SocialSignService {
             return Objects.requireNonNull(response).access_token();
         } catch (RestClientException exception) {
             LOGGER.info("[getAccessToken] 토큰 요청 실패");
-            return null;
+            throw new BusinessException(ErrorCode.OAUTH_COMMUNICATION_FAILURE, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -125,7 +124,7 @@ public class GoogleSocialSignService implements SocialSignService {
             return restTemplate.exchange(oAuthKey.getGOOGLE_RESOURCE_URI(), HttpMethod.GET, entity, OAuthResourceVO.class).getBody();
         } catch (NullPointerException | RestClientException exception) {
             LOGGER.info("[getUserResource] 정보 요청 실패");
-            return null;
+            throw new BusinessException(ErrorCode.OAUTH_COMMUNICATION_FAILURE, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

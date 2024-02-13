@@ -4,11 +4,13 @@ import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.global.exception.common.BusinessException;
+import org.codequistify.master.global.exception.common.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailException;
-import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -43,7 +45,7 @@ public class VerifyMailService {
             authCode = generatedCode(email).substring(seed, seed + 8);
         } catch (NoSuchAlgorithmException exception) {
             LOGGER.info("[sendVerifyMail] {}로 메일 전송 실패", email);
-            throw new MailSendException("인증 메일 전송 중 오류 발생");
+            throw new BusinessException(ErrorCode.EMAIL_SENDING_FAILURE, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         Map<String, Object> variables = new HashMap<>();
@@ -55,7 +57,7 @@ public class VerifyMailService {
             javaMailSender.send(message);
         } catch (MailException exception) {
             LOGGER.info("[sendVerifyMail] {}로 메일 전송 실패", email);
-            throw new MailSendException("인증 메일 전송 중 오류 발생");
+            throw new BusinessException(ErrorCode.EMAIL_SENDING_FAILURE, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         LOGGER.info("[sendVerifyMail] {}로 메일 전송 완료", email);
     }

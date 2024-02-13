@@ -33,7 +33,9 @@ public enum ErrorCode {
     // 요청에 토큰이 비어있는 경우
     EMPTY_TOKEN_PROVIDED("요청에 토큰이 비어있습니다.", "4013_EMPTY_TOKEN_PROVIDED"),
     // 권한이 부족한 token
-    INSUFFICIENT_PLAYER_PERMISSION("권한이 부족한 플레이어입니다.", "4013_INSUFFICIENT_TOKEN_PERMISSION");
+    INSUFFICIENT_PLAYER_PERMISSION("권한이 부족한 플레이어입니다.", "4013_INSUFFICIENT_TOKEN_PERMISSION"),
+    // 메일 전송 실패
+    EMAIL_SENDING_FAILURE("메일 전송에 실패하였습니다.", "4014_EMAIL_SENDING_FAILURE");
 
     private final String message;
     private final String code;
