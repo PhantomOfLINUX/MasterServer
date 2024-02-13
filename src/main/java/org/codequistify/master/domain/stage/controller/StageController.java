@@ -35,8 +35,9 @@ public class StageController {
         stageService.saveStage(request);
 
         LOGGER.info("[registryStage] 스테이지 등록 완료");
-        BasicResponse response = new BasicResponse("SUCCESS", null);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(BasicResponse.of("SUCCESS"));
     }
 
     // 스테이지 수정

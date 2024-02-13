@@ -1,6 +1,6 @@
-package org.codequistify.master.domain.player.dto.sign;
+package org.codequistify.master.domain.player.vo;
 
-public record OAuthTokenResponse(
+public record OAuthTokenVO(
         String access_token,
         String refresh_token,
         Long expires_in,

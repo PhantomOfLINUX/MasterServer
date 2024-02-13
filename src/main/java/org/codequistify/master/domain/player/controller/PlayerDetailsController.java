@@ -31,6 +31,6 @@ public class PlayerDetailsController {
         playerDetailsService.resetPassword(player, request);
         LOGGER.info("[resetPassword] uid: {}, 비밀번호 재설정 완료", player.getUid());
         return new ResponseEntity<>(
-                new BasicResponse("비밀번호가 재설정 되었습니다.", null), HttpStatus.OK);
+                new BasicResponse("비밀번호가 재설정 되었습니다.", null, null), HttpStatus.OK);
     }
 }

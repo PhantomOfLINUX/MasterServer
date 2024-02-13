@@ -1,18 +1,17 @@
 package org.codequistify.master.domain.player.service;
 
-import jakarta.persistence.EntityExistsException;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.converter.PlayerConverter;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.dto.sign.LogInRequest;
 import org.codequistify.master.domain.player.dto.sign.LogInResponse;
-import org.codequistify.master.domain.player.dto.sign.SignRequest;
+import org.codequistify.master.domain.player.dto.sign.SignUpRequest;
 import org.codequistify.master.domain.player.repository.PlayerRepository;
+import org.codequistify.master.global.exception.common.BusinessException;
+import org.codequistify.master.global.exception.common.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -26,10 +25,10 @@ public class SignService {
     private final Logger LOGGER = LoggerFactory.getLogger(SignService.class);
 
     @Transactional
-    public LogInResponse signUp(SignRequest request) {
+    public LogInResponse signUp(SignUpRequest request) {
         if (playerRepository.findByEmail(request.email()).isPresent()) {
             LOGGER.info("[signUp] 이미 존재하는 email 입니다.");
-            throw new EntityExistsException("이미 존재하는 email입니다.");
+            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
         }
 
         Player player = playerConverter.convert(request);
@@ -43,17 +42,17 @@ public class SignService {
     }
 
     @Transactional
-    public LogInResponse logIn(SignRequest request) {
+    public LogInResponse logIn(LogInRequest request) {
         Player player = playerRepository.findByEmail(request.email())
                 .orElseThrow(() -> {
                     LOGGER.info("[logIn] 존재하지 않는 email 입니다.");
-                    return new IllegalArgumentException("email 또는 password가 잘못되었습니다");
+                    return new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
                 });
 
         if (player.decodePassword(request.password())) {
             return playerConverter.convert(player);
         } else {
-            throw new IllegalArgumentException("email 또는 password가 잘못되었습니다");
+            throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
         }
     }
 

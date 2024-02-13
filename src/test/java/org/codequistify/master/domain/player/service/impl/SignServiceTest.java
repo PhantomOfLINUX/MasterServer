@@ -4,7 +4,7 @@ import jakarta.persistence.EntityExistsException;
 import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.sign.LogInResponse;
-import org.codequistify.master.domain.player.dto.sign.SignRequest;
+import org.codequistify.master.domain.player.dto.sign.SignUpRequest;
 import org.codequistify.master.domain.player.repository.PlayerRepository;
 import org.codequistify.master.domain.player.service.SignService;
 import org.junit.jupiter.api.Test;
@@ -31,7 +31,7 @@ class SignServiceTest {
 
     @Test
     public void 회원가입_성공_POL(){
-        SignRequest request = new SignRequest(null, "name", "email", "password");
+        SignUpRequest request = new SignUpRequest("name", "email", "password");
         LogInResponse result = signService.signUp(request);
 
         assertNotNull(result);
@@ -50,7 +50,7 @@ class SignServiceTest {
                 .level(0).build();
         playerRepository.save(player);
 
-        SignRequest request = new SignRequest(null, "name", "email", "password");
+        SignUpRequest request = new SignUpRequest("name", "email", "password");
 
         assertThrows(EntityExistsException.class, () -> {
             signService.signUp(request);

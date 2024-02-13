@@ -1,10 +1,13 @@
 package org.codequistify.master.domain.player.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.player.domain.OAuthType;
+import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.sign.LogInResponse;
-import org.codequistify.master.domain.player.dto.sign.OAuthResourceResponse;
-import org.codequistify.master.domain.player.dto.sign.OAuthTokenResponse;
+import org.codequistify.master.domain.player.repository.PlayerRepository;
 import org.codequistify.master.domain.player.service.SocialSignService;
+import org.codequistify.master.domain.player.vo.OAuthResourceVO;
+import org.codequistify.master.domain.player.vo.OAuthTokenVO;
 import org.codequistify.master.global.config.OAuthKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +16,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
@@ -21,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class KakaoSocialSignService implements SocialSignService {
     private final RestTemplate restTemplate;
+    private final PlayerRepository playerRepository;
     private final Logger LOGGER = LoggerFactory.getLogger(KakaoSocialSignService.class);
     private final OAuthKey oAuthKey;
 
@@ -41,11 +46,24 @@ public class KakaoSocialSignService implements SocialSignService {
     @Override
     public LogInResponse socialLogIn(String code) {
         String accessToken = getAccessToken(code);
-        OAuthResourceResponse response = getUserResource(accessToken);
+        OAuthResourceVO response = getUserResource(accessToken);
 
         LOGGER.info("{} {}", response.id(), response.properties().get("nickname"));
 
         return null;
+    }
+
+    @Override
+    @Transactional
+    public Player socialSignUp(OAuthResourceVO resource) {
+        Player player = Player.builder()
+                .name(resource.name())
+                .email(resource.email())
+                .oAuthType(OAuthType.KAKAO)
+                .oAuthId(resource.id()).build();
+        player = playerRepository.save(player);
+        LOGGER.info("[socialSignUp] 등록");
+        return player;
     }
 
     private String getAccessToken(String code) {
@@ -60,7 +78,7 @@ public class KakaoSocialSignService implements SocialSignService {
 
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
 
-        OAuthTokenResponse response = restTemplate.postForObject(oAuthKey.getKAKAO_TOKEN_URI(), entity, OAuthTokenResponse.class);
+        OAuthTokenVO response = restTemplate.postForObject(oAuthKey.getKAKAO_TOKEN_URI(), entity, OAuthTokenVO.class);
 
         if (response.access_token() != null) {
             return response.access_token();
@@ -69,13 +87,13 @@ public class KakaoSocialSignService implements SocialSignService {
         }
     }
 
-    private OAuthResourceResponse getUserResource(String accessToken) {
+    private OAuthResourceVO getUserResource(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
-        OAuthResourceResponse response = restTemplate.exchange(oAuthKey.getKAKAO_RESOURCE_URI(), HttpMethod.GET, entity, OAuthResourceResponse.class).getBody();
+        OAuthResourceVO response = restTemplate.exchange(oAuthKey.getKAKAO_RESOURCE_URI(), HttpMethod.GET, entity, OAuthResourceVO.class).getBody();
 
         if (response != null) {
             return response;
