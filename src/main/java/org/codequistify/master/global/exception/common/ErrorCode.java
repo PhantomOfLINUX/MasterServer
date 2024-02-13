@@ -6,36 +6,25 @@ import lombok.Getter;
 public enum ErrorCode {
     // 알려지지 않은 문제
     UNKNOWN("알려지지 않은 문제가 발생하였습니다.", "4000_UNKNOWN_ERROR"),
-    // 공백값 존재
+    // 입력 값 오류
     BLANK_ARGUMENT("비어있는 값이 존재합니다.", "4001_BLANK_ARGUMENT_ERROR"),
-    // 이메일 형식 위반
-    INVALID_EMAIL_FORMAT("이메일 형식이 올바르지 않습니다.", "4002_INVALID_EMAIL_FORMAT"),
-    // 비밀번호 조건 위반
-    PASSWORD_POLICY_VIOLATION("비밀번호 조건을 충족하지 않습니다.", "4003_PASSWORD_POLICY_VIOLATION"),
-    // 이메일 중복
-    EMAIL_ALREADY_EXISTS("이미 존재하는 이메일입니다.", "4004_EMAIL_ALREADY_EXISTS"),
-    // oauth 통신 실패
-    OAUTH_COMMUNICATION_FAILURE("OAuth 통신에 실패하였습니다.", "4005_OAUTH_COMMUNICATION_FAILURE"),
-    // 이메일, 비밀번호 틀림
-    INVALID_EMAIL_OR_PASSWORD("이메일 또는 비밀번호가 틀립니다.", "4006_INVALID_EMAIL_OR_PASSWORD"),
-    // 존재하지 않는 플레이어
-    PLAYER_NOT_FOUND("존재하지 않는 플레이어입니다.", "4007_PLAYER_NOT_FOUND"),
-    // 올바르지 않은 oauth code
-    INVALID_OAUTH_CODE("올바르지 않은 OAuth code입니다.", "4008_INVALID_OAUTH_CODE"),
-    // 올바르지 않은 token
-    INVALID_TOKEN("올바르지 않은 토큰입니다.", "4009_INVALID_TOKEN"),
-    // 만료된 엑세스 token
-    EXPIRED_ACCESS_TOKEN("만료된 엑세스 토큰입니다.", "4010_EXPIRED_ACCESS_TOKEN"),
-    // 만료된 refresh token
-    EXPIRED_REFRESH_TOKEN("만료된 리프레시 토큰입니다.", "4011_EXPIRED_REFRESH_TOKEN"),
-    // 서명이 변형된 토큰
-    TAMPERED_TOKEN_SIGNATURE("만료된 리프레시 토큰입니다.", "4012_TAMPERED_TOKEN_SIGNATURE"),
-    // 요청에 토큰이 비어있는 경우
-    EMPTY_TOKEN_PROVIDED("요청에 토큰이 비어있습니다.", "4013_EMPTY_TOKEN_PROVIDED"),
-    // 권한이 부족한 token
-    INSUFFICIENT_PLAYER_PERMISSION("권한이 부족한 플레이어입니다.", "4013_INSUFFICIENT_TOKEN_PERMISSION"),
-    // 메일 전송 실패
-    EMAIL_SENDING_FAILURE("메일 전송에 실패하였습니다.", "4014_EMAIL_SENDING_FAILURE");
+    INVALID_EMAIL_FORMAT("이메일 형식이 올바르지 않습니다.", "4002_INVALID_EMAIL_FORMAT_ERROR"),
+    PASSWORD_POLICY_VIOLATION("비밀번호 조건을 충족하지 않습니다.", "4003_PASSWORD_POLICY_VIOLATION_ERROR"),
+    // 계정 관련 오류
+    EMAIL_ALREADY_EXISTS("이미 존재하는 이메일입니다.", "4004_EMAIL_ALREADY_EXISTS_ERROR"),
+    INVALID_EMAIL_OR_PASSWORD("이메일 또는 비밀번호가 틀립니다.", "4005_INVALID_EMAIL_OR_PASSWORD_ERROR"),
+    PLAYER_NOT_FOUND("존재하지 않는 플레이어입니다.", "4006_PLAYER_NOT_FOUND_ERROR"),
+    // OAuth 및 토큰 오류
+    OAUTH_COMMUNICATION_FAILURE("OAuth 통신에 실패하였습니다.", "4007_OAUTH_COMMUNICATION_FAILURE_ERROR"),
+    INVALID_OAUTH_CODE("올바르지 않은 OAuth code입니다.", "4008_INVALID_OAUTH_CODE_ERROR"),
+    INVALID_TOKEN("올바르지 않은 토큰입니다.", "4009_INVALID_TOKEN_ERROR"),
+    EXPIRED_ACCESS_TOKEN("만료된 엑세스 토큰입니다.", "4010_EXPIRED_ACCESS_TOKEN_ERROR"),
+    EXPIRED_REFRESH_TOKEN("만료된 리프레시 토큰입니다.", "4011_EXPIRED_REFRESH_TOKEN_ERROR"),
+    TAMPERED_TOKEN_SIGNATURE("서명이 변형된 토큰입니다.", "4012_TAMPERED_TOKEN_SIGNATURE_ERROR"),
+    EMPTY_TOKEN_PROVIDED("요청에 토큰이 비어있습니다.", "4013_EMPTY_TOKEN_PROVIDED_ERROR"),
+    INSUFFICIENT_PLAYER_PERMISSION("권한이 부족한 플레이어입니다.", "4014_INSUFFICIENT_TOKEN_PERMISSION_ERROR"),
+    // 메일 전송 오류
+    EMAIL_SENDING_FAILURE("메일 전송에 실패하였습니다.", "4015_EMAIL_SENDING_FAILURE_ERROR");
 
     private final String message;
     private final String code;
