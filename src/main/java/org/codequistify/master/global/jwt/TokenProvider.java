@@ -5,9 +5,12 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.dto.sign.LogInResponse;
+import org.codequistify.master.global.exception.common.BusinessException;
+import org.codequistify.master.global.exception.common.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -85,6 +88,28 @@ public class TokenProvider {
         }
     }
 
+    public String getAudience(String token) {
+        try {
+            Jws<Claims> claims = Jwts.parserBuilder()
+                    .setSigningKey(KEY)
+                    .build()
+                    .parseClaimsJws(token);
+
+            if (claims.getBody().getExpiration().before(new Date())) {
+                throw new BusinessException(ErrorCode.EXPIRED_ACCESS_TOKEN, HttpStatus.UNAUTHORIZED);
+            }
+            else {
+                return claims.getBody().getAudience();
+            }
+        } catch (ExpiredJwtException exception) {
+            throw new BusinessException(ErrorCode.EXPIRED_ACCESS_TOKEN, HttpStatus.UNAUTHORIZED);
+        } catch (SecurityException | MalformedJwtException e) {
+            throw new BusinessException(ErrorCode.TAMPERED_TOKEN_SIGNATURE, HttpStatus.UNAUTHORIZED);
+        } catch (RuntimeException exception) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
+        }
+    }
+
     public boolean checkExpire(Claims claims) {
         try {
             return !claims.getExpiration().before(new Date());
@@ -109,7 +134,7 @@ public class TokenProvider {
         } catch (IllegalArgumentException exception) {
             LOGGER.info("잘못된 JWT 토큰");
             return false;
-        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+        } catch (SecurityException | MalformedJwtException e) {
             LOGGER.info("잘못된 JWT 서명");
             return false;
         } catch (RuntimeException exception) {
@@ -121,7 +146,7 @@ public class TokenProvider {
     public String resolveToken(HttpServletRequest httpServletRequest) {
         String authorization = httpServletRequest.getHeader("Authorization");
         if (authorization == null) {
-            return null;
+            throw new BusinessException(ErrorCode.EMPTY_TOKEN_PROVIDED, HttpStatus.UNAUTHORIZED);
         } else if (authorization.startsWith("Bearer ")) {
             return authorization.substring(7);
         } else {

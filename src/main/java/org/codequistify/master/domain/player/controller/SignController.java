@@ -21,6 +21,8 @@ import org.codequistify.master.domain.player.service.VerifyMailService;
 import org.codequistify.master.domain.player.service.impl.GoogleSocialSignService;
 import org.codequistify.master.domain.player.service.impl.KakaoSocialSignService;
 import org.codequistify.master.domain.player.service.impl.NaverSocialSignService;
+import org.codequistify.master.global.exception.common.BusinessException;
+import org.codequistify.master.global.exception.common.ErrorCode;
 import org.codequistify.master.global.jwt.TokenProvider;
 import org.codequistify.master.global.jwt.dto.TokenRequest;
 import org.codequistify.master.global.jwt.dto.TokenResponse;
@@ -228,11 +230,9 @@ public class SignController {
     @GetMapping("signup/email/{email}")
     public ResponseEntity<BasicResponse> checkEmailDuplication(@PathVariable String email) {
         if (signService.checkEmailDuplication(email)) {
-            BasicResponse response = new BasicResponse(null, "이미 존재하는 이메일입니다.");
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
         } else {
-            BasicResponse response = new BasicResponse("사용가능한 이메일입니다.", null);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+            return ResponseEntity.status(HttpStatus.OK).body(BasicResponse.of("사용가능한 이메일입니다."));
         }
     }
 
@@ -261,11 +261,12 @@ public class SignController {
     @GetMapping("signup/email/{email}/code/{code}")
     public ResponseEntity<BasicResponse> verifyCode(@PathVariable String email, @PathVariable String code) {
         code = code.trim();
+        String bool = Boolean.toString(verifyMailService.checkValidCode(email, code));
 
-        BasicResponse response = new BasicResponse(Boolean.toString(verifyMailService.checkValidCode(email, code)), null);
-
-        LOGGER.info("[verifyCode] {} 회원가입 메일 코드 인증 {}", email, response.response());
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        LOGGER.info("[verifyCode] {} 회원가입 메일 코드 인증 {}", email, bool);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(BasicResponse.of(bool));
     }
 
 

@@ -16,6 +16,14 @@ public record BasicResponse(
         );
     }
 
+    public static BasicResponse of(String response) {
+        return new BasicResponse(
+                response,
+                "",
+                ""
+        );
+    }
+
     public static ResponseEntity<BasicResponse> toResponseEntity(BusinessException exception) {
         return ResponseEntity
                 .status(exception.getHttpStatus())

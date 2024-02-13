@@ -3,6 +3,7 @@ package org.codequistify.master.global.config;
 
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.global.filter.AuthenticationTokenFilter;
+import org.codequistify.master.global.filter.BusinessExceptionHandlerFilter;
 import org.codequistify.master.global.filter.CustomCorsFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +20,7 @@ import org.springframework.web.filter.CorsFilter;
 public class SecurityConfig {
     private final CustomCorsFilter customCorsFilter;
     private final AuthenticationTokenFilter authenticationTokenFilter;
+    private final BusinessExceptionHandlerFilter businessExceptionHandlerFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -39,7 +41,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated())
 
                 // jwt 인증 토큰 설정
-                .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(businessExceptionHandlerFilter, AuthenticationTokenFilter.class);
 
 
         return http.build();

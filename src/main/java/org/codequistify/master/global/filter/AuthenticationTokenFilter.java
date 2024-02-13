@@ -1,18 +1,18 @@
 package org.codequistify.master.global.filter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.service.impl.PlayerDetailsService;
+import org.codequistify.master.global.exception.common.BusinessException;
+import org.codequistify.master.global.exception.common.ErrorCode;
 import org.codequistify.master.global.jwt.TokenProvider;
-import org.codequistify.master.global.util.BasicResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -46,24 +46,10 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
         }
 
         String token = tokenProvider.resolveToken(request);
-        if (token == null) {
-            LOGGER.info("[TokenFilter] 토큰이 비어 있는 요청");
-            doFalseAction(response);
-            return;
-        }
 
-        Claims claims = tokenProvider.getClaims(token);
-        if (claims == null || !tokenProvider.checkExpire(claims)) {
-            LOGGER.info("[TokenFilter] 올바르지 않은 토큰 상태");
-            doFalseAction(response);
-            return;
-        }
-
-        String aud = claims.getAudience();
+        String aud = tokenProvider.getAudience(token);
         if (aud == null || aud.isBlank()) {
-            LOGGER.info("[TokenFilter] 올바르지 않은 aud 값");
-            doFalseAction(response);
-            return;
+            throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
         }
 
         UserDetails userDetails = playerDetailsService.loadUserByUsername(aud);
@@ -74,15 +60,5 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
 
         response.setHeader("Authorization", token);
         filterChain.doFilter(request, response);
-    }
-
-    private void doFalseAction(HttpServletResponse response) throws IOException {
-        response.setContentType("application/json");
-        response.setCharacterEncoding("UTF-8");
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-
-        response.getWriter().write(
-                new ObjectMapper().writeValueAsString(new BasicResponse(null, "올바르지 않은 토큰 정보입니다."))
-        );
     }
 }

@@ -6,17 +6,17 @@ import org.springframework.http.HttpStatus;
 @Getter
 public class BusinessException extends RuntimeException{
     private final HttpStatus httpStatus;
-    private final BusinessErrorCode errorCode;
+    private final ErrorCode errorCode;
     private final String detail;
 
-    public BusinessException(BusinessErrorCode errorCode, HttpStatus httpStatus) {
+    public BusinessException(ErrorCode errorCode, HttpStatus httpStatus) {
         super(errorCode.getMessage());
         this.httpStatus = httpStatus;
         this.errorCode = errorCode;
         this.detail = "";
     }
 
-    public BusinessException(BusinessErrorCode errorCode, HttpStatus httpStatus, Throwable cause) {
+    public BusinessException(ErrorCode errorCode, HttpStatus httpStatus, Throwable cause) {
         super(errorCode.getMessage(), cause);
         this.httpStatus = httpStatus;
         this.errorCode = errorCode;
@@ -24,9 +24,9 @@ public class BusinessException extends RuntimeException{
     }
 
     public BusinessException(HttpStatus httpStatus, Throwable cause) {
-        super(BusinessErrorCode.UNKNOWN.getMessage(), cause);
+        super(ErrorCode.UNKNOWN.getMessage(), cause);
         this.httpStatus = httpStatus;
-        this.errorCode = BusinessErrorCode.UNKNOWN;
+        this.errorCode = ErrorCode.UNKNOWN;
         this.detail = cause.getMessage();
     }
 
@@ -36,7 +36,7 @@ public class BusinessException extends RuntimeException{
         this.detail = businessException.getDetail();
     }
 
-    public BusinessException(BusinessErrorCode errorCode, HttpStatus httpStatus, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public BusinessException(ErrorCode errorCode, HttpStatus httpStatus, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(errorCode.getMessage(), cause, enableSuppression, writableStackTrace);
         this.httpStatus = httpStatus;
         this.errorCode = errorCode;
@@ -51,7 +51,7 @@ public class BusinessException extends RuntimeException{
             this.detail = businessException.getMessage();
         } else {
             this.httpStatus = HttpStatus.BAD_REQUEST;
-            this.errorCode = BusinessErrorCode.UNKNOWN;
+            this.errorCode = ErrorCode.UNKNOWN;
             this.detail = exception.getMessage();
         }
     }

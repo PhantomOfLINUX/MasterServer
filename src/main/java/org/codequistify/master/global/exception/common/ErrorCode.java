@@ -3,7 +3,7 @@ package org.codequistify.master.global.exception.common;
 import lombok.Getter;
 
 @Getter
-public enum BusinessErrorCode {
+public enum ErrorCode {
     // 알려지지 않은 문제
     UNKNOWN("알려지지 않은 문제가 발생하였습니다.", "4000_UNKNOWN_ERROR"),
     // 공백값 존재
@@ -28,13 +28,17 @@ public enum BusinessErrorCode {
     EXPIRED_ACCESS_TOKEN("만료된 엑세스 토큰입니다.", "4010_EXPIRED_ACCESS_TOKEN"),
     // 만료된 refresh token
     EXPIRED_REFRESH_TOKEN("만료된 리프레시 토큰입니다.", "4011_EXPIRED_REFRESH_TOKEN"),
+    // 서명이 변형된 토큰
+    TAMPERED_TOKEN_SIGNATURE("만료된 리프레시 토큰입니다.", "4012_TAMPERED_TOKEN_SIGNATURE"),
+    // 요청에 토큰이 비어있는 경우
+    EMPTY_TOKEN_PROVIDED("요청에 토큰이 비어있습니다.", "4013_EMPTY_TOKEN_PROVIDED"),
     // 권한이 부족한 token
-    INSUFFICIENT_PLAYER_PERMISSION("권한이 부족한 플레이어입니다.", "4012_INSUFFICIENT_TOKEN_PERMISSION");
+    INSUFFICIENT_PLAYER_PERMISSION("권한이 부족한 플레이어입니다.", "4013_INSUFFICIENT_TOKEN_PERMISSION");
 
     private final String message;
     private final String code;
 
-    BusinessErrorCode(String message, String code) {
+    ErrorCode(String message, String code) {
         this.message = message;
         this.code = code;
     }
