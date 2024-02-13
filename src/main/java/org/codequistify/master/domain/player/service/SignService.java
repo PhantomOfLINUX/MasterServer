@@ -46,7 +46,7 @@ public class SignService {
         Player player = playerRepository.findByEmail(request.email())
                 .orElseThrow(() -> {
                     LOGGER.info("[logIn] 존재하지 않는 email 입니다.");
-                    throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
+                    return new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
                 });
 
         if (player.decodePassword(request.password())) {

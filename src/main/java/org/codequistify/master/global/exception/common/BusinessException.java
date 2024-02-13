@@ -43,7 +43,7 @@ public class BusinessException extends RuntimeException{
         this.detail = cause.getMessage();
     }
 
-    public BusinessException(BusinessException exception) {
+    public BusinessException(RuntimeException exception) {
         if (exception.getClass() == BusinessException.class) {
             BusinessException businessException = (BusinessException) exception;
             this.httpStatus = businessException.getHttpStatus();
