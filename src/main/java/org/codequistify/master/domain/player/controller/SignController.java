@@ -1,6 +1,5 @@
 package org.codequistify.master.domain.player.controller;
 
-import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -25,6 +24,7 @@ import org.codequistify.master.domain.player.service.impl.NaverSocialSignService
 import org.codequistify.master.global.exception.common.BusinessException;
 import org.codequistify.master.global.exception.common.ErrorCode;
 import org.codequistify.master.global.jwt.TokenProvider;
+import org.codequistify.master.global.jwt.dto.TokenInfo;
 import org.codequistify.master.global.jwt.dto.TokenRequest;
 import org.codequistify.master.global.jwt.dto.TokenResponse;
 import org.codequistify.master.global.util.BasicResponse;
@@ -40,13 +40,14 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Sign")
 @RequestMapping("api")
 public class SignController {
-    private final Logger LOGGER = LoggerFactory.getLogger(SignController.class);
     private final GoogleSocialSignService googleSocialSignService;
     private final KakaoSocialSignService kakaoSocialSignService;
     private final NaverSocialSignService naverSocialSignService;
     private final SignService signService;
+
     private final VerifyMailService verifyMailService;
     private final TokenProvider tokenProvider;
+    private final Logger LOGGER = LoggerFactory.getLogger(SignController.class);
 
     @Operation(
             summary = "구글 로그인 url 발급",
@@ -77,8 +78,8 @@ public class SignController {
     }
 
     @Operation(
-            summary = "토큰 재발급",
-            description = "AccessToken을 재발급 한다. 재발급 받을 player의 id를 경로로 받는다.\n\n" +
+            summary = "엑세스 토큰 재발급",
+            description = "AccessToken을 재발급 한다.\n\n" +
                     " RefreshToken 값을 body로 받는다. 이때 token은 'bearer' 없이 token 값만을 적어야 한다.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "정상적으로 재발급"),
@@ -86,27 +87,33 @@ public class SignController {
                     @ApiResponse(responseCode = "401", description = "만료된 Refresh Token")
             }
     )
-    @PostMapping("refresh/id/{uid}")
-    public ResponseEntity<TokenResponse> regenerateAccessToken(@RequestBody TokenRequest request, @PathVariable String uid, HttpServletResponse response) {
+    @PostMapping("oauth2/refresh")
+    public ResponseEntity<TokenResponse> regenerateAccessToken(TokenRequest request, HttpServletResponse response) {
+        TokenResponse tokenResponse = signService.regenerateRefreshToken(request);
 
-        Claims claims = tokenProvider.getClaims(request.refreshToken());
-        if (!claims.getAudience().equals(uid)) {
-            LOGGER.info("[regenerateAccessToken] 일치하지 않는 id {}:{}", claims.getAudience(), uid);
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        addAccessTokensToCookies(tokenResponse.accessToken(), response);
+        addRefreshTokensToCookies(tokenResponse.refreshToken(), response);
+
+        LOGGER.info("[regenerateAccessToken] AccessToken 재발급");
+        return ResponseEntity.status(HttpStatus.OK).body(tokenResponse);
+    }
+
+    @Operation(
+            summary = "토큰 해석",
+            description = "토큰 정보를 해석한다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "유효한 토큰"),
+                    @ApiResponse(responseCode = "400", description = "잘못된 양식의 토큰 또는 셔명되지 않은 토큰 "),
+            }
+    )
+    @GetMapping("oauth2/info")
+    public ResponseEntity<?> analyzeToken(@RequestParam String token) {
+        try {
+            TokenInfo tokenInfo = signService.analyzeTokenInfo(token);
+            return ResponseEntity.status(HttpStatus.OK).body(tokenInfo);
+        } catch (NullPointerException exception) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.BAD_REQUEST);
         }
-
-        if (!tokenProvider.checkExpire(claims)) {
-            LOGGER.info("[regenerateAccessToken] 만료된 refresh token {}", uid);
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
-
-        String accessToken = tokenProvider.generateAccessToken(new LogInResponse(uid, null, null, null));
-
-        addAccessTokensToCookies(accessToken, response);
-        TokenResponse tokenResponse = new TokenResponse(request.refreshToken(), accessToken);
-        LOGGER.info("[regenerateAccessToken] {} AccessToken 재발급", uid);
-
-        return new ResponseEntity<>(tokenResponse, HttpStatus.OK);
     }
 
     private void addAccessTokensToCookies(String accessToken, HttpServletResponse response) {

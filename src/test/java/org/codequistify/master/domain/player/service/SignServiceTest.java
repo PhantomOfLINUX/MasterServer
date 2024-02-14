@@ -1,12 +1,12 @@
-package org.codequistify.master.domain.player.service.impl;
+package org.codequistify.master.domain.player.service;
 
-import jakarta.persistence.EntityExistsException;
 import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.sign.LogInResponse;
 import org.codequistify.master.domain.player.dto.sign.SignUpRequest;
 import org.codequistify.master.domain.player.repository.PlayerRepository;
-import org.codequistify.master.domain.player.service.SignService;
+import org.codequistify.master.global.exception.common.BusinessException;
+import org.codequistify.master.global.exception.common.ErrorCode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,10 +52,25 @@ class SignServiceTest {
 
         SignUpRequest request = new SignUpRequest("name", "email", "password");
 
-        assertThrows(EntityExistsException.class, () -> {
+        Throwable ex = assertThrows(BusinessException.class, () -> {
             signService.signUp(request);
         });
+        assertEquals(ErrorCode.EMAIL_ALREADY_EXISTS.getMessage(), ex.getMessage());
     }
+
+    // 회원가입 이메일 양식
+
+    // 회원가입 비밀번호 조건
+
+    //로그인 성공
+
+    //로그인 비밀번호 오류
+
+    //로그인 패스워드 오류
+
+    //이메일 중복 검사 성공
+
+    //이메일 중복 검사 실패
 
 
 }
