@@ -13,7 +13,8 @@ public class PlayerConverter {
                 player.getUid(),
                 player.getName(),
                 player.getEmail(),
-                player.getLevel()
+                player.getLevel(),
+                player.getRoles()
         );
     }
 

@@ -4,6 +4,7 @@ import io.jsonwebtoken.*;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.sign.LogInResponse;
 import org.codequistify.master.global.exception.common.BusinessException;
 import org.codequistify.master.global.exception.common.ErrorCode;
@@ -33,16 +34,34 @@ public class TokenProvider {
     protected void init() {
         KEY = new SecretKeySpec(JWT_SECRET.getBytes(StandardCharsets.UTF_8), SignatureAlgorithm.HS256.getJcaName());
 
-        LOGGER.info("eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjoiU1VQRVJfQURNSU4iLCJhdWQiOiJQT0wtQkRCRWVqLUdqNUFudFpwcloiLCJpYXQiOjE3MDcxMjEwNzQsImlzcyI6ImFwaS5wb2wub3Iua3IiLCJleHAiOjE3MTQ4OTcwNzR9.1FQydJ7Hca2YRNjPKLshy7LQqbDKaf3QGGEcs57K5YqIsU2mUihA9SYbpE3B7Wdu27IlMLFpUfgxvmJQyY-IDA");
     }
 
     public String generateAccessToken(LogInResponse response) {
         Claims claims = Jwts.claims();
+        claims.put("role", response.roles());
         Date now = new Date();
 
         String token = Jwts.builder()
                 .setClaims(claims)
                 .setAudience(response.uid())
+                .setIssuedAt(now)
+                .setIssuer(ISS)
+                .setExpiration(new Date(now.getTime() + ACCESS_VALIDITY_TIME))
+                .signWith(KEY)
+                .compact();
+
+        LOGGER.info("[generateAccessToken] {}", token);
+        return token;
+    }
+
+    public String generateAccessToken(Player player) {
+        Claims claims = Jwts.claims();
+        claims.put("role", player.getRoles());
+        Date now = new Date();
+
+        String token = Jwts.builder()
+                .setClaims(claims)
+                .setAudience(player.getUid())
                 .setIssuedAt(now)
                 .setIssuer(ISS)
                 .setExpiration(new Date(now.getTime() + ACCESS_VALIDITY_TIME))
@@ -60,6 +79,23 @@ public class TokenProvider {
         String token = Jwts.builder()
                 .setClaims(claims)
                 .setAudience(response.uid())
+                .setIssuedAt(now)
+                .setIssuer(ISS)
+                .setExpiration(new Date(now.getTime() + REFRESH_VALIDITY_TIME))
+                .signWith(KEY)
+                .compact();
+
+        LOGGER.info("[generateRefreshToken] {}", token);
+        return token;
+    }
+
+    public String generateRefreshToken(Player player) {
+        Claims claims = Jwts.claims();
+        Date now = new Date();
+
+        String token = Jwts.builder()
+                .setClaims(claims)
+                .setAudience(player.getUid())
                 .setIssuedAt(now)
                 .setIssuer(ISS)
                 .setExpiration(new Date(now.getTime() + REFRESH_VALIDITY_TIME))
