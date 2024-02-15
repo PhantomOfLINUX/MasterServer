@@ -1,8 +1,8 @@
-package org.codequistify.master.domain.player.service;
+package org.codequistify.master.domain.authentication.service;
 
+import org.codequistify.master.domain.authentication.dto.LogInResponse;
+import org.codequistify.master.domain.authentication.vo.OAuthResourceVO;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.player.dto.sign.LogInResponse;
-import org.codequistify.master.domain.player.vo.OAuthResourceVO;
 
 public interface SocialSignService {
     String getSocialLogInURL();

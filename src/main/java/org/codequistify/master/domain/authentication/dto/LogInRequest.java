@@ -1,9 +1,8 @@
-package org.codequistify.master.domain.player.dto.sign;
+package org.codequistify.master.domain.authentication.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record SignUpRequest(
-        @NotBlank String name,
+public record LogInRequest(
         @NotBlank String email,
         @NotBlank String password
 ) {

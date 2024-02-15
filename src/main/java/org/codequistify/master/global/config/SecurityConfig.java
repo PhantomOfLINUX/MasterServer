@@ -35,9 +35,7 @@ public class SecurityConfig {
                 .formLogin(form -> form.disable())
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/home/**", "/index/**", "/index.js", "/favicon.ico", "/swagger-ui/**", "/v3/**", "/api/todo-list/**").permitAll()
-                        .requestMatchers("/api/refresh/**").permitAll()
-                        .requestMatchers("/api/oauth2/**").permitAll()
-                        .requestMatchers("/api/signup/**", "/api/login/**", "/api/logout/**").permitAll()
+                        .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated())
 
                 // jwt 인증 토큰 설정

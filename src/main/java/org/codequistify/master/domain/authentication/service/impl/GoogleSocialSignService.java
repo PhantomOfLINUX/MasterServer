@@ -1,14 +1,14 @@
-package org.codequistify.master.domain.player.service.impl;
+package org.codequistify.master.domain.authentication.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.authentication.dto.LogInResponse;
+import org.codequistify.master.domain.authentication.service.SocialSignService;
+import org.codequistify.master.domain.authentication.vo.OAuthResourceVO;
+import org.codequistify.master.domain.authentication.vo.OAuthTokenVO;
 import org.codequistify.master.domain.player.converter.PlayerConverter;
 import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.player.dto.sign.LogInResponse;
-import org.codequistify.master.domain.player.repository.PlayerRepository;
-import org.codequistify.master.domain.player.service.SocialSignService;
-import org.codequistify.master.domain.player.vo.OAuthResourceVO;
-import org.codequistify.master.domain.player.vo.OAuthTokenVO;
+import org.codequistify.master.domain.player.service.PlayerDetailsService;
 import org.codequistify.master.global.config.OAuthKey;
 import org.codequistify.master.global.exception.common.BusinessException;
 import org.codequistify.master.global.exception.common.ErrorCode;
@@ -23,16 +23,15 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class GoogleSocialSignService implements SocialSignService {
-    private final PlayerRepository playerRepository;
-    private final RestTemplate restTemplate;
-
+    private final PlayerDetailsService playerDetailsService;
     private final PlayerConverter playerConverter;
+
     private final Logger LOGGER = LoggerFactory.getLogger(GoogleSocialSignService.class);
+    private final RestTemplate restTemplate;
     private final OAuthKey oAuthKey;
 
     /*
@@ -52,44 +51,39 @@ public class GoogleSocialSignService implements SocialSignService {
      */
     @Override
     @Transactional
+    public LogInResponse socialLogIn(String code) {
+        String accessToken = getAccessToken(code);
+        OAuthResourceVO resource = getUserResource(accessToken);
+
+        Player player;
+        try {
+            player = playerDetailsService.findOndPlayerByEmail(resource.email());
+        } catch (BusinessException exception) {
+            LOGGER.info("등록되지 않은 구글 계정 {}", resource.email());
+            player = socialSignUp(resource);
+        }
+
+        player.updateOAuthAccessToken(accessToken);
+
+        playerDetailsService.save(player);
+
+        LogInResponse response = playerConverter.convert(player);
+        LOGGER.info("[socialLogin] {} 구글 로그인", player.getEmail());
+
+        return response;
+    }
+
+    @Override
+    @Transactional
     public Player socialSignUp(OAuthResourceVO resource) {
         Player player = Player.builder()
                 .name(resource.name())
                 .email(resource.email())
                 .oAuthType(OAuthType.GOOGLE)
                 .oAuthId(resource.id()).build();
-        player = playerRepository.save(player);
+        player = playerDetailsService.save(player);
         LOGGER.info("[socialSignUp] 등록");
         return player;
-    }
-
-    @Override
-    @Transactional
-    public LogInResponse socialLogIn(String code) {
-        String accessToken = getAccessToken(code);
-        OAuthResourceVO resource = getUserResource(accessToken);
-
-        LOGGER.info("{} {} {}", resource.id(), resource.email(), resource.name());
-
-        Optional<Player> playerOptional = playerRepository.findByEmail(resource.email());
-
-        // 등록되지 않은 계정인 경우 player 등록하기
-        Player player;
-        if (playerOptional.isEmpty()) {
-            LOGGER.info("등록되지 않은 구글 계정 {}", resource.email());
-            player = socialSignUp(resource);
-        } else {
-            player = playerOptional.get();
-        }
-
-        player.updateOAuthAccessToken(accessToken);
-
-        playerRepository.save(player);
-
-        LogInResponse response = playerConverter.convert(player);
-        LOGGER.info("[socialLogin] {} 구글 로그인", player.getEmail());
-
-        return response;
     }
 
     private String getAccessToken(String code) {

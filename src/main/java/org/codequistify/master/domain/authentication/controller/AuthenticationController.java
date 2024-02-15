@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.player.controller;
+package org.codequistify.master.domain.authentication.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -11,16 +11,16 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.authentication.dto.LogInRequest;
+import org.codequistify.master.domain.authentication.dto.LogInResponse;
+import org.codequistify.master.domain.authentication.dto.SignUpRequest;
+import org.codequistify.master.domain.authentication.dto.SocialLogInRequest;
+import org.codequistify.master.domain.authentication.service.AuthenticationService;
+import org.codequistify.master.domain.authentication.service.VerifyMailService;
+import org.codequistify.master.domain.authentication.service.impl.GoogleSocialSignService;
+import org.codequistify.master.domain.authentication.service.impl.KakaoSocialSignService;
+import org.codequistify.master.domain.authentication.service.impl.NaverSocialSignService;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.player.dto.sign.LogInRequest;
-import org.codequistify.master.domain.player.dto.sign.LogInResponse;
-import org.codequistify.master.domain.player.dto.sign.SignUpRequest;
-import org.codequistify.master.domain.player.dto.sign.SocialLogInRequest;
-import org.codequistify.master.domain.player.service.SignService;
-import org.codequistify.master.domain.player.service.VerifyMailService;
-import org.codequistify.master.domain.player.service.impl.GoogleSocialSignService;
-import org.codequistify.master.domain.player.service.impl.KakaoSocialSignService;
-import org.codequistify.master.domain.player.service.impl.NaverSocialSignService;
 import org.codequistify.master.global.exception.common.BusinessException;
 import org.codequistify.master.global.exception.common.ErrorCode;
 import org.codequistify.master.global.jwt.TokenProvider;
@@ -37,32 +37,50 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Sign")
+@Tag(name = "Authentication")
 @RequestMapping("api")
-public class SignController {
+public class AuthenticationController {
     private final GoogleSocialSignService googleSocialSignService;
     private final KakaoSocialSignService kakaoSocialSignService;
     private final NaverSocialSignService naverSocialSignService;
-    private final SignService signService;
+    private final AuthenticationService authenticationService;
 
     private final VerifyMailService verifyMailService;
     private final TokenProvider tokenProvider;
-    private final Logger LOGGER = LoggerFactory.getLogger(SignController.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationController.class);
 
     @Operation(
             summary = "구글 로그인 url 발급",
             description = "구글 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다."
     )
-    @GetMapping("oauth2/google-url")
+    @GetMapping("auth/google/url")
     public String loginUrlGoogle() {
         return googleSocialSignService.getSocialLogInURL();
+    }
+
+    @Operation(
+            summary = "카카오 로그인 url 발급",
+            description = "카카오 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다."
+    )
+    @GetMapping("auth/kakao/url")
+    public String loginUrlKakao() {
+        return kakaoSocialSignService.getSocialLogInURL();
+    }
+
+    @Operation(
+            summary = "네이버 로그인 url 발급",
+            description = "네이버 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다."
+    )
+    @GetMapping("auth/naver/url")
+    public String loginUrlNaver() {
+        return naverSocialSignService.getSocialLogInURL();
     }
 
     @Operation(
             summary = "구글 로그인 요청",
             description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'name'을 반환받는다."
     )
-    @PostMapping("oauth2/google")
+    @PostMapping("auth/google")
     public ResponseEntity<LogInResponse> socialSignInGoogle(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
         LogInResponse logInResponse = googleSocialSignService.socialLogIn(request.code());
 
@@ -71,25 +89,76 @@ public class SignController {
 
         addAccessTokensToCookies(accessToken, response);
         addRefreshTokensToCookies(refreshToken, response);
-        signService.updateRefreshToken(logInResponse.uid(), refreshToken); // refresh token db에 저장
+        authenticationService.updateRefreshToken(logInResponse.uid(), refreshToken); // refresh token db에 저장
 
         LOGGER.info("[socialSignInGoogle] {} 구글 로그인", logInResponse.email());
         return new ResponseEntity<>(logInResponse, HttpStatus.OK);
     }
 
     @Operation(
+            summary = "카카오 로그인 요청",
+            description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'knickname'을 반환받는다."
+    )
+    @PostMapping("auth/kakao")
+    public ResponseEntity<LogInResponse> socialLogInKakao(@RequestBody SocialLogInRequest request) {
+        LogInResponse logInResponse = kakaoSocialSignService.socialLogIn(request.code());
+
+        LOGGER.info("{} kakao 로그인", logInResponse.email());
+        return new ResponseEntity<>(logInResponse, HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "POL 자체 회원가입",
+            description = "자체 회원가입이다. name, email, password를 필수로 입력받는다."
+    )
+    @PostMapping("/auth/signup")
+    public ResponseEntity<LogInResponse> SignUpPOL(@Valid @RequestBody SignUpRequest request, HttpServletResponse httpServletResponse) {
+        LogInResponse logInResponse = authenticationService.signUp(request);
+
+        String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
+        String accessToken = tokenProvider.generateAccessToken(logInResponse);
+
+        addAccessTokensToCookies(accessToken, httpServletResponse);
+        addRefreshTokensToCookies(refreshToken, httpServletResponse);
+        authenticationService.updateRefreshToken(logInResponse.uid(), refreshToken); // refresh token db에 저장
+
+        LOGGER.info("[SignUpPOL] {} pol 회원가입 ", logInResponse.uid());
+        return new ResponseEntity<>(logInResponse, HttpStatus.OK);
+    }
+
+    @Operation(
+            summary = "POL 자체 로그인",
+            description = "자체 로그인기능이다. name, password를 필수로 입력받는다."
+    )
+    @PostMapping("auth/login")
+    public ResponseEntity<LogInResponse> LogInPOL(@Valid @RequestBody LogInRequest request, HttpServletResponse httpServletResponse) {
+        LogInResponse logInResponse = authenticationService.logIn(request);
+
+        String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
+        String accessToken = tokenProvider.generateAccessToken(logInResponse);
+
+        addAccessTokensToCookies(accessToken, httpServletResponse);
+        addRefreshTokensToCookies(refreshToken, httpServletResponse);
+        authenticationService.updateRefreshToken(logInResponse.uid(), refreshToken); // refresh token db에 저장
+
+
+        LOGGER.info("[LogInPOL] Player: {}, pol 로그인", logInResponse.uid());
+        return new ResponseEntity<>(logInResponse, HttpStatus.OK);
+    }
+
+    @Operation(
             summary = "엑세스 토큰 재발급",
             description = "AccessToken을 재발급 한다.\n\n" +
-                    " RefreshToken 값을 body로 받는다. 이때 token은 'bearer' 없이 token 값만을 적어야 한다.",
+                    " RefreshToken 값을 body로 받는다. 이때 token은 'Bearer' 없이 token 값만을 적어야 한다.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "정상적으로 재발급"),
                     @ApiResponse(responseCode = "400", description = "잘못된 요청, id 불일치 또는 빈 요청 등"),
                     @ApiResponse(responseCode = "401", description = "만료된 Refresh Token")
             }
     )
-    @PostMapping("oauth2/refresh")
+    @PostMapping("auth/refresh")
     public ResponseEntity<TokenResponse> regenerateAccessToken(TokenRequest request, HttpServletResponse response) {
-        TokenResponse tokenResponse = signService.regenerateRefreshToken(request);
+        TokenResponse tokenResponse = authenticationService.regenerateRefreshToken(request);
 
         addAccessTokensToCookies(tokenResponse.accessToken(), response);
         addRefreshTokensToCookies(tokenResponse.refreshToken(), response);
@@ -106,10 +175,10 @@ public class SignController {
                     @ApiResponse(responseCode = "400", description = "잘못된 양식의 토큰 또는 셔명되지 않은 토큰 "),
             }
     )
-    @GetMapping("oauth2/info")
+    @GetMapping("auth/validate")
     public ResponseEntity<?> analyzeToken(@RequestParam String token) {
         try {
-            TokenInfo tokenInfo = signService.analyzeTokenInfo(token);
+            TokenInfo tokenInfo = authenticationService.analyzeTokenInfo(token);
             return ResponseEntity.status(HttpStatus.OK).body(tokenInfo);
         } catch (NullPointerException exception) {
             throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.BAD_REQUEST);
@@ -137,74 +206,10 @@ public class SignController {
         response.addCookie(refreshTokenCookie);
     }
 
-    @Operation(
-            summary = "카카오 로그인 url 발급",
-            description = "카카오 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다."
-    )
-    @GetMapping("oauth2/kakao-url")
-    public String loginUrlKakao() {
-        return kakaoSocialSignService.getSocialLogInURL();
-    }
-
-    @Operation(
-            summary = "카카오 로그인 요청",
-            description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'knickname'을 반환받는다."
-    )
-    @PostMapping("oauth2/kakao")
-    public ResponseEntity<LogInResponse> socialLogInKakao(@RequestBody SocialLogInRequest request) {
-        LogInResponse logInResponse = kakaoSocialSignService.socialLogIn(request.code());
-
-        LOGGER.info("{} kakao 로그인", logInResponse.email());
-        return new ResponseEntity<>(logInResponse, HttpStatus.OK);
-    }
-
-    @Operation(
-            summary = "네이버 로그인 url 발급",
-            description = "네이버 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다."
-    )
-    @GetMapping("oauth2/naver-url")
-    public String loginUrlNaver() {
-        return naverSocialSignService.getSocialLogInURL();
-    }
-
-    @Operation(
-            summary = "POL 자체 회원가입",
-            description = "자체 회원가입이다. name, email, password를 필수로 입력받는다."
-    )
-    @PostMapping("signup/pol")
-    public ResponseEntity<LogInResponse> SignUpPOL(@Valid @RequestBody SignUpRequest request, HttpServletResponse httpServletResponse) {
-        LogInResponse logInResponse = signService.signUp(request);
-
-        String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
-        String accessToken = tokenProvider.generateAccessToken(logInResponse);
-
-        addAccessTokensToCookies(accessToken, httpServletResponse);
-        addRefreshTokensToCookies(refreshToken, httpServletResponse);
-        signService.updateRefreshToken(logInResponse.uid(), refreshToken); // refresh token db에 저장
-
-        LOGGER.info("[SignUpPOL] {} pol 회원가입 ", logInResponse.uid());
-        return new ResponseEntity<>(logInResponse, HttpStatus.OK);
-    }
-
-    @Operation(
-            summary = "POL 자체 로그인",
-            description = "자체 로그인기능이다. name, password를 필수로 입력받는다."
-    )
-    @PostMapping("login/pol")
-    public ResponseEntity<LogInResponse> LogInPOL(@Valid @RequestBody LogInRequest request, HttpServletResponse httpServletResponse) {
-        LogInResponse logInResponse = signService.logIn(request);
-
-        String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
-        String accessToken = tokenProvider.generateAccessToken(logInResponse);
-
-        addAccessTokensToCookies(accessToken, httpServletResponse);
-        addRefreshTokensToCookies(refreshToken, httpServletResponse);
-        signService.updateRefreshToken(logInResponse.uid(), refreshToken); // refresh token db에 저장
 
 
-        LOGGER.info("[LogInPOL] Player: {}, pol 로그인", logInResponse.uid());
-        return new ResponseEntity<>(logInResponse, HttpStatus.OK);
-    }
+
+
 
     @Operation(
             summary = "로그아웃 요청",
@@ -214,9 +219,9 @@ public class SignController {
                     @ApiResponse(responseCode = "401", description = "잘못된 토큰 정보")
             }
     )
-    @PostMapping("logout")
+    @PostMapping("auth/logout")
     public ResponseEntity<BasicResponse> LogOut(@AuthenticationPrincipal Player player) {
-        signService.logOut(player);
+        authenticationService.logOut(player);
         LOGGER.info("[LogOut] Player: {}, 로그아웃 완료", player.getUid());
 
         return ResponseEntity.status(HttpStatus.OK)
@@ -236,9 +241,9 @@ public class SignController {
                                     schema = @Schema(implementation = BasicResponse.class),
                                     examples = @ExampleObject(value = "{\"error\":\"Already Exist This Email\"}")))}
     )
-    @GetMapping("signup/email/{email}")
+    @GetMapping("auth/email/{email}")
     public ResponseEntity<BasicResponse> checkEmailDuplication(@PathVariable String email) {
-        if (signService.checkEmailDuplication(email)) {
+        if (authenticationService.checkEmailDuplication(email)) {
             throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
         } else {
             return ResponseEntity
@@ -251,7 +256,7 @@ public class SignController {
             summary = "회원가입 인증메일 발송",
             description = "회원가입 인증메일을 발송하는 요청이다. 응답값이 존재하지 않는 요청이다."
     )
-    @GetMapping("signup/email/{email}/verify")
+    @GetMapping("auth/email/{email}/verify")
     public ResponseEntity<Void> sendAuthMail(@PathVariable String email) throws MessagingException {
         verifyMailService.sendVerifyMail(email);
 
@@ -271,7 +276,7 @@ public class SignController {
                                             @ExampleObject(name = "올바른 코드", value = "{\"response\":\"true\"}"),
                                             @ExampleObject(name = "잘못된 코드", value = "{\"response\":\"false\"}")}))}
     )
-    @GetMapping("signup/email/{email}/code/{code}")
+    @GetMapping("auth/email/{email}/code/{code}")
     public ResponseEntity<BasicResponse> verifyCode(@PathVariable String email, @PathVariable String code) {
         code = code.trim();
         String bool = Boolean.toString(verifyMailService.checkValidCode(email, code));
@@ -302,7 +307,7 @@ public class SignController {
 
 
     //서버용인증
-    @GetMapping("oauth2/google")
+    @GetMapping("auth/google")
     @Operation(hidden = true)
     public LogInResponse googleLogin(@RequestParam String code) {
         return googleSocialSignService.socialLogIn(code);
@@ -310,7 +315,7 @@ public class SignController {
 
     //서버용인증
     @Operation(hidden = true)
-    @GetMapping("oauth2/kakao")
+    @GetMapping("auth/kakao")
     public LogInResponse kakaoLogin(@RequestParam String code) {
         return kakaoSocialSignService.socialLogIn(code);
     }

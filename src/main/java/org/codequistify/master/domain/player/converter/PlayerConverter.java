@@ -1,9 +1,9 @@
 package org.codequistify.master.domain.player.converter;
 
+import org.codequistify.master.domain.authentication.dto.LogInResponse;
+import org.codequistify.master.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.player.dto.sign.LogInResponse;
-import org.codequistify.master.domain.player.dto.sign.SignUpRequest;
 import org.springframework.stereotype.Component;
 
 @Component

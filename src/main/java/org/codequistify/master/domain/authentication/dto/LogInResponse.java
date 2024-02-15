@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.player.dto.sign;
+package org.codequistify.master.domain.authentication.dto;
 
 import java.util.List;
 

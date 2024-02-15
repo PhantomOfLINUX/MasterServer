@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.player.vo;
+package org.codequistify.master.domain.authentication.vo;
 
 import java.util.Map;
 
