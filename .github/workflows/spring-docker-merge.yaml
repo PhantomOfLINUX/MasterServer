@@ -61,4 +61,3 @@ jobs:
           docker run -d --name pol-back -p 8080:8080 \
             -v ${{ secrets.APP_DIR_LOGS }}:/app/logs \
             ${{ secrets.DOCKERHUB_USERNAME }}/pol-back:latest
-          docker rmi `docker images | grep '<none>' | awk '{ print $3 }'`
