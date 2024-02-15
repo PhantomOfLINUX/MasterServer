@@ -4,8 +4,8 @@ import io.jsonwebtoken.*;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.authentication.dto.LogInResponse;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.global.exception.common.BusinessException;
 import org.codequistify.master.global.exception.common.ErrorCode;
 import org.slf4j.Logger;
@@ -36,7 +36,7 @@ public class TokenProvider {
 
     }
 
-    public String generateAccessToken(LogInResponse response) {
+    public String generateAccessToken(PlayerProfile response) {
         Claims claims = Jwts.claims();
         claims.put("role", response.roles());
         Date now = new Date();
@@ -72,7 +72,7 @@ public class TokenProvider {
         return token;
     }
 
-    public String generateRefreshToken(LogInResponse response) {
+    public String generateRefreshToken(PlayerProfile response) {
         Claims claims = Jwts.claims();
         Date now = new Date();
 

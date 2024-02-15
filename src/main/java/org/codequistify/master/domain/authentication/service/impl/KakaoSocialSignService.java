@@ -1,13 +1,13 @@
 package org.codequistify.master.domain.authentication.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.authentication.dto.LogInResponse;
 import org.codequistify.master.domain.authentication.service.SocialSignService;
 import org.codequistify.master.domain.authentication.vo.OAuthResourceVO;
 import org.codequistify.master.domain.authentication.vo.OAuthTokenVO;
 import org.codequistify.master.domain.player.converter.PlayerConverter;
 import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.service.PlayerDetailsService;
 import org.codequistify.master.global.config.OAuthKey;
 import org.codequistify.master.global.exception.common.BusinessException;
@@ -49,7 +49,7 @@ public class KakaoSocialSignService implements SocialSignService {
     code를 통한 소셜 로그인
      */
     @Override
-    public LogInResponse socialLogIn(String code) {
+    public PlayerProfile socialLogIn(String code) {
 
         String accessToken = getAccessToken(code);
         OAuthResourceVO resource = getUserResource(accessToken);
@@ -68,7 +68,7 @@ public class KakaoSocialSignService implements SocialSignService {
 
         playerDetailsService.save(player);
 
-        LogInResponse response = playerConverter.convert(player);
+        PlayerProfile response = playerConverter.convert(player);
         LOGGER.info("[socialLogin] {} 카카오 로그인", player.getEmail());
 
         return response;

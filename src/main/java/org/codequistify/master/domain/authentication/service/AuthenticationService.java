@@ -3,10 +3,10 @@ package org.codequistify.master.domain.authentication.service;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.authentication.dto.LogInRequest;
-import org.codequistify.master.domain.authentication.dto.LogInResponse;
 import org.codequistify.master.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.domain.player.converter.PlayerConverter;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.service.PlayerDetailsService;
 import org.codequistify.master.global.exception.common.BusinessException;
 import org.codequistify.master.global.exception.common.ErrorCode;
@@ -35,7 +35,7 @@ public class AuthenticationService {
     private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
 
     @Transactional
-    public LogInResponse signUp(SignUpRequest request) {
+    public PlayerProfile signUp(SignUpRequest request) {
         if (playerDetailsService.isExistPlayer(request.email())) {
             LOGGER.info("[signUp] 이미 존재하는 email 입니다.");
             throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
@@ -52,7 +52,7 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public LogInResponse logIn(LogInRequest request) {
+    public PlayerProfile logIn(LogInRequest request) {
         Player player;
         try {
             player = playerDetailsService.findOndPlayerByEmail(request.email());

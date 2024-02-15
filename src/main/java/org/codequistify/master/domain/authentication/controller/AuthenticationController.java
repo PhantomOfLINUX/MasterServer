@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.authentication.dto.LogInRequest;
-import org.codequistify.master.domain.authentication.dto.LogInResponse;
+import org.codequistify.master.domain.authentication.dto.LoginResponse;
 import org.codequistify.master.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.domain.authentication.dto.SocialLogInRequest;
 import org.codequistify.master.domain.authentication.service.AuthenticationService;
@@ -21,6 +21,7 @@ import org.codequistify.master.domain.authentication.service.impl.GoogleSocialSi
 import org.codequistify.master.domain.authentication.service.impl.KakaoSocialSignService;
 import org.codequistify.master.domain.authentication.service.impl.NaverSocialSignService;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.global.exception.common.BusinessException;
 import org.codequistify.master.global.exception.common.ErrorCode;
 import org.codequistify.master.global.jwt.TokenProvider;
@@ -81,18 +82,18 @@ public class AuthenticationController {
             description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'name'을 반환받는다."
     )
     @PostMapping("auth/google")
-    public ResponseEntity<LogInResponse> socialSignInGoogle(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
-        LogInResponse logInResponse = googleSocialSignService.socialLogIn(request.code());
+    public ResponseEntity<PlayerProfile> socialSignInGoogle(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
+        PlayerProfile playerProfile = googleSocialSignService.socialLogIn(request.code());
 
-        String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
-        String accessToken = tokenProvider.generateAccessToken(logInResponse);
+        String refreshToken = tokenProvider.generateRefreshToken(playerProfile);
+        String accessToken = tokenProvider.generateAccessToken(playerProfile);
 
         addAccessTokensToCookies(accessToken, response);
         addRefreshTokensToCookies(refreshToken, response);
-        authenticationService.updateRefreshToken(logInResponse.uid(), refreshToken); // refresh token db에 저장
+        authenticationService.updateRefreshToken(playerProfile.uid(), refreshToken); // refresh token db에 저장
 
-        LOGGER.info("[socialSignInGoogle] {} 구글 로그인", logInResponse.email());
-        return new ResponseEntity<>(logInResponse, HttpStatus.OK);
+        LOGGER.info("[socialSignInGoogle] {} 구글 로그인", playerProfile.email());
+        return new ResponseEntity<>(playerProfile, HttpStatus.OK);
     }
 
     @Operation(
@@ -100,11 +101,11 @@ public class AuthenticationController {
             description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'knickname'을 반환받는다."
     )
     @PostMapping("auth/kakao")
-    public ResponseEntity<LogInResponse> socialLogInKakao(@RequestBody SocialLogInRequest request) {
-        LogInResponse logInResponse = kakaoSocialSignService.socialLogIn(request.code());
+    public ResponseEntity<PlayerProfile> socialLogInKakao(@RequestBody SocialLogInRequest request) {
+        PlayerProfile playerProfile = kakaoSocialSignService.socialLogIn(request.code());
 
-        LOGGER.info("{} kakao 로그인", logInResponse.email());
-        return new ResponseEntity<>(logInResponse, HttpStatus.OK);
+        LOGGER.info("{} kakao 로그인", playerProfile.email());
+        return new ResponseEntity<>(playerProfile, HttpStatus.OK);
     }
 
     @Operation(
@@ -112,18 +113,19 @@ public class AuthenticationController {
             description = "자체 회원가입이다. name, email, password를 필수로 입력받는다."
     )
     @PostMapping("/auth/signup")
-    public ResponseEntity<LogInResponse> SignUpPOL(@Valid @RequestBody SignUpRequest request, HttpServletResponse httpServletResponse) {
-        LogInResponse logInResponse = authenticationService.signUp(request);
+    public ResponseEntity<LoginResponse> SignUpPOL(@Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
+        PlayerProfile playerProfile = authenticationService.signUp(request);
 
-        String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
-        String accessToken = tokenProvider.generateAccessToken(logInResponse);
+        String refreshToken = tokenProvider.generateRefreshToken(playerProfile);
+        addRefreshTokensToCookies(refreshToken, response);
+        authenticationService.updateRefreshToken(playerProfile.uid(), refreshToken); // refresh token db에 저장
 
-        addAccessTokensToCookies(accessToken, httpServletResponse);
-        addRefreshTokensToCookies(refreshToken, httpServletResponse);
-        authenticationService.updateRefreshToken(logInResponse.uid(), refreshToken); // refresh token db에 저장
+        String accessToken = tokenProvider.generateAccessToken(playerProfile);
 
-        LOGGER.info("[SignUpPOL] {} pol 회원가입 ", logInResponse.uid());
-        return new ResponseEntity<>(logInResponse, HttpStatus.OK);
+        LoginResponse loginResponse = new LoginResponse(playerProfile, accessToken);
+
+        LOGGER.info("[SignUpPOL] pol 회원가입, Player: {}", playerProfile.uid());
+        return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
 
     @Operation(
@@ -131,19 +133,19 @@ public class AuthenticationController {
             description = "자체 로그인기능이다. name, password를 필수로 입력받는다."
     )
     @PostMapping("auth/login")
-    public ResponseEntity<LogInResponse> LogInPOL(@Valid @RequestBody LogInRequest request, HttpServletResponse httpServletResponse) {
-        LogInResponse logInResponse = authenticationService.logIn(request);
+    public ResponseEntity<LoginResponse> LogInPOL(@Valid @RequestBody LogInRequest request, HttpServletResponse response) {
+        PlayerProfile playerProfile = authenticationService.logIn(request);
 
-        String refreshToken = tokenProvider.generateRefreshToken(logInResponse);
-        String accessToken = tokenProvider.generateAccessToken(logInResponse);
+        String refreshToken = tokenProvider.generateRefreshToken(playerProfile);
+        addRefreshTokensToCookies(refreshToken, response);
+        authenticationService.updateRefreshToken(playerProfile.uid(), refreshToken); // refresh token db에 저장
 
-        addAccessTokensToCookies(accessToken, httpServletResponse);
-        addRefreshTokensToCookies(refreshToken, httpServletResponse);
-        authenticationService.updateRefreshToken(logInResponse.uid(), refreshToken); // refresh token db에 저장
+        String accessToken = tokenProvider.generateAccessToken(playerProfile);
 
+        LoginResponse loginResponse = new LoginResponse(playerProfile, accessToken);
 
-        LOGGER.info("[LogInPOL] Player: {}, pol 로그인", logInResponse.uid());
-        return new ResponseEntity<>(logInResponse, HttpStatus.OK);
+        LOGGER.info("[LogInPOL] pol 로그인, Player: {}", playerProfile.uid());
+        return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
 
     @Operation(
@@ -160,7 +162,6 @@ public class AuthenticationController {
     public ResponseEntity<TokenResponse> regenerateAccessToken(TokenRequest request, HttpServletResponse response) {
         TokenResponse tokenResponse = authenticationService.regenerateRefreshToken(request);
 
-        addAccessTokensToCookies(tokenResponse.accessToken(), response);
         addRefreshTokensToCookies(tokenResponse.refreshToken(), response);
 
         LOGGER.info("[regenerateAccessToken] AccessToken 재발급");
@@ -186,9 +187,10 @@ public class AuthenticationController {
     }
 
     private void addAccessTokensToCookies(String accessToken, HttpServletResponse response) {
-        Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
+        Cookie accessTokenCookie = new Cookie("AccessToken", accessToken);
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(true);
+        accessTokenCookie.setDomain("localhost");
         accessTokenCookie.setPath("/");
         accessTokenCookie.setMaxAge(60 * 60); // 한 시간
 
@@ -196,10 +198,10 @@ public class AuthenticationController {
     }
 
     private void addRefreshTokensToCookies(String refreshToken, HttpServletResponse response) {
-
-        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+        Cookie refreshTokenCookie = new Cookie("RefreshToken", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setDomain("localhost");
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(24 * 60 * 60); // 하루
 
@@ -309,21 +311,21 @@ public class AuthenticationController {
     //서버용인증
     @GetMapping("auth/google")
     @Operation(hidden = true)
-    public LogInResponse googleLogin(@RequestParam String code) {
+    public PlayerProfile googleLogin(@RequestParam String code) {
         return googleSocialSignService.socialLogIn(code);
     }
 
     //서버용인증
     @Operation(hidden = true)
     @GetMapping("auth/kakao")
-    public LogInResponse kakaoLogin(@RequestParam String code) {
+    public PlayerProfile kakaoLogin(@RequestParam String code) {
         return kakaoSocialSignService.socialLogIn(code);
     }
 
     //서버용인증
     @GetMapping("auth/callback/naver")
     @Operation(hidden = true)
-    public LogInResponse naverLogin(@RequestParam String code) {
+    public PlayerProfile naverLogin(@RequestParam String code) {
         return naverSocialSignService.socialLogIn(code);
     }
 

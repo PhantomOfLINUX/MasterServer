@@ -1,9 +1,9 @@
 package org.codequistify.master.domain.player.service;
 
 import org.codequistify.master.domain.authentication.dto.LogInRequest;
-import org.codequistify.master.domain.authentication.dto.LogInResponse;
 import org.codequistify.master.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.domain.authentication.service.AuthenticationService;
+import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.global.exception.common.BusinessException;
 import org.codequistify.master.global.exception.common.ErrorCode;
 import org.junit.jupiter.api.Test;
@@ -29,7 +29,7 @@ class AuthenticationServiceTest {
     @Test
     public void 회원가입_성공(){
         SignUpRequest request = new SignUpRequest("name", "email@pol.or.kr", "password");
-        LogInResponse result = authenticationService.signUp(request);
+        PlayerProfile result = authenticationService.signUp(request);
 
         assertNotNull(result);
         assertEquals(request.name(), result.name());
@@ -60,7 +60,7 @@ class AuthenticationServiceTest {
         authenticationService.signUp(signUpRequest);
         LogInRequest request = new LogInRequest("email@pol.or.kr", "password");
 
-        LogInResponse result = authenticationService.logIn(request);
+        PlayerProfile result = authenticationService.logIn(request);
 
         assertNotNull(result);
         assertEquals(request.email(), result.email());
