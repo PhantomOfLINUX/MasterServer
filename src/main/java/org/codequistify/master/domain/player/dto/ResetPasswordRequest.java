@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.player.dto.details;
+package org.codequistify.master.domain.player.dto;
 
 import jakarta.validation.constraints.NotBlank;
 

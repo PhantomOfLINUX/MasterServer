@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.player.service;
+package org.codequistify.master.domain.authentication.service;
 
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;

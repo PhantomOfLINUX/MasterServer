@@ -1,13 +1,13 @@
-package org.codequistify.master.domain.player.service;
+package org.codequistify.master.domain.authentication.service;
 
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.authentication.dto.LogInRequest;
+import org.codequistify.master.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.domain.player.converter.PlayerConverter;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.player.dto.sign.LogInRequest;
-import org.codequistify.master.domain.player.dto.sign.LogInResponse;
-import org.codequistify.master.domain.player.dto.sign.SignUpRequest;
-import org.codequistify.master.domain.player.repository.PlayerRepository;
+import org.codequistify.master.domain.player.dto.PlayerProfile;
+import org.codequistify.master.domain.player.service.PlayerDetailsService;
 import org.codequistify.master.global.exception.common.BusinessException;
 import org.codequistify.master.global.exception.common.ErrorCode;
 import org.codequistify.master.global.jwt.TokenProvider;
@@ -27,16 +27,16 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class SignService {
-    private final PlayerRepository playerRepository;
+public class AuthenticationService {
+    private final PlayerDetailsService playerDetailsService;
 
     private final PlayerConverter playerConverter;
     private final TokenProvider tokenProvider;
-    private final Logger LOGGER = LoggerFactory.getLogger(SignService.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
 
     @Transactional
-    public LogInResponse signUp(SignUpRequest request) {
-        if (playerRepository.findByEmail(request.email()).isPresent()) {
+    public PlayerProfile signUp(SignUpRequest request) {
+        if (playerDetailsService.isExistPlayer(request.email())) {
             LOGGER.info("[signUp] 이미 존재하는 email 입니다.");
             throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
         }
@@ -44,7 +44,7 @@ public class SignService {
         Player player = playerConverter.convert(request);
 
         player.encodePassword();
-        player = playerRepository.save(player);
+        player = playerDetailsService.save(player);
 
         LOGGER.info("[signUp] Player: {}, 회원가입 완료", player.getUid());
 
@@ -52,18 +52,19 @@ public class SignService {
     }
 
     @Transactional
-    public LogInResponse logIn(LogInRequest request) {
-        Player player = playerRepository.findByEmail(request.email())
-                .orElseThrow(() -> {
-                    LOGGER.info("[logIn] 존재하지 않는 email 입니다.");
-                    return new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
-                });
-
-        if (player.decodePassword(request.password())) {
-            return playerConverter.convert(player);
-        } else {
+    public PlayerProfile logIn(LogInRequest request) {
+        Player player;
+        try {
+            player = playerDetailsService.findOndPlayerByEmail(request.email());
+        } catch (BusinessException exception) {
             throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
         }
+
+        if (!player.decodePassword(request.password())) {
+            throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
+        }
+
+        return playerConverter.convert(player);
     }
 
     @Transactional
@@ -75,7 +76,7 @@ public class SignService {
 
         player.clearRefreshToken();
 
-        playerRepository.save(player);
+        playerDetailsService.save(player);
     }
 
     private void revokeTokenForGoogle(String token) {
@@ -95,22 +96,22 @@ public class SignService {
     }
 
     public boolean checkEmailDuplication(String email) {
-        return playerRepository.findByEmail(email).isPresent();
+        return playerDetailsService.isExistPlayer(email);
     }
 
     public void updateRefreshToken(String uid, String refreshToken) {
         LOGGER.info("[updateRefreshToken] {}", uid);
-        playerRepository.updateRefreshToken(uid, refreshToken);
+        playerDetailsService.updateRefreshToken(uid, refreshToken);
     }
 
     public TokenResponse regenerateRefreshToken(TokenRequest request) {
         String uid = tokenProvider.getAudience(request.refreshToken());
-
-        Player player = playerRepository.findByUid(uid)
-                .orElseThrow(() -> {
-                    LOGGER.info("[regenerateRefreshToken] 존재하지 않는 player 입니다.");
-                    return new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
-                });
+        Player player;
+        try {
+            player = playerDetailsService.findOndPlayerByUid(uid);
+        } catch (BusinessException exception) {
+            throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
+        }
 
         String accessToken = "";
         String refreshToken = "";
