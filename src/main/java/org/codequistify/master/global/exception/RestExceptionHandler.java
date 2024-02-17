@@ -23,11 +23,14 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<BasicResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
+
         BusinessException businessException = new BusinessException(ErrorCode.BLANK_ARGUMENT, HttpStatus.BAD_REQUEST);
         LOGGER.info("[ExceptionHandler] Message: {}, Detail: {}", businessException.getMessage(), businessException.getDetail());
 
         return ResponseEntity
                 .status(businessException.getHttpStatus())
                 .body(BasicResponse.of(businessException));
+
+
     }
 }

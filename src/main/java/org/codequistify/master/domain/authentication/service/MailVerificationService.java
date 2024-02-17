@@ -27,7 +27,7 @@ import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
-public class VerifyMailService {
+public class MailVerificationService {
 
     @Value("${mail.secret}")
     private String mailSecret;
@@ -35,7 +35,7 @@ public class VerifyMailService {
     private final JavaMailSender javaMailSender;
 
     private final TemplateEngine templateEngine;
-    private final Logger LOGGER = LoggerFactory.getLogger(VerifyMailService.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(MailVerificationService.class);
 
     @Async
     public void sendVerifyMail(String email) throws MessagingException {
@@ -52,6 +52,8 @@ public class VerifyMailService {
         variables.put("authCode", authCode);
         variables.put("email", email);
 
+        Map<String, Object> vars = Map.of("authCode", authCode, "email", email);
+
         MimeMessage message = createMessage(email, variables);
         try {
             javaMailSender.send(message);
@@ -62,7 +64,7 @@ public class VerifyMailService {
         LOGGER.info("[sendVerifyMail] {}로 메일 전송 완료", email);
     }
 
-    public boolean checkValidCode(String email, String code) {
+    public boolean verifyCode(String email, String code) {
         try {
             return generatedCode(email).contains(code);
         } catch (NoSuchAlgorithmException exception) {

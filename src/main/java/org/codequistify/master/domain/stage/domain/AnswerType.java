@@ -4,10 +4,10 @@ import lombok.Getter;
 
 @Getter
 public enum AnswerType {
-    MULTIPLE_CHOICE("01"),
-    SHORT_ANSWER("02"),
-    PRACTICAL("03"),
-    DESCRIPTION("04");
+    MULTIPLE_CHOICE("M"),
+    SHORT_ANSWER("S"),
+    PRACTICAL("P"),
+    DESCRIPTION("D");
 
     private final String code;
 
