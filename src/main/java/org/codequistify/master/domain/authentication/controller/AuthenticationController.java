@@ -22,8 +22,8 @@ import org.codequistify.master.domain.authentication.service.impl.KakaoSocialSig
 import org.codequistify.master.domain.authentication.service.impl.NaverSocialSignService;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
-import org.codequistify.master.global.exception.common.BusinessException;
-import org.codequistify.master.global.exception.common.ErrorCode;
+import org.codequistify.master.global.exception.ErrorCode;
+import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.jwt.TokenProvider;
 import org.codequistify.master.global.jwt.dto.TokenInfo;
 import org.codequistify.master.global.jwt.dto.TokenRequest;

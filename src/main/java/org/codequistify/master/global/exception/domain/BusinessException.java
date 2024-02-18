@@ -1,6 +1,7 @@
-package org.codequistify.master.global.exception.common;
+package org.codequistify.master.global.exception.domain;
 
 import lombok.Getter;
+import org.codequistify.master.global.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 @Getter

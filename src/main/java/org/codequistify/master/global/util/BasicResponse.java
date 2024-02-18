@@ -1,6 +1,6 @@
 package org.codequistify.master.global.util;
 
-import org.codequistify.master.global.exception.common.BusinessException;
+import org.codequistify.master.global.exception.domain.BusinessException;
 import org.springframework.http.ResponseEntity;
 
 public record BasicResponse(
