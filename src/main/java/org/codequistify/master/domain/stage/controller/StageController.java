@@ -1,15 +1,14 @@
 package org.codequistify.master.domain.stage.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.stage.domain.DifficultyLevelType;
 import org.codequistify.master.domain.stage.domain.Stage;
-import org.codequistify.master.domain.stage.domain.StageGroupType;
+import org.codequistify.master.domain.stage.dto.SearchCriteria;
 import org.codequistify.master.domain.stage.dto.StagePageResponse;
 import org.codequistify.master.domain.stage.dto.StageRegistryRequest;
-import org.codequistify.master.domain.stage.service.StageService;
+import org.codequistify.master.domain.stage.service.impl.StageServiceImpl;
 import org.codequistify.master.global.util.BasicResponse;
+import org.codequistify.master.global.util.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -21,19 +20,15 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Stage")
 @RequestMapping("api")
 public class StageController {
-    private final StageService stageService;
+    private final StageServiceImpl stageService;
     private final Logger LOGGER = LoggerFactory.getLogger(Stage.class);
+    private final Validator validator;
     // 스테이지 목록 조회
     @GetMapping("stages/page")
-    public ResponseEntity<?> getStagePage(@Positive @RequestParam(name = "page_index", defaultValue = "1") int pageIndex,
-                                          @Positive @RequestParam(name = "page_size", defaultValue = "10") int pageSize,
-                                          @RequestParam(name = "stage_group", required = false) StageGroupType stageGroupType,
-                                          @RequestParam(name = "level", required = false)DifficultyLevelType level,
-                                          @RequestParam(name = "is_solved", required = false) Boolean isSolved) {
-        StagePageResponse stages = stageService.findStageByGroup(
-                pageIndex-1,
-                pageSize,
-                stageGroupType);
+    public ResponseEntity<StagePageResponse> getStagePage(@ModelAttribute SearchCriteria searchCriteria) {
+        validator.isValid(searchCriteria);
+
+        StagePageResponse stages = stageService.findStageByGroup(searchCriteria);
 
         return ResponseEntity.status(HttpStatus.OK).body(stages);
     }

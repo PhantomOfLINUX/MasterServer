@@ -1,47 +1,14 @@
 package org.codequistify.master.domain.stage.service;
 
-import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.stage.convertoer.StageConverter;
-import org.codequistify.master.domain.stage.domain.Stage;
-import org.codequistify.master.domain.stage.domain.StageGroupType;
-import org.codequistify.master.domain.stage.dto.StagePageResponse;
 import org.codequistify.master.domain.stage.dto.StageRegistryRequest;
-import org.codequistify.master.domain.stage.repository.QuestionRepository;
-import org.codequistify.master.domain.stage.repository.StageRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Service;
 
-@Service
-@RequiredArgsConstructor
-public class StageService {
-    private final StageRepository stageRepository;
-    private final QuestionRepository questionRepository;
-
-    private final StageConverter stageConverter;
-    private final Logger LOGGER = LoggerFactory.getLogger(StageService.class);
-
-    public void saveStage(StageRegistryRequest request) {
-        Stage stage = stageConverter.convert(request);
-
-        stage = stageRepository.save(stage);
-    }
-
-    public StagePageResponse findStageByGroup(int index, int size, StageGroupType stageGroupType) {
-        PageRequest pageRequest = PageRequest.of(index, size);
-
-        if (stageGroupType == null) {
-            StagePageResponse response = stageConverter.convert(
-                    stageRepository.findAll(pageRequest)
-            );
-            return response;
-        }
-
-        StagePageResponse response = stageConverter.convert(
-                stageRepository.findByStageGroup(stageGroupType, pageRequest)
-        );
-        return response;
-    }
-
+public interface StageService {
+    // 스테이지 저장
+    void saveStage(StageRegistryRequest request);
+    // 스테이지 목록 조회
+    // 스테이지 문항 조회 -> 정답은 클라이언트에게 제공 안 됨, 옵션들은 전부 제공되어야 함
+    // 문항 체점 요청
+    // 스테이지 수정
+    // 스테이지 문항 수정
+    // 스테이지 옵션 수정
 }
