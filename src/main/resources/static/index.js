@@ -4,26 +4,26 @@ document
         event.preventDefault();
 
         const email = document.getElementById("email").value;
-        const getUrl = `https://api.pol.or.kr/api/signup/email/${email}`;
+        const getUrl = `https://api.pol.or.kr/api/auth/email/${email}`;
 
         fetch(getUrl)
             .then((response) => response.json())
             .then((data) => {
-                console.log("GET Success:", data);
+                console.log("Success:", data);
             })
             .catch((error) => {
-                console.error("GET Error:", error);
+                console.error("Error:", error);
             });
     });
 
 document.getElementById("sendEmail").addEventListener("click", function () {
     const email = document.getElementById("email").value;
-    const verifyUrl = `https://api.pol.or.kr/api/signup/email/${email}/verify`;
+    const verifyUrl = `https://api.pol.or.kr/api/auth/email/${email}/verify`;
 
     fetch(verifyUrl)
         .then((response) => response.json())
         .then((data) => {
-            console.log("Verification Email Sent:", data);
+            console.log("Success:", data);
         })
         .catch((error) => {
             console.error("Error:", error);
@@ -31,7 +31,7 @@ document.getElementById("sendEmail").addEventListener("click", function () {
 });
 
 document.getElementById("getOAuthURL").addEventListener("click", function () {
-    const oauthUrl = "https://api.pol.or.kr/api/oauth2/google-url";
+    const oauthUrl = "https://api.pol.or.kr/api/auth/google/url";
 
     fetch(oauthUrl, {
         headers: {
@@ -54,7 +54,7 @@ document
 
         const email = document.getElementById("loginEmail").value;
         const password = document.getElementById("loginPassword").value;
-        const loginUrl = "https://api.pol.or.kr/api/login/pol";
+        const loginUrl = "https://api.pol.or.kr/api/auth/login";
 
         fetch(loginUrl, {
             method: "POST",
