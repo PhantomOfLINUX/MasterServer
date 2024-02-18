@@ -5,6 +5,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.domain.PlayerRoleType;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.global.exception.common.BusinessException;
 import org.codequistify.master.global.exception.common.ErrorCode;
@@ -18,6 +19,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -33,6 +35,13 @@ public class TokenProvider {
     @PostConstruct
     protected void init() {
         KEY = new SecretKeySpec(JWT_SECRET.getBytes(StandardCharsets.UTF_8), SignatureAlgorithm.HS256.getJcaName());
+
+        LOGGER.info("\n{}",generateAccessToken(Player.builder()
+                .name("pol")
+                .email("kr.or.pol@gmail.com")
+                .roles(List.of(PlayerRoleType.SUPER_ADMIN.getRole()))
+                .uid("POL-BDBEej-Gj5AntZprZ")
+                .build()));
 
     }
 

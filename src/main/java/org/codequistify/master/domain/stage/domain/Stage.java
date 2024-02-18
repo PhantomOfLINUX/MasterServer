@@ -1,5 +1,6 @@
 package org.codequistify.master.domain.stage.domain;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.codequistify.master.global.util.BaseTimeEntity;
@@ -30,7 +31,7 @@ public class Stage extends BaseTimeEntity {
 
     @Column(name = "stage_group")
     @Enumerated(EnumType.STRING)
-    private StageGroupType groupType;
+    private StageGroupType stageGroup;
 
     @Column(name = "difficulty_level")
     @Enumerated(EnumType.STRING)
@@ -40,8 +41,8 @@ public class Stage extends BaseTimeEntity {
     @ColumnDefault("0")
     private Integer questionCount;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "stage_id")
+    @OneToMany(mappedBy = "stage", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Question> questions = new ArrayList<>();
 
     @PostPersist
@@ -49,9 +50,10 @@ public class Stage extends BaseTimeEntity {
         // question id 할당
         this.questions = questions.stream()
                 .peek(question -> {
-                    String id = String.format("%03d", this.id) +
+                    String id = "Q" +
+                            String.format("%03d", this.id) +
                             "-" +
-                            String.format("%02d", question.getIndex()) +
+                            String.format("%03d", question.getIndex()) +
                             "-" +
                             question.getAnswerType().getCode();
                     question.setId(id);

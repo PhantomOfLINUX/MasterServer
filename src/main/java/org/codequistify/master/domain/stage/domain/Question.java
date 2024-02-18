@@ -1,5 +1,6 @@
 package org.codequistify.master.domain.stage.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.codequistify.master.global.util.BaseTimeEntity;
@@ -41,6 +42,7 @@ public class Question extends BaseTimeEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stage_id")
+    @JsonBackReference
     private Stage stage;
 
     public List<String> getOptions() {

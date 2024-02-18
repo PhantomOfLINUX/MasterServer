@@ -3,11 +3,14 @@ package org.codequistify.master.domain.stage.service;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.stage.convertoer.StageConverter;
 import org.codequistify.master.domain.stage.domain.Stage;
+import org.codequistify.master.domain.stage.domain.StageGroupType;
+import org.codequistify.master.domain.stage.dto.StagePageResponse;
 import org.codequistify.master.domain.stage.dto.StageRegistryRequest;
 import org.codequistify.master.domain.stage.repository.QuestionRepository;
 import org.codequistify.master.domain.stage.repository.StageRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,8 +28,20 @@ public class StageService {
         stage = stageRepository.save(stage);
     }
 
-    public void findStage(Long page, Long size) {
+    public StagePageResponse findStageByGroup(int index, int size, StageGroupType stageGroupType) {
+        PageRequest pageRequest = PageRequest.of(index, size);
 
+        if (stageGroupType == null) {
+            StagePageResponse response = stageConverter.convert(
+                    stageRepository.findAll(pageRequest)
+            );
+            return response;
+        }
+
+        StagePageResponse response = stageConverter.convert(
+                stageRepository.findByStageGroup(stageGroupType, pageRequest)
+        );
+        return response;
     }
 
 }

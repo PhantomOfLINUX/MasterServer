@@ -2,8 +2,8 @@ package org.codequistify.master.domain.stage.domain;
 
 public enum StageGroupType {
     BASIC_PROBLEMS("B"),
-    ADVANCED_PROBLEMS_ACCESS("A"),
-    MOCK_TESTS_ACCESS("T");
+    ADVANCED_PROBLEMS("A"),
+    MOCK_TESTS("T");
 
     private final String code;
 

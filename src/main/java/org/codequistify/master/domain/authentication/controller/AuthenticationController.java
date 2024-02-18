@@ -16,7 +16,7 @@ import org.codequistify.master.domain.authentication.dto.LoginResponse;
 import org.codequistify.master.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.domain.authentication.dto.SocialLogInRequest;
 import org.codequistify.master.domain.authentication.service.AuthenticationService;
-import org.codequistify.master.domain.authentication.service.VerifyMailService;
+import org.codequistify.master.domain.authentication.service.MailVerificationService;
 import org.codequistify.master.domain.authentication.service.impl.GoogleSocialSignService;
 import org.codequistify.master.domain.authentication.service.impl.KakaoSocialSignService;
 import org.codequistify.master.domain.authentication.service.impl.NaverSocialSignService;
@@ -46,7 +46,7 @@ public class AuthenticationController {
     private final NaverSocialSignService naverSocialSignService;
     private final AuthenticationService authenticationService;
 
-    private final VerifyMailService verifyMailService;
+    private final MailVerificationService mailVerificationService;
     private final TokenProvider tokenProvider;
     private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationController.class);
 
@@ -177,7 +177,7 @@ public class AuthenticationController {
             }
     )
     @GetMapping("auth/validate")
-    public ResponseEntity<?> analyzeToken(@RequestParam String token) {
+    public ResponseEntity<TokenInfo> analyzeToken(@RequestParam String token) {
         try {
             TokenInfo tokenInfo = authenticationService.analyzeTokenInfo(token);
             return ResponseEntity.status(HttpStatus.OK).body(tokenInfo);
@@ -260,7 +260,7 @@ public class AuthenticationController {
     )
     @GetMapping("auth/email/{email}/verify")
     public ResponseEntity<Void> sendAuthMail(@PathVariable String email) throws MessagingException {
-        verifyMailService.sendVerifyMail(email);
+        mailVerificationService.sendVerifyMail(email);
 
         LOGGER.info("[sendAuthMail] {} 인증 메일 전송", email);
         return ResponseEntity
@@ -281,7 +281,7 @@ public class AuthenticationController {
     @GetMapping("auth/email/{email}/code/{code}")
     public ResponseEntity<BasicResponse> verifyCode(@PathVariable String email, @PathVariable String code) {
         code = code.trim();
-        String bool = Boolean.toString(verifyMailService.checkValidCode(email, code));
+        String bool = Boolean.toString(mailVerificationService.verifyCode(email, code));
 
         LOGGER.info("[verifyCode] {} 회원가입 메일 코드 인증 {}", email, bool);
         return ResponseEntity
