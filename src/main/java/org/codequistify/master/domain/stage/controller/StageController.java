@@ -30,14 +30,17 @@ public class StageController {
                                           @RequestParam(name = "stage_group", required = false) StageGroupType stageGroupType,
                                           @RequestParam(name = "level", required = false)DifficultyLevelType level,
                                           @RequestParam(name = "is_solved", required = false) Boolean isSolved) {
-        StagePageResponse stages = stageService.findStageByGroup(pageIndex-1, pageSize, stageGroupType);
+        StagePageResponse stages = stageService.findStageByGroup(
+                pageIndex-1,
+                pageSize,
+                stageGroupType);
 
         return ResponseEntity.status(HttpStatus.OK).body(stages);
     }
 
     // 스테이지 문항 조회 -> 정답은 클라이언트에게 제공 안 됨, 옵션들은 전부 제공되어야 함
-    @GetMapping("stages/{stageId}/questions")
-    public ResponseEntity<?> getQuestions(@PathVariable Long stageId) {
+    @GetMapping("stages/{stage_id}/questions")
+    public ResponseEntity<?> getQuestions(@PathVariable(name = "stage_id") Long stageId) {
         return null;
     }
 

@@ -4,7 +4,7 @@ import org.codequistify.master.domain.stage.domain.AnswerType;
 
 import java.util.List;
 
-public record QuestionDTO(
+public record QuestionResponse(
         Integer index,
         String title,
         String description,
