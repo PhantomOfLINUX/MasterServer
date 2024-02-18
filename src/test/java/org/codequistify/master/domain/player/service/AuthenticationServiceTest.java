@@ -6,7 +6,7 @@ import org.codequistify.master.domain.authentication.service.AuthenticationServi
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.global.exception.common.BusinessException;
 import org.codequistify.master.global.exception.common.ErrorCode;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Transactional
 class AuthenticationServiceTest {
     private final AuthenticationService authenticationService;
@@ -26,9 +27,17 @@ class AuthenticationServiceTest {
         this.authenticationService = authenticationService;
     }
 
-    @Test
-    public void 회원가입_성공(){
+    @BeforeEach
+    void setUp() {
         SignUpRequest request = new SignUpRequest("name", "email@pol.or.kr", "password");
+        PlayerProfile result = authenticationService.signUp(request);
+    }
+
+
+    @Test
+    @Order(1)
+    public void 회원가입_성공(){
+        SignUpRequest request = new SignUpRequest("new", "new@pol.or.kr", "password");
         PlayerProfile result = authenticationService.signUp(request);
 
         assertNotNull(result);
@@ -38,9 +47,6 @@ class AuthenticationServiceTest {
 
     @Test
     public void 중복_회원가입(){
-        SignUpRequest signUpRequest = new SignUpRequest("name", "email@pol.or.kr", "password");
-        authenticationService.signUp(signUpRequest);
-
         SignUpRequest request = new SignUpRequest("name", "email@pol.or.kr", "password");
 
         Throwable ex = assertThrows(BusinessException.class, () -> {
@@ -56,8 +62,6 @@ class AuthenticationServiceTest {
     //로그인 성공
     @Test
     public void 정상적인_로그인() {
-        SignUpRequest signUpRequest = new SignUpRequest("name", "email@pol.or.kr", "password");
-        authenticationService.signUp(signUpRequest);
         LogInRequest request = new LogInRequest("email@pol.or.kr", "password");
 
         PlayerProfile result = authenticationService.logIn(request);
@@ -69,9 +73,7 @@ class AuthenticationServiceTest {
     //로그인 비밀번호 오류
     @Test
     public void 로그인_비밀번호_오류() {
-        SignUpRequest signUpRequest = new SignUpRequest("name", "email@pol.or.kr", "password");
-        authenticationService.signUp(signUpRequest);
-        LogInRequest request = new LogInRequest("email@pol.or.kr", "password123");
+        LogInRequest request = new LogInRequest("email@pol.or.kr", "wrong");
 
         Throwable ex = assertThrows(BusinessException.class, () -> {
             authenticationService.logIn(request);
@@ -82,8 +84,6 @@ class AuthenticationServiceTest {
     //로그인 이메일 오류
     @Test
     public void 로그인_이메일_오류() {
-        SignUpRequest signUpRequest = new SignUpRequest("name", "email@pol.or.kr", "password");
-        authenticationService.signUp(signUpRequest);
         LogInRequest request = new LogInRequest("email123@pol.or.kr", "password");
 
         Throwable ex = assertThrows(BusinessException.class, () -> {

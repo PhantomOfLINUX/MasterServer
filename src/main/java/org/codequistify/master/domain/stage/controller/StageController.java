@@ -3,6 +3,7 @@ package org.codequistify.master.domain.stage.controller;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.stage.domain.DifficultyLevelType;
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.domain.StageGroupType;
 import org.codequistify.master.domain.stage.dto.StagePageResponse;
@@ -26,7 +27,9 @@ public class StageController {
     @GetMapping("stages/page")
     public ResponseEntity<?> getStagePage(@Positive @RequestParam(name = "page_index", defaultValue = "1") int pageIndex,
                                           @Positive @RequestParam(name = "page_size", defaultValue = "10") int pageSize,
-                                          @RequestParam(name = "group_type", required = false) StageGroupType stageGroupType) {
+                                          @RequestParam(name = "stage_group", required = false) StageGroupType stageGroupType,
+                                          @RequestParam(name = "level", required = false)DifficultyLevelType level,
+                                          @RequestParam(name = "is_solved", required = false) Boolean isSolved) {
         StagePageResponse stages = stageService.findStageByGroup(pageIndex-1, pageSize, stageGroupType);
 
         return ResponseEntity.status(HttpStatus.OK).body(stages);

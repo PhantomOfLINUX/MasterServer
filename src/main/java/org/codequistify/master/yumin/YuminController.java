@@ -43,7 +43,7 @@ public class YuminController {
 
     @PostMapping("task")
     @Operation(summary = "작업 목록 저장", description = ".")
-    public ResponseEntity<?> saveTaskList(@RequestBody ListSaveRequest listSaveRequest) {
+    public ResponseEntity<ListSaveResponse> saveTaskList(@RequestBody ListSaveRequest listSaveRequest) {
         String code = yuminService.saveTodoList(listSaveRequest);
         ListSaveResponse response = new ListSaveResponse(code);
 
