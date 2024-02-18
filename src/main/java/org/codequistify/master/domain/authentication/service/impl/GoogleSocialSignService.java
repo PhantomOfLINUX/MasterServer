@@ -60,7 +60,7 @@ public class GoogleSocialSignService implements SocialSignService {
             player = playerDetailsService.findOndPlayerByEmail(resource.email());
         } catch (BusinessException exception) {
             LOGGER.info("등록되지 않은 구글 계정 {}", resource.email());
-            player = socialSignUp(resource);
+            player = this.socialSignUp(resource);
         }
 
         player.updateOAuthAccessToken(accessToken);
@@ -74,7 +74,6 @@ public class GoogleSocialSignService implements SocialSignService {
     }
 
     @Override
-    @Transactional
     public Player socialSignUp(OAuthResourceVO resource) {
         Player player = Player.builder()
                 .name(resource.name())
@@ -82,7 +81,7 @@ public class GoogleSocialSignService implements SocialSignService {
                 .oAuthType(OAuthType.GOOGLE)
                 .oAuthId(resource.id()).build();
         player = playerDetailsService.save(player);
-        LOGGER.info("[socialSignUp] 등록");
+        LOGGER.info("[socialSignUp] 신규 구글 사용자 등록");
         return player;
     }
 
