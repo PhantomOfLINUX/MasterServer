@@ -17,7 +17,7 @@ public class RestExceptionHandler {
     public ResponseEntity<BasicResponse> handleBusinessException(BusinessException exception) {
         LOGGER.info("[ExceptionHandler] Message: {}, Detail: {}", exception.getMessage(), exception.getDetail());
 
-        return BasicResponse.toResponseEntity(exception);
+        return BasicResponse.to(exception);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -25,8 +25,8 @@ public class RestExceptionHandler {
         ErrorCode errorCode = exception.getBindingResult().getAllErrors().stream()
                 .findAny()
                 .map(error -> ErrorCode.findByCode(
-                        error.getDefaultMessage()
-                )).orElse(ErrorCode.UNKNOWN);
+                        error.getDefaultMessage()))
+                .orElse(ErrorCode.UNKNOWN);
 
         BusinessException businessException = new BusinessException(errorCode, HttpStatus.BAD_REQUEST);
         LOGGER.info("[ExceptionHandler] Message: {}, Detail: {}", businessException.getMessage(), businessException.getDetail());

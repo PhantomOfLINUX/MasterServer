@@ -24,7 +24,7 @@ public record BasicResponse(
         );
     }
 
-    public static ResponseEntity<BasicResponse> toResponseEntity(BusinessException exception) {
+    public static ResponseEntity<BasicResponse> to(BusinessException exception) {
         return ResponseEntity
                 .status(exception.getHttpStatus())
                 .body(BasicResponse.of(exception));
