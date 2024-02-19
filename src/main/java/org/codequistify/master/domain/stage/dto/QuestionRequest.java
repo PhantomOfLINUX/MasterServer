@@ -4,12 +4,12 @@ import org.codequistify.master.domain.stage.domain.AnswerType;
 
 import java.util.List;
 
-public record QuestionResponse(
-        String questionId,
+public record QuestionRequest(
         Integer index,
         String title,
         String description,
         AnswerType answerType,
+        String correctAnswer,
         List<String> options
 ) {
 }
