@@ -34,4 +34,13 @@ public enum ErrorCode {
         this.message = message;
         this.code = code;
     }
+
+    public static ErrorCode findByCode(String code) {
+        for (ErrorCode value : ErrorCode.values()) {
+            if (value.code.startsWith(code)) {
+                return value;
+            }
+        }
+        return ErrorCode.UNKNOWN;
+    }
 }

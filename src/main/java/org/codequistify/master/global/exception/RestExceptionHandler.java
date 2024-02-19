@@ -22,14 +22,17 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<BasicResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
+        ErrorCode errorCode = exception.getBindingResult().getAllErrors().stream()
+                .findAny()
+                .map(error -> ErrorCode.findByCode(
+                        error.getDefaultMessage()
+                )).orElse(ErrorCode.UNKNOWN);
 
-        BusinessException businessException = new BusinessException(ErrorCode.BLANK_ARGUMENT, HttpStatus.BAD_REQUEST);
+        BusinessException businessException = new BusinessException(errorCode, HttpStatus.BAD_REQUEST);
         LOGGER.info("[ExceptionHandler] Message: {}, Detail: {}", businessException.getMessage(), businessException.getDetail());
 
         return ResponseEntity
                 .status(businessException.getHttpStatus())
                 .body(BasicResponse.of(businessException));
-
-
     }
 }

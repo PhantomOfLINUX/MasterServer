@@ -1,12 +1,12 @@
 package org.codequistify.master.domain.stage.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.dto.*;
 import org.codequistify.master.domain.stage.service.StageService;
 import org.codequistify.master.global.util.BasicResponse;
-import org.codequistify.master.global.util.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 public class StageController {
     private final StageService stageService;
     private final Logger LOGGER = LoggerFactory.getLogger(Stage.class);
-    private final Validator validator;
 
     // 스테이지 등록
     @PostMapping("stage")
@@ -35,9 +34,7 @@ public class StageController {
 
     // 스테이지 목록 조회
     @GetMapping("stages")
-    public ResponseEntity<StagePageResponse> findAllStages(@ModelAttribute SearchCriteria searchCriteria) {
-        validator.isValid(searchCriteria);
-
+    public ResponseEntity<StagePageResponse> findAllStages(@Valid @ModelAttribute SearchCriteria searchCriteria) {
         StagePageResponse stages = stageService.findStageByGroup(searchCriteria);
 
         return ResponseEntity.status(HttpStatus.OK).body(stages);
