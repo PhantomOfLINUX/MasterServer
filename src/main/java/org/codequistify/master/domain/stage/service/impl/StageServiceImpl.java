@@ -1,6 +1,7 @@
 package org.codequistify.master.domain.stage.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.stage.convertoer.QuestionConverter;
 import org.codequistify.master.domain.stage.convertoer.StageConverter;
 import org.codequistify.master.domain.stage.domain.Question;
 import org.codequistify.master.domain.stage.domain.Stage;
@@ -24,6 +25,7 @@ public class StageServiceImpl implements StageService {
     private final QuestionRepository questionRepository;
 
     private final StageConverter stageConverter;
+    private final QuestionConverter questionConverter;
     private final Logger LOGGER = LoggerFactory.getLogger(StageServiceImpl.class);
 
     @Override
@@ -53,11 +55,21 @@ public class StageServiceImpl implements StageService {
     }
 
     @Override
-    public QuestionRequest findQuestion(Long stageId, Integer questionIndex) {
-        return null;
+    @Transactional
+    public QuestionResponse findQuestion(Long stageId, Integer questionIndex) {
+        Question question = questionRepository.findByStageIdAndIndex(stageId, questionIndex)
+                .orElseThrow(() -> {
+                    LOGGER.info("[findQuestion] {}, id: {}, index: {}", ErrorCode.QUESTION_NOT_FOUND.getMessage(), stageId, questionIndex);
+                    return new BusinessException(ErrorCode.QUESTION_NOT_FOUND, HttpStatus.NOT_FOUND);
+                });
+        QuestionResponse response = questionConverter.convert(question);
+
+        LOGGER.info("[findQuestion] 문항 조회, id: {}, index: {}", stageId, questionIndex);
+        return response;
     }
 
     @Override
+    @Transactional
     public GradingResponse checkAnswerCorrectness(GradingRequest request) {
         Question question = questionRepository.findById(request.questionId())
                 .orElseThrow(() -> {

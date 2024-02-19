@@ -49,8 +49,12 @@ public class Question extends BaseTimeEntity {
         return this.options;
     }
 
-    public void setId(String id) {
+    public void setQuestionId(String id) {
         this.id = id;
+    }
+
+    public void addStage(Stage stage) {
+        this.stage = stage;
     }
     public void setIndex(int index) {
         this.index = index;

@@ -40,14 +40,17 @@ public class StageController {
         return ResponseEntity.status(HttpStatus.OK).body(stages);
     }
 
-    // 스테이지 문항 조회 -> 정답은 클라이언트에게 제공 안 됨, 옵션들은 전부 제공되어야 함
+    // 스테이지 문제 조회 -> 정답은 클라이언트에게 제공 안 됨, 옵션들은 전부 제공되어야 함
     @GetMapping("stages/{stage_id}/questions/{question_index}")
     public ResponseEntity<?> getQuestionByStage(@PathVariable(name = "stage_id") Long stageId,
                                                 @PathVariable(name = "question_index") Integer questionIndex) {
-        return null;
+        QuestionResponse response = stageService.findQuestion(stageId, questionIndex);
+
+        LOGGER.info("[getQuestionByStage] 문제 조회 완료 id: {}, index: {}", stageId, questionIndex);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    // 문항 채점 요청
+    // 문제 채점 요청
     @PostMapping("questions/grading")
     public ResponseEntity<GradingResponse> submitAnswerForGrading(@RequestBody GradingRequest request) {
         GradingResponse response = stageService.checkAnswerCorrectness(request);
