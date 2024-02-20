@@ -10,13 +10,12 @@ import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.service.PlayerDetailsService;
 import org.codequistify.master.global.config.OAuthKey;
-import org.codequistify.master.global.exception.common.BusinessException;
-import org.codequistify.master.global.exception.common.ErrorCode;
+import org.codequistify.master.global.exception.ErrorCode;
+import org.codequistify.master.global.exception.domain.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
@@ -61,7 +60,7 @@ public class KakaoSocialSignService implements SocialSignService {
             player = playerDetailsService.findOndPlayerByEmail(properties.get("email"));
         } catch (BusinessException exception) {
             LOGGER.info("등록되지 않은 카카오 계정 {}", properties.get("email"));
-            player = socialSignUp(resource);
+            player = this.socialSignUp(resource);
         }
 
         player.updateOAuthAccessToken(accessToken);
@@ -75,7 +74,6 @@ public class KakaoSocialSignService implements SocialSignService {
     }
 
     @Override
-    @Transactional
     public Player socialSignUp(OAuthResourceVO resource) {
         Map<String, String> properties = Objects.requireNonNull(resource).properties();
         Player player = Player.builder()
@@ -84,7 +82,7 @@ public class KakaoSocialSignService implements SocialSignService {
                 .oAuthType(OAuthType.KAKAO)
                 .oAuthId(resource.id()).build();
         player = playerDetailsService.save(player);
-        LOGGER.info("[socialSignUp] 등록");
+        LOGGER.info("[socialSignUp] 신규 카카오 사용자 등록");
         return player;
     }
 

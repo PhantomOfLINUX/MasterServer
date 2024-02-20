@@ -8,10 +8,10 @@ import org.codequistify.master.domain.player.converter.PlayerConverter;
 import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
-import org.codequistify.master.domain.player.repository.PlayerRepository;
+import org.codequistify.master.domain.player.service.PlayerDetailsService;
 import org.codequistify.master.global.config.OAuthKey;
-import org.codequistify.master.global.exception.common.BusinessException;
-import org.codequistify.master.global.exception.common.ErrorCode;
+import org.codequistify.master.global.exception.ErrorCode;
+import org.codequistify.master.global.exception.domain.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
@@ -26,12 +26,11 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class NaverSocialSignService implements SocialSignService {
-    private final PlayerRepository playerRepository;
+    private final PlayerDetailsService playerDetailsService;
     private final RestTemplate restTemplate;
 
     private final PlayerConverter playerConverter;
@@ -58,40 +57,38 @@ public class NaverSocialSignService implements SocialSignService {
     public PlayerProfile socialLogIn(String code) {
         String accessToken = getAccessToken(code);
         OAuthResourceVO resource = getUserResource(accessToken);
+        Map<String, String> naverResponse = resource.response();
 
-        LOGGER.info("{} {} {}", resource.id(), resource.email(), resource.name());
+        LOGGER.info("{} {}", resource.id(), naverResponse.get("name"));
 
-        Optional<Player> playerOptional = playerRepository.findByEmail(resource.email());
-
-        // 등록되지 않은 계정인 경우 player 등록하기
         Player player;
-        if (playerOptional.isEmpty()) {
-            LOGGER.info("등록되지 않은 네이버 계정 {}", resource.email());
-            player = socialSignUp(resource);
-        } else {
-            player = playerOptional.get();
+        try {
+            player = playerDetailsService.findOndPlayerByEmail(naverResponse.get("email"));
+        } catch (BusinessException exception) {
+            LOGGER.info("등록되지 않은 네이버 계정 {}", naverResponse.get("email"));
+            player = this.socialSignUp(resource);
         }
 
         player.updateOAuthAccessToken(accessToken);
 
-        playerRepository.save(player);
+        playerDetailsService.save(player);
 
         PlayerProfile response = playerConverter.convert(player);
-        LOGGER.info("[socialLogin] {} 네이버 로그인", player.getEmail());
+        LOGGER.info("[socialLogin] {} 카카오 로그인", player.getEmail());
 
         return response;
     }
 
     @Override
-    @Transactional
     public Player socialSignUp(OAuthResourceVO resource) {
+        Map<String, String> response = Objects.requireNonNull(resource).response();
         Player player = Player.builder()
-                .name(resource.name())
-                .email(resource.email())
+                .name(response.get("name"))
+                .email(response.get("email"))
                 .oAuthType(OAuthType.NAVER)
                 .oAuthId(resource.id()).build();
-        player = playerRepository.save(player);
-        LOGGER.info("[socialSignUp] 등록");
+        player = playerDetailsService.save(player);
+        LOGGER.info("[socialSignUp] 신규 네이버 사용자 등록");
         return player;
     }
 

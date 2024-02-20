@@ -10,8 +10,8 @@ import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.service.PlayerDetailsService;
 import org.codequistify.master.global.config.OAuthKey;
-import org.codequistify.master.global.exception.common.BusinessException;
-import org.codequistify.master.global.exception.common.ErrorCode;
+import org.codequistify.master.global.exception.ErrorCode;
+import org.codequistify.master.global.exception.domain.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
@@ -60,7 +60,7 @@ public class GoogleSocialSignService implements SocialSignService {
             player = playerDetailsService.findOndPlayerByEmail(resource.email());
         } catch (BusinessException exception) {
             LOGGER.info("등록되지 않은 구글 계정 {}", resource.email());
-            player = socialSignUp(resource);
+            player = this.socialSignUp(resource);
         }
 
         player.updateOAuthAccessToken(accessToken);
@@ -74,7 +74,6 @@ public class GoogleSocialSignService implements SocialSignService {
     }
 
     @Override
-    @Transactional
     public Player socialSignUp(OAuthResourceVO resource) {
         Player player = Player.builder()
                 .name(resource.name())
@@ -82,7 +81,7 @@ public class GoogleSocialSignService implements SocialSignService {
                 .oAuthType(OAuthType.GOOGLE)
                 .oAuthId(resource.id()).build();
         player = playerDetailsService.save(player);
-        LOGGER.info("[socialSignUp] 등록");
+        LOGGER.info("[socialSignUp] 신규 구글 사용자 등록");
         return player;
     }
 

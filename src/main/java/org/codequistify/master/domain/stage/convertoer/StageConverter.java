@@ -1,6 +1,7 @@
 package org.codequistify.master.domain.stage.convertoer;
 
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.stage.domain.Question;
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.dto.PageParameters;
 import org.codequistify.master.domain.stage.dto.StagePageResponse;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Component
 @RequiredArgsConstructor
@@ -25,9 +27,15 @@ public class StageConverter {
                 .difficultyLevel(request.difficultyLevel())
                 .questionCount(request.questions().size())
                 .questions(
-                        request.questions().stream()
-                                .map(questionConverter::convert)
-                                .collect(Collectors.toList()))
+                        IntStream.range(0, request.questions().size())
+                                .mapToObj(index -> {
+                                    Question question = questionConverter.convert(
+                                            request.questions().get(index));
+                                    question.setIndex(index+1);
+                                    return question;
+                                })
+                                .collect(Collectors.toList())
+                )
                 .build();
     }
 

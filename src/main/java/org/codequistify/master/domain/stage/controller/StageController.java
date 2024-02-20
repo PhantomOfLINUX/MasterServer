@@ -1,13 +1,10 @@
 package org.codequistify.master.domain.stage.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.stage.domain.DifficultyLevelType;
 import org.codequistify.master.domain.stage.domain.Stage;
-import org.codequistify.master.domain.stage.domain.StageGroupType;
-import org.codequistify.master.domain.stage.dto.StagePageResponse;
-import org.codequistify.master.domain.stage.dto.StageRegistryRequest;
+import org.codequistify.master.domain.stage.dto.*;
 import org.codequistify.master.domain.stage.service.StageService;
 import org.codequistify.master.global.util.BasicResponse;
 import org.slf4j.Logger;
@@ -23,28 +20,9 @@ import org.springframework.web.bind.annotation.*;
 public class StageController {
     private final StageService stageService;
     private final Logger LOGGER = LoggerFactory.getLogger(Stage.class);
-    // 스테이지 목록 조회
-    @GetMapping("stages/page")
-    public ResponseEntity<?> getStagePage(@Positive @RequestParam(name = "page_index", defaultValue = "1") int pageIndex,
-                                          @Positive @RequestParam(name = "page_size", defaultValue = "10") int pageSize,
-                                          @RequestParam(name = "stage_group", required = false) StageGroupType stageGroupType,
-                                          @RequestParam(name = "level", required = false)DifficultyLevelType level,
-                                          @RequestParam(name = "is_solved", required = false) Boolean isSolved) {
-        StagePageResponse stages = stageService.findStageByGroup(pageIndex-1, pageSize, stageGroupType);
-
-        return ResponseEntity.status(HttpStatus.OK).body(stages);
-    }
-
-    // 스테이지 문항 조회 -> 정답은 클라이언트에게 제공 안 됨, 옵션들은 전부 제공되어야 함
-    @GetMapping("stages/{stageId}/questions")
-    public ResponseEntity<?> getQuestions(@PathVariable Long stageId) {
-        return null;
-    }
-
-    // 문항 체점 요청
 
     // 스테이지 등록
-    @PostMapping()
+    @PostMapping("stage")
     public ResponseEntity<BasicResponse> registryStage(@RequestBody StageRegistryRequest request) {
         stageService.saveStage(request);
 
@@ -53,6 +31,36 @@ public class StageController {
                 .status(HttpStatus.OK)
                 .body(BasicResponse.of("SUCCESS"));
     }
+
+    // 스테이지 목록 조회
+    @GetMapping("stages")
+    public ResponseEntity<StagePageResponse> findAllStages(@Valid @ModelAttribute SearchCriteria searchCriteria) {
+        StagePageResponse stages = stageService.findStageByGroup(searchCriteria);
+
+        return ResponseEntity.status(HttpStatus.OK).body(stages);
+    }
+
+    // 스테이지 문제 조회 -> 정답은 클라이언트에게 제공 안 됨, 옵션들은 전부 제공되어야 함
+    @GetMapping("stages/{stage_id}/questions/{question_index}")
+    public ResponseEntity<?> getQuestionByStage(@PathVariable(name = "stage_id") Long stageId,
+                                                @PathVariable(name = "question_index") Integer questionIndex) {
+        QuestionResponse response = stageService.findQuestion(stageId, questionIndex);
+
+        LOGGER.info("[getQuestionByStage] 문제 조회 완료 id: {}, index: {}", stageId, questionIndex);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    // 문제 채점 요청
+    @PostMapping("questions/grading")
+    public ResponseEntity<GradingResponse> submitAnswerForGrading(@RequestBody GradingRequest request) {
+        GradingResponse response = stageService.checkAnswerCorrectness(request);
+        if (response.isCorrect()) {
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+
 
     // 스테이지 수정
 

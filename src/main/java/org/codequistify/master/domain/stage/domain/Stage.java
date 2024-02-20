@@ -10,13 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Entity
-@Table(name = "stage")
 @Getter
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@Entity
+@Table(name = "stage")
 public class Stage extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -56,7 +56,8 @@ public class Stage extends BaseTimeEntity {
                             String.format("%03d", question.getIndex()) +
                             "-" +
                             question.getAnswerType().getCode();
-                    question.setId(id);
+                    question.setQuestionId(id);
+                    question.addStage(this);
                 }).collect(Collectors.toList());
     }
 }

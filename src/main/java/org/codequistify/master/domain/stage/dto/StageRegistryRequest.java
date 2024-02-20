@@ -10,6 +10,6 @@ public record StageRegistryRequest(
         String description,
         StageGroupType groupType,
         DifficultyLevelType difficultyLevel,
-        List<QuestionDTO> questions
+        List<QuestionRequest> questions
 ) {
 }

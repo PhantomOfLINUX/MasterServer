@@ -10,4 +10,5 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface StageRepository extends JpaRepository<Stage, Long> {
     Page<Stage> findByStageGroup(StageGroupType stageGroup, Pageable pageable);
+
 }

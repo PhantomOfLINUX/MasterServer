@@ -8,13 +8,13 @@ import org.codequistify.master.global.util.BaseTimeEntity;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
-@Table(name = "question")
 @Getter
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@Entity
+@Table(name = "question", indexes = @Index(name = "idx_question_id", columnList = "id"))
 public class Question extends BaseTimeEntity {
     @Id
     @Column(name = "question_id")
@@ -49,8 +49,12 @@ public class Question extends BaseTimeEntity {
         return this.options;
     }
 
-    public void setId(String id) {
+    public void setQuestionId(String id) {
         this.id = id;
+    }
+
+    public void addStage(Stage stage) {
+        this.stage = stage;
     }
     public void setIndex(int index) {
         this.index = index;
