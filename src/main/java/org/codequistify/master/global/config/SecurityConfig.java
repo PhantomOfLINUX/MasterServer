@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.global.filter.AuthenticationTokenFilter;
 import org.codequistify.master.global.filter.BusinessExceptionHandlerFilter;
 import org.codequistify.master.global.filter.CustomCorsFilter;
-import org.codequistify.master.global.filter.LogFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,15 +21,12 @@ public class SecurityConfig {
     private final CustomCorsFilter customCorsFilter;
     private final AuthenticationTokenFilter authenticationTokenFilter;
     private final BusinessExceptionHandlerFilter businessExceptionHandlerFilter;
-    private final LogFilter logFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 // CORS 설정
                 .addFilterBefore(customCorsFilter, CorsFilter.class)
-                // 로그필터
-                .addFilterBefore(logFilter, CustomCorsFilter.class)
                 // CSRF 비활성화
                 .csrf(csrf -> csrf.disable())
                 // Session 비활성화
