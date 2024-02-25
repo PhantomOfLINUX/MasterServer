@@ -38,13 +38,13 @@ public class AuthenticationService {
     @Transactional
     public PlayerProfile signUp(SignUpRequest request) {
         playerDetailsService.checkOAuthType(request.email())
-                .ifPresent(type -> {
-                    if (type.equals(OAuthType.POL)) {
+                .ifPresent(authType -> {
+                    if (authType.equals(OAuthType.POL)) {
                         LOGGER.info("[signUp] {} Email: {}", ErrorCode.EMAIL_ALREADY_EXISTS.getMessage(), request.email());
                         throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
                     }
                     LOGGER.info("[signUp] {} Email: {}", ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH.getMessage(), request.email());
-                    throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH, HttpStatus.BAD_REQUEST, type.name());
+                    throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH, HttpStatus.BAD_REQUEST, authType.name());
                 });
 
         Player player = playerConverter.convert(request);
