@@ -188,8 +188,8 @@ public class AuthenticationController {
 
     private void addAccessTokensToCookies(String accessToken, HttpServletResponse response) {
         Cookie accessTokenCookie = new Cookie("AccessToken", accessToken);
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(true);
+        //accessTokenCookie.setHttpOnly(true);
+        //accessTokenCookie.setSecure(true);
         accessTokenCookie.setDomain("localhost");
         accessTokenCookie.setPath("/");
         accessTokenCookie.setMaxAge(60 * 60); // 한 시간
@@ -199,8 +199,8 @@ public class AuthenticationController {
 
     private void addRefreshTokensToCookies(String refreshToken, HttpServletResponse response) {
         Cookie refreshTokenCookie = new Cookie("RefreshToken", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
+        //refreshTokenCookie.setHttpOnly(true);
+        //refreshTokenCookie.setSecure(true);
         refreshTokenCookie.setDomain("localhost");
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(24 * 60 * 60); // 하루

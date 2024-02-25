@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.authentication.dto.LogInRequest;
 import org.codequistify.master.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.domain.player.converter.PlayerConverter;
+import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.service.PlayerDetailsService;
@@ -36,10 +37,15 @@ public class AuthenticationService {
 
     @Transactional
     public PlayerProfile signUp(SignUpRequest request) {
-        if (playerDetailsService.isExistPlayer(request.email())) {
-            LOGGER.info("[signUp] 이미 존재하는 email 입니다.");
-            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
-        }
+        playerDetailsService.checkOAuthType(request.email())
+                .ifPresent(type -> {
+                    if (type.equals(OAuthType.POL)) {
+                        LOGGER.info("[signUp] {} Email: {}", ErrorCode.EMAIL_ALREADY_EXISTS.getMessage(), request.email());
+                        throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
+                    }
+                    LOGGER.info("[signUp] {} Email: {}", ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH.getMessage(), request.email());
+                    throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH, HttpStatus.BAD_REQUEST, type.name());
+                });
 
         Player player = playerConverter.convert(request);
 
