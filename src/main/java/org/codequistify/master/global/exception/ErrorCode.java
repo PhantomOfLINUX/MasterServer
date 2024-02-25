@@ -30,6 +30,7 @@ public enum ErrorCode {
     // 스테이지 관련 오류
     STAGE_NOT_FOUND("존재하지 않는 단계입니다.", "4401_STAGE_NOT_FOUND_ERROR"),
     QUESTION_NOT_FOUND("존재하지 않는 문항입니다.", "4402_QUESTION_NOT_FOUND_ERROR"),
+    FAIL_PROCEED("프로세스 실행중 문제가 발생하였습니다.", "5000_FAIL_PROCESSED_ERROR"),
     SUCCESS("SUCCESS", "2000_SUCCESS_OK");
 
     private final String message;

@@ -22,6 +22,7 @@ import org.codequistify.master.domain.authentication.service.impl.KakaoSocialSig
 import org.codequistify.master.domain.authentication.service.impl.NaverSocialSignService;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
+import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.jwt.TokenProvider;
@@ -54,6 +55,7 @@ public class AuthenticationController {
             summary = "구글 로그인 url 발급",
             description = "구글 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다."
     )
+    @LogMonitoring
     @GetMapping("auth/google/url")
     public String loginUrlGoogle() {
         return googleSocialSignService.getSocialLogInURL();
@@ -63,6 +65,7 @@ public class AuthenticationController {
             summary = "카카오 로그인 url 발급",
             description = "카카오 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다."
     )
+    @LogMonitoring
     @GetMapping("auth/kakao/url")
     public String loginUrlKakao() {
         return kakaoSocialSignService.getSocialLogInURL();
@@ -72,6 +75,7 @@ public class AuthenticationController {
             summary = "네이버 로그인 url 발급",
             description = "네이버 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다."
     )
+    @LogMonitoring
     @GetMapping("auth/naver/url")
     public String loginUrlNaver() {
         return naverSocialSignService.getSocialLogInURL();
@@ -81,6 +85,7 @@ public class AuthenticationController {
             summary = "구글 로그인 요청",
             description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'name'을 반환받는다."
     )
+    @LogMonitoring
     @PostMapping("auth/google")
     public ResponseEntity<PlayerProfile> socialSignInGoogle(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
         PlayerProfile playerProfile = googleSocialSignService.socialLogIn(request.code());
@@ -100,6 +105,7 @@ public class AuthenticationController {
             summary = "카카오 로그인 요청",
             description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'knickname'을 반환받는다."
     )
+    @LogMonitoring
     @PostMapping("auth/kakao")
     public ResponseEntity<PlayerProfile> socialLogInKakao(@RequestBody SocialLogInRequest request) {
         PlayerProfile playerProfile = kakaoSocialSignService.socialLogIn(request.code());
@@ -112,8 +118,9 @@ public class AuthenticationController {
             summary = "POL 자체 회원가입",
             description = "자체 회원가입이다. name, email, password를 필수로 입력받는다."
     )
+    @LogMonitoring
     @PostMapping("/auth/signup")
-    public ResponseEntity<LoginResponse> SignUpPOL(@Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
+    public ResponseEntity<LoginResponse> signUpPOL(@Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
         PlayerProfile playerProfile = authenticationService.signUp(request);
 
         String refreshToken = tokenProvider.generateRefreshToken(playerProfile);
@@ -132,8 +139,9 @@ public class AuthenticationController {
             summary = "POL 자체 로그인",
             description = "자체 로그인기능이다. name, password를 필수로 입력받는다."
     )
+    @LogMonitoring
     @PostMapping("auth/login")
-    public ResponseEntity<LoginResponse> LogInPOL(@Valid @RequestBody LogInRequest request, HttpServletResponse response) {
+    public ResponseEntity<LoginResponse> logInPOL(@Valid @RequestBody LogInRequest request, HttpServletResponse response) {
         PlayerProfile playerProfile = authenticationService.logIn(request);
 
         String refreshToken = tokenProvider.generateRefreshToken(playerProfile);
@@ -158,6 +166,7 @@ public class AuthenticationController {
                     @ApiResponse(responseCode = "401", description = "만료된 Refresh Token")
             }
     )
+    @LogMonitoring
     @PostMapping("auth/refresh")
     public ResponseEntity<TokenResponse> regenerateAccessToken(TokenRequest request, HttpServletResponse response) {
         TokenResponse tokenResponse = authenticationService.regenerateRefreshToken(request);
@@ -176,6 +185,7 @@ public class AuthenticationController {
                     @ApiResponse(responseCode = "400", description = "잘못된 양식의 토큰 또는 셔명되지 않은 토큰 "),
             }
     )
+    @LogMonitoring
     @GetMapping("auth/validate")
     public ResponseEntity<TokenInfo> analyzeToken(@RequestParam String token) {
         try {
@@ -221,6 +231,7 @@ public class AuthenticationController {
                     @ApiResponse(responseCode = "401", description = "잘못된 토큰 정보")
             }
     )
+    @LogMonitoring
     @PostMapping("auth/logout")
     public ResponseEntity<BasicResponse> LogOut(@AuthenticationPrincipal Player player) {
         authenticationService.logOut(player);
@@ -243,6 +254,7 @@ public class AuthenticationController {
                                     schema = @Schema(implementation = BasicResponse.class),
                                     examples = @ExampleObject(value = "{\"error\":\"Already Exist This Email\"}")))}
     )
+    @LogMonitoring
     @GetMapping("auth/email/{email}")
     public ResponseEntity<BasicResponse> checkEmailDuplication(@PathVariable String email) {
         if (authenticationService.checkEmailDuplication(email)) {
@@ -258,6 +270,7 @@ public class AuthenticationController {
             summary = "회원가입 인증메일 발송",
             description = "회원가입 인증메일을 발송하는 요청이다. 응답값이 존재하지 않는 요청이다."
     )
+    @LogMonitoring
     @GetMapping("auth/email/{email}/verify")
     public ResponseEntity<Void> sendAuthMail(@PathVariable String email) throws MessagingException {
         mailVerificationService.sendVerifyMail(email);
@@ -278,6 +291,7 @@ public class AuthenticationController {
                                             @ExampleObject(name = "올바른 코드", value = "{\"response\":\"true\"}"),
                                             @ExampleObject(name = "잘못된 코드", value = "{\"response\":\"false\"}")}))}
     )
+    @LogMonitoring
     @GetMapping("auth/email/{email}/code/{code}")
     public ResponseEntity<BasicResponse> verifyCode(@PathVariable String email, @PathVariable String code) {
         code = code.trim();
