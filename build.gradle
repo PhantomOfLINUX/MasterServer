@@ -49,6 +49,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
     implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
 
+    // k8s client
+    implementation 'io.fabric8:kubernetes-client:6.9.2'
+
     compileOnly 'org.projectlombok:lombok'
 
     // maria db

@@ -45,6 +45,14 @@ public class Stage extends BaseTimeEntity {
     @JsonManagedReference
     private List<Question> questions = new ArrayList<>();
 
+    @Column(name = "stage_image")
+    @Enumerated(EnumType.STRING)
+    private StageImageType stageImageType;
+
+    public void updateStageImage(StageImageType stageImageType) {
+        this.stageImageType = stageImageType;
+    }
+
     @PostPersist
     protected void onPostPersist() {
         // question id 할당
