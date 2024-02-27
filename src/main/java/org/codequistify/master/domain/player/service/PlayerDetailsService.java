@@ -1,6 +1,7 @@
 package org.codequistify.master.domain.player.service;
 
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.ResetPasswordRequest;
 import org.codequistify.master.domain.player.repository.PlayerRepository;
@@ -14,6 +15,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +48,11 @@ public class PlayerDetailsService implements UserDetailsService {
     @Transactional
     public boolean isExistPlayer(String email) {
         return playerRepository.findByEmail(email).isPresent();
+    }
+
+    @Transactional
+    public Optional<OAuthType> checkOAuthType(String email) {
+        return playerRepository.getOAuthTypeByEmail(email);
     }
 
     @Transactional

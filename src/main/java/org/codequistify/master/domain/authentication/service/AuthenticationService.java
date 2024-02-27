@@ -5,9 +5,11 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.authentication.dto.LogInRequest;
 import org.codequistify.master.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.domain.player.converter.PlayerConverter;
+import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.service.PlayerDetailsService;
+import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.jwt.TokenProvider;
@@ -29,16 +31,28 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthenticationService {
     private final PlayerDetailsService playerDetailsService;
+    private final EmailVerificationService emailVerificationService;
 
     private final PlayerConverter playerConverter;
     private final TokenProvider tokenProvider;
     private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
 
     @Transactional
+    @LogMonitoring
     public PlayerProfile signUp(SignUpRequest request) {
-        if (playerDetailsService.isExistPlayer(request.email())) {
-            LOGGER.info("[signUp] 이미 존재하는 email 입니다.");
-            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
+        playerDetailsService.checkOAuthType(request.email()) //기존 가입된 계정인지 확인
+                .ifPresent(authType -> {
+                    if (authType.equals(OAuthType.POL)) {
+                        LOGGER.info("[signUp] {} Email: {}", ErrorCode.EMAIL_ALREADY_EXISTS.getMessage(), request.email());
+                        throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
+                    }
+                    LOGGER.info("[signUp] {} Email: {}", ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH.getMessage(), request.email());
+                    throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH, HttpStatus.BAD_REQUEST, authType.name());
+                });
+
+        // 이메일 인증이 되어 있는 계정인지 확인
+        if (!emailVerificationService.getEmailVerificationByEmail(request.email()).getVerified()) {
+            throw new BusinessException(ErrorCode.EMAIL_VERIFIED_FAILURE, HttpStatus.BAD_REQUEST);
         }
 
         Player player = playerConverter.convert(request);
@@ -52,6 +66,7 @@ public class AuthenticationService {
     }
 
     @Transactional
+    @LogMonitoring
     public PlayerProfile logIn(LogInRequest request) {
         Player player;
         try {
@@ -68,6 +83,7 @@ public class AuthenticationService {
     }
 
     @Transactional
+    @LogMonitoring
     public void logOut(Player player) {
         if (player.getOAuthAccessToken() != null && !player.getOAuthAccessToken().isBlank()) {
             revokeTokenForGoogle(player.getOAuthAccessToken());
@@ -79,6 +95,7 @@ public class AuthenticationService {
         playerDetailsService.save(player);
     }
 
+    @LogMonitoring
     private void revokeTokenForGoogle(String token) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -95,16 +112,19 @@ public class AuthenticationService {
         }
     }
 
+    @LogMonitoring
     public boolean checkEmailDuplication(String email) {
         return playerDetailsService.isExistPlayer(email);
     }
 
+    @LogMonitoring
     public void updateRefreshToken(String uid, String refreshToken) {
         LOGGER.info("[updateRefreshToken] {}", uid);
         playerDetailsService.updateRefreshToken(uid, refreshToken);
     }
 
-    public TokenResponse regenerateRefreshToken(TokenRequest request) {
+    @LogMonitoring
+    public TokenResponse regenerateAccessToken(TokenRequest request) {
         String uid = tokenProvider.getAudience(request.refreshToken());
         Player player;
         try {
@@ -114,15 +134,14 @@ public class AuthenticationService {
         }
 
         String accessToken = "";
-        String refreshToken = "";
         if (player.getRefreshToken().equals(request.refreshToken())) {
             accessToken = tokenProvider.generateAccessToken(player);
-            refreshToken = tokenProvider.generateRefreshToken(player);
         }
 
-        return new TokenResponse(refreshToken, accessToken);
+        return new TokenResponse(request.refreshToken(), accessToken);
     }
 
+    @LogMonitoring
     public TokenInfo analyzeTokenInfo(String token) {
         Claims claims = tokenProvider.getClaims(token);
         if (claims == null) {

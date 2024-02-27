@@ -89,4 +89,13 @@ public class StageServiceImpl implements StageService {
         );
     }
 
+    @Transactional
+    public Stage findStageById(Long stageId){
+        return stageRepository.findById(stageId)
+                .orElseThrow(() -> {
+                    LOGGER.info("[findStageById] 등록되지 않은 스테이지 id: {}", stageId);
+                    return new BusinessException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND);
+                });
+    }
+
 }

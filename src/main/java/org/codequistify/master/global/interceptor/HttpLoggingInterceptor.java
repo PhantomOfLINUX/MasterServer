@@ -11,8 +11,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import java.util.UUID;
 
 @Component
-public class LogInterceptor implements HandlerInterceptor {
-    private final Logger LOGGER = LoggerFactory.getLogger(LogInterceptor.class);
+public class HttpLoggingInterceptor implements HandlerInterceptor {
+    private final Logger LOGGER = LoggerFactory.getLogger(HttpLoggingInterceptor.class);
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
