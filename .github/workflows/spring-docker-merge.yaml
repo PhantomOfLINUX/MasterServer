@@ -42,7 +42,7 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Push Docker image
-      run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/pol-back:latest
+      run: docker push ${{ secrets.DOCKERHUB_ORGNIZATIONS }}/pol-back:latest
 
   deploy:
     needs: build
@@ -55,9 +55,9 @@ jobs:
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SERVER_SSH_KEY }}
         script: |
-          docker pull ${{ secrets.DOCKERHUB_USERNAME }}/pol-back:latest
+          docker pull ${{ secrets.DOCKERHUB_ORGNIZATIONS }}/pol-back:latest
           docker stop pol-back || true
           docker rm pol-back || true
           docker run -d --name pol-back -p 8080:8080 \
             -v ${{ secrets.APP_DIR_LOGS }}:/app/logs \
-            ${{ secrets.DOCKERHUB_USERNAME }}/pol-back:latest
+            ${{ secrets.DOCKERHUB_ORGNIZATIONS }}/pol-back:latest
