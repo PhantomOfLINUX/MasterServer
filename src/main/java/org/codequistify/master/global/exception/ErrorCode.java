@@ -26,11 +26,14 @@ public enum ErrorCode {
     EMPTY_TOKEN_PROVIDED("요청에 토큰이 비어있습니다.", "4307_EMPTY_TOKEN_PROVIDED_ERROR"),
     INSUFFICIENT_PLAYER_PERMISSION("권한이 부족한 플레이어입니다.", "4308_INSUFFICIENT_TOKEN_PERMISSION_ERROR"),
     // 메일 전송 오류
-    EMAIL_SENDING_FAILURE("메일 전송에 실패하였습니다.", "4309_EMAIL_SENDING_FAILURE_ERROR"),
+    EMAIL_SENDING_FAILURE("메일 전송에 실패하였습니다.", "4401_EMAIL_SENDING_FAILURE_ERROR"),
+    EMAIL_VERIFIED_FAILURE("메일 인증에 실패하였습니다.", "4402_EMAIL_VERIFIED_FAILURE_ERROR"),
     // 스테이지 관련 오류
-    STAGE_NOT_FOUND("존재하지 않는 단계입니다.", "4401_STAGE_NOT_FOUND_ERROR"),
-    QUESTION_NOT_FOUND("존재하지 않는 문항입니다.", "4402_QUESTION_NOT_FOUND_ERROR"),
+    STAGE_NOT_FOUND("존재하지 않는 단계입니다.", "4501_STAGE_NOT_FOUND_ERROR"),
+    QUESTION_NOT_FOUND("존재하지 않는 문항입니다.", "4502_QUESTION_NOT_FOUND_ERROR"),
+    //
     FAIL_PROCEED("프로세스 실행중 문제가 발생하였습니다.", "5000_FAIL_PROCESSED_ERROR"),
+    // 정상
     SUCCESS("SUCCESS", "2000_SUCCESS_OK");
 
     private final String message;

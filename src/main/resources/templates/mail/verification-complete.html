@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>인증 결과</title>
+</head>
+<body style="font-family: 'S-CoreDream-3Light', sans-serif; background-color: #f3f4f6; padding: 20px; text-align: center;">
+<div style="max-width: 600px; margin: auto; background-color: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+    <div th:if="${isValid}">
+        <h1 style="color: #2D347F;">인증이 완료되었어요</h1>
+<!--        <p style="font-size: 18px; color: #333;" th:text="${email} + '님 인증이 완료되었습니다.'"></p>-->
+        <p style="margin-top: 20px; color: #555;">계속해서 회원가입을 진행해 주세요.</p>
+    </div>
+    <div th:unless="${isValid}">
+        <h1 style="color: #2D347F;">인증에 실패했어요</h1>
+        <p style="font-size: 18px; color: #333;">인증을 시도하는 중에 발생했어요</p>
+        <p style="margin-top: 20px; color: #555;">회원가입 화면에서 인증메일을 다시 받아주세요</p>
+    </div>
+</div>
+</body>
+</html>

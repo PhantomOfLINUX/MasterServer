@@ -13,7 +13,7 @@
     </div>
     <p style="text-align: center; color: #333; margin-bottom: 24px;">아래 버튼을 누르면 계정이 활성화됩니다</p>
     <div style="text-align: center; margin-bottom: 24px;">
-        <a th:href="@{'https://api.pol.or.kr/auth/mail/verify?uuid=' + ${uuid}}"
+        <a th:href="@{'https://api.pol.or.kr/home/auth/email/verify?email=' + ${email} + '&code=' + ${authCode}}"
            style="background-color: #2D347F; color: white; padding: 10px 40px; border-radius: 5px; text-decoration: none; display: inline-block; min-width: 160px;">
             인증하기</a>
     </div>
