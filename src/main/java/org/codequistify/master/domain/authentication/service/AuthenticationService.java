@@ -110,7 +110,7 @@ public class AuthenticationService {
         playerDetailsService.updateRefreshToken(uid, refreshToken);
     }
 
-    public TokenResponse regenerateRefreshToken(TokenRequest request) {
+    public TokenResponse regenerateAccessToken(TokenRequest request) {
         String uid = tokenProvider.getAudience(request.refreshToken());
         Player player;
         try {
@@ -120,13 +120,11 @@ public class AuthenticationService {
         }
 
         String accessToken = "";
-        String refreshToken = "";
         if (player.getRefreshToken().equals(request.refreshToken())) {
             accessToken = tokenProvider.generateAccessToken(player);
-            refreshToken = tokenProvider.generateRefreshToken(player);
         }
 
-        return new TokenResponse(refreshToken, accessToken);
+        return new TokenResponse(request.refreshToken(), accessToken);
     }
 
     public TokenInfo analyzeTokenInfo(String token) {

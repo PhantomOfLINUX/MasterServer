@@ -7,7 +7,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -81,37 +80,60 @@ public class AuthenticationController {
         return naverSocialSignService.getSocialLogInURL();
     }
 
+
+    private LoginResponse getLoginResponseWithToken(PlayerProfile playerProfile) {
+        String refreshToken = tokenProvider.generateRefreshToken(playerProfile);
+        authenticationService.updateRefreshToken(playerProfile.uid(), refreshToken); // refresh token db에 저장
+
+        String accessToken = tokenProvider.generateAccessToken(playerProfile);
+
+        TokenResponse tokenResponse = new TokenResponse(refreshToken, accessToken);
+        return new LoginResponse(playerProfile, tokenResponse);
+    }
+
     @Operation(
             summary = "구글 로그인 요청",
-            description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'name'을 반환받는다."
+            description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 profile과 인증 토큰을 발급받는다."
     )
     @LogMonitoring
     @PostMapping("auth/google")
-    public ResponseEntity<PlayerProfile> socialSignInGoogle(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
+    public ResponseEntity<LoginResponse> socialSignInGoogle(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
         PlayerProfile playerProfile = googleSocialSignService.socialLogIn(request.code());
 
-        String refreshToken = tokenProvider.generateRefreshToken(playerProfile);
-        String accessToken = tokenProvider.generateAccessToken(playerProfile);
+        LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
 
-        addAccessTokensToCookies(accessToken, response);
-        addRefreshTokensToCookies(refreshToken, response);
-        authenticationService.updateRefreshToken(playerProfile.uid(), refreshToken); // refresh token db에 저장
-
-        LOGGER.info("[socialSignInGoogle] {} 구글 로그인", playerProfile.email());
-        return new ResponseEntity<>(playerProfile, HttpStatus.OK);
+        LOGGER.info("[socialSignInGoogle] 구글 로그인, Player: {}", playerProfile.uid());
+        return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
 
     @Operation(
             summary = "카카오 로그인 요청",
-            description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 'email'과 'knickname'을 반환받는다."
+            description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 profile과 인증 토큰을 발급받는다."
     )
     @LogMonitoring
     @PostMapping("auth/kakao")
-    public ResponseEntity<PlayerProfile> socialLogInKakao(@RequestBody SocialLogInRequest request) {
+    public ResponseEntity<LoginResponse> socialLogInKakao(@RequestBody SocialLogInRequest request) {
         PlayerProfile playerProfile = kakaoSocialSignService.socialLogIn(request.code());
 
-        LOGGER.info("{} kakao 로그인", playerProfile.email());
-        return new ResponseEntity<>(playerProfile, HttpStatus.OK);
+        LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
+
+        LOGGER.info("[socialSignInKakao] 카카오 로그인, Player: {}", playerProfile.uid());
+        return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
+    }
+
+    @Operation(
+            summary = "네이버 로그인 요청",
+            description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 profile과 인증 토큰을 발급받는다."
+    )
+    @LogMonitoring
+    @PostMapping("auth/naver")
+    public ResponseEntity<LoginResponse> socialLogInNaver(@RequestBody SocialLogInRequest request) {
+        PlayerProfile playerProfile = kakaoSocialSignService.socialLogIn(request.code());
+
+        LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
+
+        LOGGER.info("[socialSignInNaver] 네이버 로그인, Player: {}", playerProfile.uid());
+        return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
 
     @Operation(
@@ -120,16 +142,10 @@ public class AuthenticationController {
     )
     @LogMonitoring
     @PostMapping("/auth/signup")
-    public ResponseEntity<LoginResponse> signUpPOL(@Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
+    public ResponseEntity<LoginResponse> signUpPOL(@Valid @RequestBody SignUpRequest request) {
         PlayerProfile playerProfile = authenticationService.signUp(request);
 
-        String refreshToken = tokenProvider.generateRefreshToken(playerProfile);
-        addRefreshTokensToCookies(refreshToken, response);
-        authenticationService.updateRefreshToken(playerProfile.uid(), refreshToken); // refresh token db에 저장
-
-        String accessToken = tokenProvider.generateAccessToken(playerProfile);
-
-        LoginResponse loginResponse = new LoginResponse(playerProfile, accessToken);
+        LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
 
         LOGGER.info("[SignUpPOL] pol 회원가입, Player: {}", playerProfile.uid());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
@@ -141,16 +157,10 @@ public class AuthenticationController {
     )
     @LogMonitoring
     @PostMapping("auth/login")
-    public ResponseEntity<LoginResponse> logInPOL(@Valid @RequestBody LogInRequest request, HttpServletResponse response) {
+    public ResponseEntity<LoginResponse> logInPOL(@Valid @RequestBody LogInRequest request) {
         PlayerProfile playerProfile = authenticationService.logIn(request);
 
-        String refreshToken = tokenProvider.generateRefreshToken(playerProfile);
-        addRefreshTokensToCookies(refreshToken, response);
-        authenticationService.updateRefreshToken(playerProfile.uid(), refreshToken); // refresh token db에 저장
-
-        String accessToken = tokenProvider.generateAccessToken(playerProfile);
-
-        LoginResponse loginResponse = new LoginResponse(playerProfile, accessToken);
+        LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
 
         LOGGER.info("[LogInPOL] pol 로그인, Player: {}", playerProfile.uid());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
@@ -168,10 +178,8 @@ public class AuthenticationController {
     )
     @LogMonitoring
     @PostMapping("auth/refresh")
-    public ResponseEntity<TokenResponse> regenerateAccessToken(TokenRequest request, HttpServletResponse response) {
-        TokenResponse tokenResponse = authenticationService.regenerateRefreshToken(request);
-
-        addRefreshTokensToCookies(tokenResponse.refreshToken(), response);
+    public ResponseEntity<TokenResponse> regenerateAccessToken(TokenRequest request) {
+        TokenResponse tokenResponse = authenticationService.regenerateAccessToken(request);
 
         LOGGER.info("[regenerateAccessToken] AccessToken 재발급");
         return ResponseEntity.status(HttpStatus.OK).body(tokenResponse);
@@ -195,33 +203,6 @@ public class AuthenticationController {
             throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.BAD_REQUEST);
         }
     }
-
-    private void addAccessTokensToCookies(String accessToken, HttpServletResponse response) {
-        Cookie accessTokenCookie = new Cookie("AccessToken", accessToken);
-        //accessTokenCookie.setHttpOnly(true);
-        //accessTokenCookie.setSecure(true);
-        accessTokenCookie.setDomain("localhost");
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(60 * 60); // 한 시간
-
-        response.addCookie(accessTokenCookie);
-    }
-
-    private void addRefreshTokensToCookies(String refreshToken, HttpServletResponse response) {
-        Cookie refreshTokenCookie = new Cookie("RefreshToken", refreshToken);
-        //refreshTokenCookie.setHttpOnly(true);
-        //refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setDomain("localhost");
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(24 * 60 * 60); // 하루
-
-        response.addCookie(refreshTokenCookie);
-    }
-
-
-
-
-
 
     @Operation(
             summary = "로그아웃 요청",
