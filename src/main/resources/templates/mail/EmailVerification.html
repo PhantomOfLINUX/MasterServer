@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POL 인증 메일</title>
+</head>
+<body style="font-family: 'S-CoreDream-3Light', sans-serif; background-color: #f3f4f6; padding: 20px;">
+<div style="max-width: 600px; margin: auto; background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <img src="https://api.pol.or.kr/images/logo.png" alt="POL 로고" style="max-width: 100px;">
+        <h1 style="color: #2D347F; margin-top: 20px;">POL 인증 메일</h1>
+    </div>
+    <p style="text-align: center; color: #333; margin-bottom: 24px;">아래 버튼을 누르면 계정이 활성화됩니다</p>
+    <div style="text-align: center; margin-bottom: 24px;">
+        <a th:href="@{'https://api.pol.or.kr/auth/mail/verify?uuid=' + ${uuid}}"
+           style="background-color: #2D347F; color: white; padding: 10px 40px; border-radius: 5px; text-decoration: none; display: inline-block; min-width: 160px;">
+            인증하기</a>
+    </div>
+    <p style="text-align: center; color: #333; margin-bottom: 24px;">감사합니다.</p>
+    <div style="text-align: center; border-top: 2px solid #eee; padding-top: 20px; color: #666;">
+        <p>POL 운영팀</p>
+    </div>
+</div>
+</body>
+</html>
