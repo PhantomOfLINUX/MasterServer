@@ -27,7 +27,7 @@ public class LabController {
     @GetMapping("lab/pty/stage/{stage_id}")
     public ResponseEntity<PtyUrlResponse> getPtyConnectionURL(@PathVariable(name = "stage_id") Long stageId) {
         //Integer nodePort = labService.createStageOnKubernetes(stageId);
-        PtyUrlResponse response = PtyUrlResponse.of(WS_HOST+"8080");
+        PtyUrlResponse response = PtyUrlResponse.of(WS_HOST+":5050");
 
         return ResponseEntity
                 .status(HttpStatus.OK)
