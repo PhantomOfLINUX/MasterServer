@@ -29,12 +29,12 @@ public class EmailController {
     @GetMapping("home/success")
     public String success(Model model) {
         model.addAttribute("isValid", true);
-        return "/mail/verification-complete";
+        return "verification-complete";
     }
 
     @GetMapping("home/failure")
     public String failure(Model model) {
         model.addAttribute("isValid", false);
-        return "/mail/verification-complete";
+        return "verification-complete";
     }
 }
