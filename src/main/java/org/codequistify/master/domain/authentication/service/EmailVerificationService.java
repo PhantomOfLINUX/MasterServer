@@ -109,7 +109,7 @@ public class EmailVerificationService {
         Context context = new Context();
         context.setVariables(variables);
         LOGGER.info("[createMessage] auth code {}", variables.get("authCode"));
-        String htmlContent = templateEngine.process("/mail/email-verification", context);
+        String htmlContent = templateEngine.process("email-verification", context);
 
         message.setText(htmlContent, "utf-8", "html");
 
