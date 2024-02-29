@@ -22,7 +22,7 @@ public class EmailController {
         if (!emailVerificationService.verifyCode(email, code)) {
             return "redirect:/home/failure";
         }
-        emailVerificationService.updateVerification(email);
+        emailVerificationService.updateVerification(email); // 코드가 일치하면 인증 표시
         return "redirect:/home/success";
     }
 

@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.authentication.domain.EmailVerificationType;
 import org.codequistify.master.domain.authentication.dto.LogInRequest;
 import org.codequistify.master.domain.authentication.dto.LoginResponse;
 import org.codequistify.master.domain.authentication.dto.SignUpRequest;
@@ -259,7 +260,7 @@ public class AuthenticationController {
             throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
         }
 
-        emailVerificationService.sendVerifyMail(email); // 비동기 요청 : 메일 전송에 시간이 너무 오래걸림
+        emailVerificationService.sendVerifyMail(email, EmailVerificationType.REGISTRATION); // 비동기 요청 : 메일 전송에 시간이 너무 오래걸림
 
         LOGGER.info("[sendAuthMail] {} 인증 메일 전송", email);
         BasicResponse response = new BasicResponse(ErrorCode.SUCCESS.getCode(), "", "");
@@ -269,6 +270,7 @@ public class AuthenticationController {
     }
 
     @Operation(
+            hidden = true,
             summary = "회원가입 인증코드 확인",
             description = "회원가입 인증코드를 확인한다. 사용자의 email과 입력 코드를 path로 받는다. 결과는 response 필드에 \"true\", \"false\"로 반환한다.",
             responses = {
