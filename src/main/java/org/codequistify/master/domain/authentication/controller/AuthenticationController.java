@@ -9,13 +9,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.authentication.domain.EmailVerification;
 import org.codequistify.master.domain.authentication.domain.EmailVerificationType;
-import org.codequistify.master.domain.authentication.dto.LogInRequest;
-import org.codequistify.master.domain.authentication.dto.LoginResponse;
-import org.codequistify.master.domain.authentication.dto.SignUpRequest;
-import org.codequistify.master.domain.authentication.dto.SocialLogInRequest;
+import org.codequistify.master.domain.authentication.dto.*;
 import org.codequistify.master.domain.authentication.service.AuthenticationService;
 import org.codequistify.master.domain.authentication.service.EmailVerificationService;
 import org.codequistify.master.domain.authentication.service.impl.GoogleSocialSignService;
@@ -250,19 +247,30 @@ public class AuthenticationController {
     }
 
     @Operation(
-            summary = "회원가입 인증메일 발송",
-            description = "회원가입 인증메일을 발송하는 요청이다. 중복된 이메일인지 함께 검증한다."
+            summary = "인증메일 발송 요청",
+            description = "회원가입 인증메일을 발송하는 요청이다. 중복된 이메일인지 함께 검증한다.\n\n" +
+                    "type 목록은 다음과 같다.\n\n" +
+                    "회원가입 -> REGISTRATION\n\n" +
+                    "비밀번호 초기화 -> PASSWORD_RESET"
     )
+    @PostMapping("auth/email/verification")
     @LogMonitoring
-    @GetMapping("auth/email/{email}/verification")
-    public ResponseEntity<BasicResponse> sendAuthMail(@Valid @Email(message = "4102") @PathVariable String email) throws MessagingException {
-        if (authenticationService.checkEmailDuplication(email)) {
-            throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
+    public ResponseEntity<BasicResponse> sendAuthMail(@Valid @RequestBody EmailVerificationRequest request) throws MessagingException {
+        LOGGER.info(request.type().toString());
+        if (request.type() == EmailVerificationType.REGISTRATION){
+            if (authenticationService.checkEmailDuplication(request.email())) {
+                throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
+            }
+        }
+        if (request.type() == EmailVerificationType.PASSWORD_RESET) {
+            if (!authenticationService.checkEmailDuplication(request.email())) {
+                throw new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
+            }
         }
 
-        emailVerificationService.sendVerifyMail(email, EmailVerificationType.REGISTRATION); // 비동기 요청 : 메일 전송에 시간이 너무 오래걸림
+        emailVerificationService.sendVerifyMail(request.email(), request.type()); // 비동기 요청 : 메일 전송에 시간이 너무 오래걸림
 
-        LOGGER.info("[sendAuthMail] {} 인증 메일 전송", email);
+        LOGGER.info("[sendAuthMail] {} 인증 메일 전송", request.email());
         BasicResponse response = new BasicResponse(ErrorCode.SUCCESS.getCode(), "", "");
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -292,7 +300,30 @@ public class AuthenticationController {
                 .body(BasicResponse.of(bool));
     }
 
+    @Operation(
+            summary = "임시 엑세스 토큰 발급",
+            description = "비밀번호 찾기를 위한 임시 엑세스 토큰을 발급한다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "인증 성공",
+                            content = @Content(
+                                    schema = @Schema(implementation = TokenResponse.class))),
+                    @ApiResponse(responseCode = "400", description = "인증 실패",
+                            content = @Content(
+                                    schema = @Schema(implementation = BasicResponse.class)))}
+    )
+    @LogMonitoring
+    @GetMapping("/auth/access/{email}/temp")
+    public ResponseEntity<TokenResponse> generateTempToken(@PathVariable String email) {
+        EmailVerification emailVerification = emailVerificationService // 인증정보 없으면 서비스에서 예외
+                .getEmailVerificationByEmail(email, false, EmailVerificationType.PASSWORD_RESET);
 
+        emailVerificationService.markEmailVerificationAsUsed(emailVerification);
+
+        String accessToken = tokenProvider.generateTempToken(email);
+        TokenResponse response = new TokenResponse("", accessToken);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 
 
 

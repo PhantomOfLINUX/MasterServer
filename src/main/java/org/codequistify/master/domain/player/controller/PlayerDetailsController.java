@@ -26,24 +26,23 @@ public class PlayerDetailsController {
     private final Logger LOGGER = LoggerFactory.getLogger(PlayerDetailsController.class);
 
     @Operation(
-            hidden = true,
-            summary = "비밀번호 초기화 - 보안적용 x",
-            description = "비밀번호를 초기화합니다.")
+            summary = "비밀번호 초기화",
+            description = "비밀번호를 초기화합니다. password에 새로운 비밀번호를 담아 보냅니다.")
     @PutMapping("password")
-    public ResponseEntity<BasicResponse> resetPassword(@RequestBody UpdatePasswordRequest request) {
-        //playerDetailsService.resetPassword(player, request);
+    public ResponseEntity<BasicResponse> resetPassword(@AuthenticationPrincipal Player player,
+                                                       @RequestBody UpdatePasswordRequest request) {
+        playerDetailsService.resetPassword(player, request);
 
-        //LOGGER.info("[resetPassword] 비밀번호 재설정 완료, Player: {}", player.getUid());
         BasicResponse response = BasicResponse.of("SUCCESS");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Operation(
             summary = "비밀번호 재설정",
-            description = "비밀번호를 재설정합니다. 기존 비밀번호 인증이 필요합니다.")
+            description = "비밀번호를 재설정합니다. 기존 비밀번호 인증이 필요합니다. password에 새로운 비밀번호를 담아 보냅니다.")
     @PatchMapping("password")
     public ResponseEntity<BasicResponse> updatePassword(@AuthenticationPrincipal Player player,
-                                                       @RequestBody UpdatePasswordRequest request) {
+                                                        @RequestBody UpdatePasswordRequest request) {
         playerDetailsService.updatePassword(player, request);
 
         LOGGER.info("[updatePassword] 비밀번호 재설정 완료, Player: {}", player.getUid());

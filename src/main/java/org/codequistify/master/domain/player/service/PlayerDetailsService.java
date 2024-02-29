@@ -37,11 +37,12 @@ public class PlayerDetailsService implements UserDetailsService {
         player.encodePassword(request.password());
         playerRepository.save(player);
 
-        LOGGER.info("[resetPassword] Player: {}, 비밀번호 재설정 성공", player.getUid());
+        LOGGER.info("[resetPassword] Player: {}, 비밀번호 초기화 성공", player.getUid());
     }
 
     @Transactional
     public void updatePassword(Player player, UpdatePasswordRequest request) {
+        // 비밀번호 데이터는 담기지 않으므로 다시 조회해야함
         player = playerRepository.getReferenceById(player.getId()); // jwt 필터에서 null 아닌 player 객체만 들어옴
 
         if (!player.decodePassword(request.rawPassword())) {
@@ -50,6 +51,8 @@ public class PlayerDetailsService implements UserDetailsService {
 
         player.encodePassword(request.password());
         playerRepository.save(player);
+
+        LOGGER.info("[updatePassword] Player: {}, 비밀번호 재설정 성공", player.getUid());
     }
 
     @Transactional

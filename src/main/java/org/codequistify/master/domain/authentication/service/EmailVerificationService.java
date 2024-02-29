@@ -50,12 +50,13 @@ public class EmailVerificationService {
             Map<String, Object> variables = new HashMap<>();
             variables.put("authCode", authCode);
             variables.put("email", URLEncoder.encode(email, StandardCharsets.UTF_8));
+            variables.put("type", emailVerificationType.name());
 
             MimeMessage message = createMessage(email, variables, emailVerificationType);
             javaMailSender.send(message);
             LOGGER.info("[sendVerifyMail] {}로 메일 전송 완료", email);
 
-            this.saveEmailVerification(email, authCode, EmailVerificationType.REGISTRATION);
+            this.saveEmailVerification(email, authCode, emailVerificationType);
 
         } catch (NoSuchAlgorithmException | MailException exception) {
             LOGGER.info("[sendVerifyMail] {}로 메일 전송 실패", email);
@@ -67,17 +68,22 @@ public class EmailVerificationService {
     템플릿으로 메일 본문 만들기
      */
     @LogMonitoring
-    private MimeMessage createMessage(String toMail, Map<String, Object> variables, EmailVerificationType emailVerificationType) throws MessagingException {
+    private MimeMessage createMessage(String toMail, Map<String, Object> variables, EmailVerificationType type) throws MessagingException {
         MimeMessage message = javaMailSender.createMimeMessage();
         message.addRecipients(Message.RecipientType.TO, toMail);
         message.setFrom("kkwjdfo@gmail.com");
-        message.setSubject("인증 메일 : POL 회원가입");
+        if (type == EmailVerificationType.REGISTRATION) {
+            message.setSubject("인증 메일 : POL 회원가입");
+        }
+        if (type == EmailVerificationType.PASSWORD_RESET) {
+            message.setSubject("인증 메일 : 비밀번호 초기화");
+        }
 
         Context context = new Context();
         context.setVariables(variables);
         LOGGER.info("[createMessage] auth code {}", variables.get("authCode"));
 
-        String template = getEmailTemplateName(emailVerificationType);
+        String template = getEmailTemplateName(type);
         String htmlContent = templateEngine.process(template, context);
 
         message.setText(htmlContent, "utf-8", "html");
@@ -91,13 +97,7 @@ public class EmailVerificationService {
         return emailVerificationRepository.save(emailVerification);
     }
     private String getEmailTemplateName(EmailVerificationType emailVerificationType) {
-        if (emailVerificationType == EmailVerificationType.REGISTRATION) {
-            return "email-verification";
-        }
-        if (emailVerificationType == EmailVerificationType.PASSWORD_RESET) {
-            return "password-verification";
-        }
-        return "";
+        return "email-verification";
     }
 
     /*
@@ -123,8 +123,8 @@ public class EmailVerificationService {
 
     // 메일 인증번호 확인
     @LogMonitoring
-    public void updateVerification(String email) {
-        emailVerificationRepository.findFirstByEmailAndUsedOrderByCreatedDateDesc(email, false) // 사용안된 인증 정보사용
+    public void updateVerification(String email, EmailVerificationType type) {
+        emailVerificationRepository.findFirstByEmailAndUsedAndEmailVerificationTypeOrderByCreatedDateDesc(email, false, type) // 사용안된 인증 정보사용
                 .ifPresent(emailVerification -> {
                     emailVerification.verify(); // 인증 표시
                     emailVerificationRepository.save(emailVerification);
@@ -133,8 +133,8 @@ public class EmailVerificationService {
 
     // 인증정보 가져오기
     @LogMonitoring
-    public EmailVerification getEmailVerificationByEmail(String email, Boolean used) {
-        return emailVerificationRepository.findFirstByEmailAndUsedOrderByCreatedDateDesc(email, used)
+    public EmailVerification getEmailVerificationByEmail(String email, Boolean used, EmailVerificationType type) {
+        return emailVerificationRepository.findFirstByEmailAndUsedAndEmailVerificationTypeOrderByCreatedDateDesc(email, used, type)
                 .orElseThrow(()->{
                     LOGGER.info("[getEmailVerificationByEmail] {}에 대한 미사용 메일 인증 정보 없음", email);
                     return new BusinessException(ErrorCode.EMAIL_VERIFIED_FAILURE, HttpStatus.BAD_REQUEST);

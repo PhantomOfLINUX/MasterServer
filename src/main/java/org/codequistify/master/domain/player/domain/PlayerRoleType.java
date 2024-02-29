@@ -4,10 +4,11 @@ import lombok.Getter;
 
 @Getter
 public enum PlayerRoleType {
-    GUEST("ROLE_GUEST"),
     PLAYER("ROLE_PLAYER"),
     ADMIN("ROLE_ADMIN"),
-    SUPER_ADMIN("ROLE_SUPER_ADMIN");
+    SUPER_ADMIN("ROLE_SUPER_ADMIN"),
+    TEMPORARY("TEMPORARY"),
+    GUEST("ROLE_GUEST");
 
     private final String role;
 

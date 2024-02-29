@@ -52,13 +52,23 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
             throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
         }
 
+        if (aud.contains("@")) {
+            UserDetails userDetails = playerDetailsService.findOndPlayerByEmail(aud);
+            UsernamePasswordAuthenticationToken authenticationToken
+                    = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         UserDetails userDetails = playerDetailsService.loadUserByUsername(aud);
         UsernamePasswordAuthenticationToken authenticationToken
                 = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
-        response.setHeader("Authorization", token);
+        //response.setHeader("Authorization", token);
         filterChain.doFilter(request, response);
     }
 }

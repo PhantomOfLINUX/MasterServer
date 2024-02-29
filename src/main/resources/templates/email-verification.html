@@ -11,9 +11,13 @@
         <img src="https://api.pol.or.kr/images/logo.png" alt="POL 로고" style="max-width: 100px;">
         <h1 style="color: #2D347F; margin-top: 20px;">POL 인증 메일</h1>
     </div>
-    <p style="text-align: center; color: #333; margin-bottom: 24px;">아래 버튼을 눌러 계정을 활성화 할 수 있어요</p>
+    <div th:switch="${type}">
+        <p th:case="'REGISTRATION'" style="text-align: center; color: #333; margin-bottom: 24px;">아래 버튼을 눌러 계정을 활성화 할 수 있어요</p>
+        <p th:case="'PASSWORD_RESET'" style="text-align: center; color: #333; margin-bottom: 24px;">아래 버튼을 눌러 사용자를 확인할 수 있어요</p>
+        <p th:case="*" style="text-align: center; color: #333; margin-bottom: 24px;">아래 버튼을 눌러 인증할 수 있어요</p>
+    </div>
     <div style="text-align: center; margin-bottom: 24px;">
-        <a th:href="@{'https://api.pol.or.kr/home/auth/email/verify?email=' + ${email} + '&code=' + ${authCode}}"
+        <a th:href="@{'https://api.pol.or.kr/home/auth/email/verify?email=' + ${email} + '&code=' + ${authCode} + '&type=' + ${type}}"
            style="background-color: #2D347F; color: white; padding: 10px 40px; border-radius: 5px; text-decoration: none; display: inline-block; min-width: 160px;">
             인증하기</a>
     </div>
