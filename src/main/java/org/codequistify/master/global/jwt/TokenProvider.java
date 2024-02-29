@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.PlayerRoleType;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
+import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.slf4j.Logger;
@@ -81,6 +82,24 @@ public class TokenProvider {
         return token;
     }
 
+    public String generateTempToken(String email) {
+        Claims claims = Jwts.claims();
+        claims.put("role", List.of(PlayerRoleType.TEMPORARY));
+        Date now = new Date();
+
+        String token = Jwts.builder()
+                .setClaims(claims)
+                .setAudience(email)
+                .setIssuedAt(now)
+                .setIssuer(ISS)
+                .setExpiration(new Date(now.getTime() + ACCESS_VALIDITY_TIME / 6))
+                .signWith(KEY)
+                .compact();
+
+        LOGGER.info("[generateTempToken] {}", token);
+        return token;
+    }
+
     public String generateRefreshToken(PlayerProfile response) {
         Claims claims = Jwts.claims();
         Date now = new Date();
@@ -135,6 +154,7 @@ public class TokenProvider {
         }
     }
 
+    @LogExecutionTime
     public String getAudience(String token) {
         try {
             Jws<Claims> claims = Jwts.parserBuilder()

@@ -16,12 +16,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Entity
 @Getter
 @ToString
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
+@Entity
+@Table(name = "player")
 public class Player extends BaseTimeEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,7 +54,7 @@ public class Player extends BaseTimeEntity implements UserDetails {
     private List<String> roles = new ArrayList<>();
 
     @Column(name = "locked")
-    private Boolean isLocked;
+    private Boolean locked;
 
     // 수정 많음 테이블 분할 필요
 
@@ -85,22 +86,37 @@ public class Player extends BaseTimeEntity implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return !locked;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return !isLocked;
+        return !locked;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return !locked;
     }
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return !locked;
+    }
+
+    public void expireAccount() {
+        this.locked = true;
+    }
+
+    public void dataClear() {
+        this.name = null;
+        this.email = null;
+        this.password = null;
+        this.oAuthId = null;
+        this.roles.clear();
+        this.locked = true;
+        this.oAuthAccessToken = null;
+        this.refreshToken = null;
     }
 
     // 비밀번호 암호화

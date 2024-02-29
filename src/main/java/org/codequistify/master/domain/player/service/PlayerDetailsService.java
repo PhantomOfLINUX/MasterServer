@@ -3,7 +3,7 @@ package org.codequistify.master.domain.player.service;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.player.dto.ResetPasswordRequest;
+import org.codequistify.master.domain.player.dto.UpdatePasswordRequest;
 import org.codequistify.master.domain.player.repository.PlayerRepository;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
@@ -33,11 +33,26 @@ public class PlayerDetailsService implements UserDetailsService {
     }
 
     @Transactional
-    public void resetPassword(Player player, ResetPasswordRequest request) {
-        player.encodePassword(request.newPassword());
+    public void resetPassword(Player player, UpdatePasswordRequest request) {
+        player.encodePassword(request.password());
         playerRepository.save(player);
 
-        LOGGER.info("[resetPassword] Player: {}, 비밀번호 재설정 성공", player.getUid());
+        LOGGER.info("[resetPassword] Player: {}, 비밀번호 초기화 성공", player.getUid());
+    }
+
+    @Transactional
+    public void updatePassword(Player player, UpdatePasswordRequest request) {
+        // 비밀번호 데이터는 담기지 않으므로 다시 조회해야함
+        player = playerRepository.getReferenceById(player.getId()); // jwt 필터에서 null 아닌 player 객체만 들어옴
+
+        if (!player.decodePassword(request.rawPassword())) {
+            throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
+        }
+
+        player.encodePassword(request.password());
+        playerRepository.save(player);
+
+        LOGGER.info("[updatePassword] Player: {}, 비밀번호 재설정 성공", player.getUid());
     }
 
     @Transactional
@@ -76,6 +91,12 @@ public class PlayerDetailsService implements UserDetailsService {
     @Transactional
     public void updateRefreshToken(String uid, String refreshToken) {
         playerRepository.updateRefreshToken(uid, refreshToken);
+    }
+
+    @Transactional
+    public void deletePlayer(Player player) {
+        player.dataClear();
+        playerRepository.save(player);
     }
 
 
