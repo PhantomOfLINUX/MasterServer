@@ -26,7 +26,7 @@ public class YuminController {
 
 
     @GetMapping("task/{code}")
-    @Operation(summary = "작업 목록 불러오기", description = "abc, 123 두 코드만 리스트있음. 나머지 요청은 404 NOT_FOUND")
+    @Operation(summary = "작업 목록 불러오기", description = "abc, 123 두 코드만 리스트있음. 나머지 요청은 404 NOT_FOUND", hidden = true)
     public ResponseEntity<?> getTaskList(@NonNull @PathVariable String code){
         List<Task> taskList = yuminService.getTaskList(code);
         String author = yuminService.findAuthor(code);
@@ -42,7 +42,7 @@ public class YuminController {
     }
 
     @PostMapping("task")
-    @Operation(summary = "작업 목록 저장", description = ".")
+    @Operation(summary = "작업 목록 저장", description = ".", hidden = true)
     public ResponseEntity<ListSaveResponse> saveTaskList(@RequestBody ListSaveRequest listSaveRequest) {
         String code = yuminService.saveTodoList(listSaveRequest);
         ListSaveResponse response = new ListSaveResponse(code);
@@ -52,6 +52,7 @@ public class YuminController {
     }
 
     @GetMapping("task")
+    @Operation(hidden = true)
     public ResponseEntity<List<TodoList>> getTodoList() {
         log.info("[getTodoList]");
 

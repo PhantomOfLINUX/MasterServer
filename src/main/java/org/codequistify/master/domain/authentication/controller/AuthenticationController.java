@@ -2,7 +2,6 @@ package org.codequistify.master.domain.authentication.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -227,12 +226,10 @@ public class AuthenticationController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "사용가능한 이메일",
                             content = @Content(
-                                    schema = @Schema(implementation = BasicResponse.class),
-                                    examples = @ExampleObject(value = "{\"response\":\"Non Exist This Email\"}"))),
+                                    schema = @Schema(implementation = BasicResponse.class))),
                     @ApiResponse(responseCode = "400", description = "사용할 수 없는 이메일",
                             content = @Content(
-                                    schema = @Schema(implementation = BasicResponse.class),
-                                    examples = @ExampleObject(value = "{\"error\":\"Already Exist This Email\"}")))}
+                                    schema = @Schema(implementation = BasicResponse.class)))}
     )
     @LogMonitoring
     @GetMapping("auth/email/{email}")
@@ -250,8 +247,8 @@ public class AuthenticationController {
             summary = "인증메일 발송 요청",
             description = "회원가입 인증메일을 발송하는 요청이다. 중복된 이메일인지 함께 검증한다.\n\n" +
                     "type 목록은 다음과 같다.\n\n" +
-                    "회원가입 -> REGISTRATION\n\n" +
-                    "비밀번호 초기화 -> PASSWORD_RESET"
+                    "회원가입 -> 'REGISTRATION'\n\n" +
+                    "비밀번호 초기화 -> 'PASSWORD_RESET'"
     )
     @PostMapping("auth/email/verification")
     @LogMonitoring
@@ -283,10 +280,7 @@ public class AuthenticationController {
             description = "회원가입 인증코드를 확인한다. 사용자의 email과 입력 코드를 path로 받는다. 결과는 response 필드에 \"true\", \"false\"로 반환한다.",
             responses = {
                     @ApiResponse(responseCode = "200", description = "인증 결과", content = @Content(
-                                    schema = @Schema(implementation = BasicResponse.class),
-                                    examples = {
-                                            @ExampleObject(name = "올바른 코드", value = "{\"response\":\"true\"}"),
-                                            @ExampleObject(name = "잘못된 코드", value = "{\"response\":\"false\"}")}))}
+                                    schema = @Schema(implementation = BasicResponse.class)))}
     )
     @LogMonitoring
     @GetMapping("auth/email/{email}/code/{code}")
