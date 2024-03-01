@@ -30,7 +30,7 @@ public class TokenProvider {
     private Key KEY;
     private final String ISS = "api.pol.or.kr";
     private final Long ACCESS_VALIDITY_TIME = 60 * 60 * 1000L;
-    private final Long REFRESH_VALIDITY_TIME = 24 * 60 * 60 * 1000L;
+    private final Long REFRESH_VALIDITY_TIME = 7 * 24 * 60 * 60 * 1000L;
     private final Logger LOGGER = LoggerFactory.getLogger(TokenProvider.class);
 
     @PostConstruct
