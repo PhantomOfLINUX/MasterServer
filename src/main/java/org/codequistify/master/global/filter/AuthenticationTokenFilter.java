@@ -55,8 +55,9 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
         if (aud.contains("@")) {
             UserDetails userDetails = playerDetailsService.findOndPlayerByEmail(aud);
             UsernamePasswordAuthenticationToken authenticationToken
-                    = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    = new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
 
+            LOGGER.info("[AuthenticationTokenFilter] {}", authenticationToken);
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             filterChain.doFilter(request, response);
             return;

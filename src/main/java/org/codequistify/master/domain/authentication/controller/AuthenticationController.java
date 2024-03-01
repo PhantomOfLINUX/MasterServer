@@ -213,6 +213,9 @@ public class AuthenticationController {
     @LogMonitoring
     @PostMapping("auth/logout")
     public ResponseEntity<BasicResponse> LogOut(@AuthenticationPrincipal Player player) {
+        if (player == null) {
+            throw new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.UNAUTHORIZED);
+        }
         authenticationService.logOut(player);
         LOGGER.info("[LogOut] Player: {}, 로그아웃 완료", player.getUid());
 
@@ -245,10 +248,14 @@ public class AuthenticationController {
 
     @Operation(
             summary = "인증메일 발송 요청",
-            description = "회원가입 인증메일을 발송하는 요청이다. 중복된 이메일인지 함께 검증한다.\n\n" +
-                    "type 목록은 다음과 같다.\n\n" +
-                    "회원가입 -> 'REGISTRATION'\n\n" +
-                    "비밀번호 초기화 -> 'PASSWORD_RESET'"
+            description = """
+                    회원가입 인증메일을 발송하는 요청이다. 중복된 이메일인지 함께 검증한다.
+
+                    type 목록은 다음과 같다.
+
+                    - 회원가입 : *'REGISTRATION'*
+
+                    - 비밀번호 초기화 : *'PASSWORD_RESET'*"""
     )
     @PostMapping("auth/email/verification")
     @LogMonitoring
