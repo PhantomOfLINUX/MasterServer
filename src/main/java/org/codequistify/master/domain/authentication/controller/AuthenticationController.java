@@ -18,6 +18,7 @@ import org.codequistify.master.domain.authentication.service.EmailVerificationSe
 import org.codequistify.master.domain.authentication.service.impl.GoogleSocialSignService;
 import org.codequistify.master.domain.authentication.service.impl.KakaoSocialSignService;
 import org.codequistify.master.domain.authentication.service.impl.NaverSocialSignService;
+import org.codequistify.master.domain.authentication.vo.OAuthData;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.global.aspect.LogMonitoring;
@@ -107,7 +108,6 @@ public class AuthenticationController {
     //TODO 임시
     private void addRefreshTokenToCookie_DEV(String refreshToken, HttpServletResponse response) {
         Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN_DEV", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setDomain("localhost");
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 일주일
@@ -122,7 +122,15 @@ public class AuthenticationController {
     @LogMonitoring
     @PostMapping("auth/google")
     public ResponseEntity<LoginResponse> socialSignInGoogle(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
-        PlayerProfile playerProfile = googleSocialSignService.socialLogIn(request.code());
+        OAuthData oAuthData = googleSocialSignService.getOAuthData(request.code());
+
+        PlayerProfile playerProfile;
+        try {
+            playerProfile = googleSocialSignService.socialLogIn(oAuthData);
+        } catch (BusinessException exception) {
+            googleSocialSignService.socialSignUp(oAuthData); // 로그인 되어 있지 않을 때 회원가입 먼저 실행
+            playerProfile = googleSocialSignService.socialLogIn(oAuthData);
+        }
 
         LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
         addRefreshTokenToCookie(loginResponse.token().refreshToken(), response);
@@ -139,7 +147,15 @@ public class AuthenticationController {
     @LogMonitoring
     @PostMapping("auth/kakao")
     public ResponseEntity<LoginResponse> socialLogInKakao(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
-        PlayerProfile playerProfile = kakaoSocialSignService.socialLogIn(request.code());
+        OAuthData oAuthData = kakaoSocialSignService.getOAuthData(request.code());
+
+        PlayerProfile playerProfile;
+        try {
+            playerProfile = kakaoSocialSignService.socialLogIn(oAuthData);
+        } catch (BusinessException exception) {
+            kakaoSocialSignService.socialSignUp(oAuthData); // 로그인 되어 있지 않을 때 회원가입 먼저 실행
+            playerProfile = kakaoSocialSignService.socialLogIn(oAuthData);
+        }
 
         LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
 
@@ -157,7 +173,15 @@ public class AuthenticationController {
     @LogMonitoring
     @PostMapping("auth/naver")
     public ResponseEntity<LoginResponse> socialLogInNaver(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
-        PlayerProfile playerProfile = naverSocialSignService.socialLogIn(request.code());
+        OAuthData oAuthData = naverSocialSignService.getOAuthData(request.code());
+
+        PlayerProfile playerProfile;
+        try {
+            playerProfile = naverSocialSignService.socialLogIn(oAuthData);
+        } catch (BusinessException exception) {
+            naverSocialSignService.socialSignUp(oAuthData); // 로그인 되어 있지 않을 때 회원가입 먼저 실행
+            playerProfile = naverSocialSignService.socialLogIn(oAuthData);
+        }
 
         LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
 
@@ -392,6 +416,7 @@ public class AuthenticationController {
 
 
 
+    /*
     //서버용인증
     @GetMapping("auth/google")
     @Operation(hidden = true)
@@ -409,10 +434,12 @@ public class AuthenticationController {
     //서버용인증
     @GetMapping("auth/callback/naver")
     @Operation()
-    public ResponseEntity<?> naverLogin(@RequestParam String code) {
+    public ResponseEntity<?> naverLogin(@RequestParam String code, HttpServletResponse response) {
+        SocialLogInRequest request = new SocialLogInRequest(code);
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(naverSocialSignService.socialLogIn(code));
+                .body(socialLogInNaver(request, response));
     }
+     */
 
 }
