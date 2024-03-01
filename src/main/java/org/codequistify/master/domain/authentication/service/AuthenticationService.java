@@ -66,7 +66,7 @@ public class AuthenticationService {
     public PlayerProfile logIn(LogInRequest request) {
         Player player;
         try {
-            player = playerDetailsService.findOndPlayerByEmail(request.email());
+            player = playerDetailsService.findOnePlayerByEmail(request.email());
         } catch (BusinessException exception) {
             throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
         }
@@ -124,7 +124,7 @@ public class AuthenticationService {
         String uid = tokenProvider.getAudience(request.refreshToken());
         Player player;
         try {
-            player = playerDetailsService.findOndPlayerByUid(uid);
+            player = playerDetailsService.findOnePlayerByUid(uid);
         } catch (BusinessException exception) {
             throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
         }

@@ -2,6 +2,7 @@ package org.codequistify.master.domain.authentication.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.authentication.service.SocialSignService;
+import org.codequistify.master.domain.authentication.vo.OAuthData;
 import org.codequistify.master.domain.authentication.vo.OAuthResourceVO;
 import org.codequistify.master.domain.authentication.vo.OAuthTokenVO;
 import org.codequistify.master.domain.player.converter.PlayerConverter;
@@ -9,6 +10,8 @@ import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.service.PlayerDetailsService;
+import org.codequistify.master.global.aspect.LogMethodInvocation;
+import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.config.OAuthKey;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
@@ -16,13 +19,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.Map;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -44,49 +45,51 @@ public class KakaoSocialSignService implements SocialSignService {
     }
 
 
+    @LogMethodInvocation
+    public OAuthData getOAuthData(String code) {
+        OAuthTokenVO token = getOAuthToken(code);
+        OAuthResourceVO resource = getUserResource(token.access_token());
+        return OAuthData.of(token, resource);
+    }
+
     /*
     code를 통한 소셜 로그인
      */
     @Override
-    public PlayerProfile socialLogIn(String code) {
+    @LogMonitoring
+    @Transactional
+    public PlayerProfile socialLogIn(OAuthData oAuthData) {
 
-        String accessToken = getAccessToken(code);
-        OAuthResourceVO resource = getUserResource(accessToken);
-        Map<String, String> properties = Objects.requireNonNull(resource).properties();
-        LOGGER.info("{} {}", resource.id(), properties.get("nickname"));
+        Player player = playerDetailsService.findOnePlayerByEmail(oAuthData.resource().email());
 
-        Player player;
-        try {
-            player = playerDetailsService.findOndPlayerByEmail(properties.get("email"));
-        } catch (BusinessException exception) {
-            LOGGER.info("등록되지 않은 카카오 계정 {}", properties.get("email"));
-            player = this.socialSignUp(resource);
-        }
-
-        player.updateOAuthAccessToken(accessToken);
+        player.updateOAuthAccessToken(oAuthData.token().access_token());
 
         playerDetailsService.save(player);
 
         PlayerProfile response = playerConverter.convert(player);
-        LOGGER.info("[socialLogin] {} 카카오 로그인", player.getEmail());
+        LOGGER.info("[socialLogin] 카카오 로그인, Player: {}", player.getUsername());
 
         return response;
     }
 
     @Override
-    public Player socialSignUp(OAuthResourceVO resource) {
-        Map<String, String> properties = Objects.requireNonNull(resource).properties();
+    @LogMonitoring
+    @Transactional
+    public Player socialSignUp(OAuthData oAuthData) {
         Player player = Player.builder()
-                .name(properties.get("nickname"))
-                .email(properties.get("email"))
+                .name(oAuthData.resource().name())
+                .email(oAuthData.resource().email())
                 .oAuthType(OAuthType.KAKAO)
-                .oAuthId(resource.id()).build();
+                .oAuthId(oAuthData.resource().id())
+                .level(0)
+                .build();
         player = playerDetailsService.save(player);
-        LOGGER.info("[socialSignUp] 신규 카카오 사용자 등록");
+        LOGGER.info("[socialSignUp] 신규 카카오 사용자 등록, Player: {}", oAuthData.resource().email());
         return player;
     }
 
-    private String getAccessToken(String code) {
+    @LogMethodInvocation
+    private OAuthTokenVO getOAuthToken(String code) {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("code", code);
         body.add("client_id", oAuthKey.getKAKAO_CLIENT_ID());
@@ -100,13 +103,15 @@ public class KakaoSocialSignService implements SocialSignService {
 
         try {
             OAuthTokenVO response = restTemplate.postForObject(oAuthKey.getKAKAO_TOKEN_URI(), entity, OAuthTokenVO.class);
-            return Objects.requireNonNull(response).access_token();
+            LOGGER.info("[getOAuthToken] token 정보{}", response);
+            return response;
         } catch (RestClientException exception) {
-            LOGGER.info("[getAccessToken] 토큰 요청 실패");
+            LOGGER.info("[getOAuthToken] 토큰 요청 실패");
             throw new BusinessException(ErrorCode.OAUTH_COMMUNICATION_FAILURE, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    @LogMethodInvocation
     private OAuthResourceVO getUserResource(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
