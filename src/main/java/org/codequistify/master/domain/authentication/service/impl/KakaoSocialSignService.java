@@ -25,6 +25,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Map;
+
 @Service
 @RequiredArgsConstructor
 public class KakaoSocialSignService implements SocialSignService {
@@ -119,7 +121,10 @@ public class KakaoSocialSignService implements SocialSignService {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
-            return restTemplate.exchange(oAuthKey.getKAKAO_RESOURCE_URI(), HttpMethod.GET, entity, OAuthResourceVO.class).getBody();
+            Map<String, String> map = restTemplate.exchange(oAuthKey.getKAKAO_RESOURCE_URI(), HttpMethod.GET, entity, OAuthResourceVO.class).getBody().properties();
+            OAuthResourceVO response = new OAuthResourceVO(map.get("id"), map.get("email"), map.get("nickname"), null, null);
+            LOGGER.info("[getUserResource] 리소스: {}", response);
+            return response;
         } catch (NullPointerException | RestClientException exception) {
             LOGGER.info("[getUserResource] 정보 요청 실패");
             throw new BusinessException(ErrorCode.OAUTH_COMMUNICATION_FAILURE, HttpStatus.INTERNAL_SERVER_ERROR);
