@@ -108,7 +108,6 @@ public class AuthenticationController {
     private void addRefreshTokenToCookie_DEV(String refreshToken, HttpServletResponse response) {
         Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN_DEV", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
         refreshTokenCookie.setDomain("localhost");
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 일주일
@@ -158,7 +157,7 @@ public class AuthenticationController {
     @LogMonitoring
     @PostMapping("auth/naver")
     public ResponseEntity<LoginResponse> socialLogInNaver(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
-        PlayerProfile playerProfile = kakaoSocialSignService.socialLogIn(request.code());
+        PlayerProfile playerProfile = naverSocialSignService.socialLogIn(request.code());
 
         LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
 
@@ -409,9 +408,11 @@ public class AuthenticationController {
 
     //서버용인증
     @GetMapping("auth/callback/naver")
-    @Operation(hidden = true)
-    public PlayerProfile naverLogin(@RequestParam String code) {
-        return naverSocialSignService.socialLogIn(code);
+    @Operation()
+    public ResponseEntity<?> naverLogin(@RequestParam String code) {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(naverSocialSignService.socialLogIn(code));
     }
 
 }
