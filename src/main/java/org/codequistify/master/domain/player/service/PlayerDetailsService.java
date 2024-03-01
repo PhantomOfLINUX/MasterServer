@@ -71,7 +71,7 @@ public class PlayerDetailsService implements UserDetailsService {
     }
 
     @Transactional
-    public Player findOndPlayerByEmail(String email) {
+    public Player findOnePlayerByEmail(String email) {
         return playerRepository.findByEmail(email)
                 .orElseThrow(() -> {
                     LOGGER.info("[findOndPlayerByEmail] 존재하지 않는 email 입니다. email: {}", email);
@@ -80,7 +80,7 @@ public class PlayerDetailsService implements UserDetailsService {
     }
 
     @Transactional
-    public Player findOndPlayerByUid(String uid) {
+    public Player findOnePlayerByUid(String uid) {
         return playerRepository.findByUid(uid)
                 .orElseThrow(() -> {
                     LOGGER.info("[findOndPlayerByUid] 존재하지 않는 player 입니다. uid: {}", uid);
