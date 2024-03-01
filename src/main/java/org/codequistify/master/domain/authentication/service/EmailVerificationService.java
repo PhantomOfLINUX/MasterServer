@@ -44,6 +44,7 @@ public class EmailVerificationService {
 
     @Async
     @LogMonitoring
+    @Transactional
     public void sendVerifyMail(String email, EmailVerificationType emailVerificationType) throws MessagingException {
         String authCode;
         try {
