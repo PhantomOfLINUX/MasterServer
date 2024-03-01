@@ -108,9 +108,12 @@ public class AuthenticationController {
     //TODO 임시
     private void addRefreshTokenToCookie_DEV(String refreshToken, HttpServletResponse response) {
         Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN_DEV", refreshToken);
-        refreshTokenCookie.setDomain("localhost");
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(false);
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 일주일
+
+        response.addCookie(refreshTokenCookie);
 
         response.addCookie(refreshTokenCookie);
     }
