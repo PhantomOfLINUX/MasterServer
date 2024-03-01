@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -89,6 +90,29 @@ public class AuthenticationController {
         return new LoginResponse(playerProfile, tokenResponse);
     }
 
+    private void addRefreshTokenToCookie(String refreshToken, HttpServletResponse response) {
+        Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setDomain("pol.or.kr");
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 일주일
+
+        response.addCookie(refreshTokenCookie);
+    }
+
+    //TODO 임시
+    private void addRefreshTokenToCookie_DEV(String refreshToken, HttpServletResponse response) {
+        Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN_DEV", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setDomain("localhost");
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 일주일
+
+        response.addCookie(refreshTokenCookie);
+    }
+
     @Operation(
             summary = "구글 로그인 요청",
             description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 profile과 인증 토큰을 발급받는다."
@@ -99,6 +123,8 @@ public class AuthenticationController {
         PlayerProfile playerProfile = googleSocialSignService.socialLogIn(request.code());
 
         LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
+        addRefreshTokenToCookie(loginResponse.token().refreshToken(), response);
+        addRefreshTokenToCookie_DEV(loginResponse.token().refreshToken(), response);
 
         LOGGER.info("[socialSignInGoogle] 구글 로그인, Player: {}", playerProfile.uid());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
@@ -110,10 +136,13 @@ public class AuthenticationController {
     )
     @LogMonitoring
     @PostMapping("auth/kakao")
-    public ResponseEntity<LoginResponse> socialLogInKakao(@RequestBody SocialLogInRequest request) {
+    public ResponseEntity<LoginResponse> socialLogInKakao(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
         PlayerProfile playerProfile = kakaoSocialSignService.socialLogIn(request.code());
 
         LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
+
+        addRefreshTokenToCookie(loginResponse.token().refreshToken(), response);
+        addRefreshTokenToCookie_DEV(loginResponse.token().refreshToken(), response);
 
         LOGGER.info("[socialSignInKakao] 카카오 로그인, Player: {}", playerProfile.uid());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
@@ -125,10 +154,13 @@ public class AuthenticationController {
     )
     @LogMonitoring
     @PostMapping("auth/naver")
-    public ResponseEntity<LoginResponse> socialLogInNaver(@RequestBody SocialLogInRequest request) {
+    public ResponseEntity<LoginResponse> socialLogInNaver(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
         PlayerProfile playerProfile = kakaoSocialSignService.socialLogIn(request.code());
 
         LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
+
+        addRefreshTokenToCookie(loginResponse.token().refreshToken(), response);
+        addRefreshTokenToCookie_DEV(loginResponse.token().refreshToken(), response);
 
         LOGGER.info("[socialSignInNaver] 네이버 로그인, Player: {}", playerProfile.uid());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
@@ -140,10 +172,20 @@ public class AuthenticationController {
     )
     @LogMonitoring
     @PostMapping("/auth/signup")
-    public ResponseEntity<LoginResponse> signUpPOL(@Valid @RequestBody SignUpRequest request) {
+    public ResponseEntity<LoginResponse> signUpPOL(@Valid @RequestBody SignUpRequest request, HttpServletResponse response) {
+        // 이메일 인증 정보를 확인
+        EmailVerification emailVerification = emailVerificationService
+                .verifyEmailAndRetrieve(request.email(), EmailVerificationType.REGISTRATION);
+
         PlayerProfile playerProfile = authenticationService.signUp(request);
 
+        // 인증메일 사용처리
+        emailVerificationService.markEmailVerificationAsUsed(emailVerification);
+
         LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
+
+        addRefreshTokenToCookie(loginResponse.token().refreshToken(), response);
+        addRefreshTokenToCookie_DEV(loginResponse.token().refreshToken(), response);
 
         LOGGER.info("[SignUpPOL] pol 회원가입, Player: {}", playerProfile.uid());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
@@ -155,10 +197,13 @@ public class AuthenticationController {
     )
     @LogMonitoring
     @PostMapping("auth/login")
-    public ResponseEntity<LoginResponse> logInPOL(@Valid @RequestBody LogInRequest request) {
+    public ResponseEntity<LoginResponse> logInPOL(@Valid @RequestBody LogInRequest request, HttpServletResponse response) {
         PlayerProfile playerProfile = authenticationService.logIn(request);
 
         LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
+
+        addRefreshTokenToCookie(loginResponse.token().refreshToken(), response);
+        addRefreshTokenToCookie_DEV(loginResponse.token().refreshToken(), response);
 
         LOGGER.info("[LogInPOL] pol 로그인, Player: {}", playerProfile.uid());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
@@ -166,8 +211,10 @@ public class AuthenticationController {
 
     @Operation(
             summary = "엑세스 토큰 재발급",
-            description = "AccessToken을 재발급 한다.\n\n" +
-                    " RefreshToken 값을 body로 받는다. 이때 token은 'Bearer' 없이 token 값만을 적어야 한다.",
+            description = """
+                    AccessToken을 재발급 한다.
+
+                     RefreshToken 값을 body로 받는다. 이때 token은 'Bearer' 없이 token 값만을 적어야 한다.""",
             responses = {
                     @ApiResponse(responseCode = "200", description = "정상적으로 재발급"),
                     @ApiResponse(responseCode = "400", description = "잘못된 요청, id 불일치 또는 빈 요청 등"),

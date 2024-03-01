@@ -2,8 +2,6 @@ package org.codequistify.master.domain.authentication.service;
 
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.authentication.domain.EmailVerification;
-import org.codequistify.master.domain.authentication.domain.EmailVerificationType;
 import org.codequistify.master.domain.authentication.dto.LogInRequest;
 import org.codequistify.master.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.domain.player.converter.PlayerConverter;
@@ -48,15 +46,10 @@ public class AuthenticationService {
                         LOGGER.info("[signUp] {} Email: {}", ErrorCode.EMAIL_ALREADY_EXISTS.getMessage(), request.email());
                         throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
                     }
+                    // 다른 방식으로 소셜로그인이 되어 있는 경우
                     LOGGER.info("[signUp] {} Email: {}", ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH.getMessage(), request.email());
                     throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH, HttpStatus.BAD_REQUEST, authType.name());
                 });
-
-        EmailVerification emailVerification = emailVerificationService.getEmailVerificationByEmail(request.email(), false, EmailVerificationType.REGISTRATION);
-        // 이메일 인증이 되어 있는 계정인지 확인
-        if (!emailVerification.getVerified()) {
-            throw new BusinessException(ErrorCode.EMAIL_VERIFIED_FAILURE, HttpStatus.BAD_REQUEST);
-        }
 
         Player player = playerConverter.convert(request);
 
@@ -64,9 +57,6 @@ public class AuthenticationService {
         player = playerDetailsService.save(player);
 
         LOGGER.info("[signUp] Player: {}, 회원가입 완료", player.getUid());
-
-        // 인증메일 사용처리
-        emailVerificationService.markEmailVerificationAsUsed(emailVerification);
 
         return playerConverter.convert(player);
     }

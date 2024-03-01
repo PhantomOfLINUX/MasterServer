@@ -18,6 +18,7 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -42,6 +43,7 @@ public class EmailVerificationService {
     private final Logger LOGGER = LoggerFactory.getLogger(EmailVerificationService.class);
 
     @Async
+    @LogMonitoring
     public void sendVerifyMail(String email, EmailVerificationType emailVerificationType) throws MessagingException {
         String authCode;
         try {
@@ -91,8 +93,10 @@ public class EmailVerificationService {
         LOGGER.info("[createMessage] 메일 생성");
         return message;
     }
+
     // 인증 정보 틀 저장
-    private EmailVerification saveEmailVerification(String email, String code, EmailVerificationType emailVerificationType) {
+    @Transactional
+    public EmailVerification saveEmailVerification(String email, String code, EmailVerificationType emailVerificationType) {
         EmailVerification emailVerification = new EmailVerification(email, code, emailVerificationType);
         return emailVerificationRepository.save(emailVerification);
     }
@@ -123,6 +127,7 @@ public class EmailVerificationService {
 
     // 메일 인증번호 확인
     @LogMonitoring
+    @Transactional
     public void updateVerification(String email, EmailVerificationType type) {
         emailVerificationRepository.findFirstByEmailAndUsedAndEmailVerificationTypeOrderByCreatedDateDesc(email, false, type) // 사용안된 인증 정보사용
                 .ifPresent(emailVerification -> {
@@ -131,8 +136,22 @@ public class EmailVerificationService {
                 });
     }
 
+    // 이메일 인증이 되어있는지 확인
+    @Transactional
+    public EmailVerification verifyEmailAndRetrieve(String email, EmailVerificationType type) {
+        EmailVerification emailVerification = this.getEmailVerificationByEmail(email, false, type);
+
+        // 이메일 인증이 되어 있는 계정인지 확인
+        if (!emailVerification.getVerified()) {
+            throw new BusinessException(ErrorCode.EMAIL_VERIFIED_FAILURE, HttpStatus.BAD_REQUEST);
+        }
+
+        return emailVerification;
+    }
+
     // 인증정보 가져오기
     @LogMonitoring
+    @Transactional
     public EmailVerification getEmailVerificationByEmail(String email, Boolean used, EmailVerificationType type) {
         return emailVerificationRepository.findFirstByEmailAndUsedAndEmailVerificationTypeOrderByCreatedDateDesc(email, used, type)
                 .orElseThrow(()->{
@@ -143,6 +162,7 @@ public class EmailVerificationService {
 
     // 인증 정보 사용 기록
     @LogMonitoring
+    @Transactional
     public void markEmailVerificationAsUsed(EmailVerification emailVerification) {
         emailVerification.markAsUsed();
         emailVerificationRepository.save(emailVerification);

@@ -100,6 +100,7 @@ public class GoogleSocialSignService implements SocialSignService {
 
         try {
             OAuthTokenVO response = restTemplate.postForObject(oAuthKey.getGOOGLE_TOKEN_URI(), entity, OAuthTokenVO.class);
+            LOGGER.info("[getAccessToken] token 정보{}", response);
             return Objects.requireNonNull(response).access_token();
         } catch (RestClientException exception) {
             LOGGER.info("[getAccessToken] 토큰 요청 실패");
