@@ -55,8 +55,9 @@ public class AuthenticationController {
     )
     @LogMonitoring
     @GetMapping("auth/google/url")
-    public String loginUrlGoogle() {
-        return googleSocialSignService.getSocialLogInURL();
+    public ResponseEntity<BasicResponse> loginUrlGoogle() {
+        BasicResponse response = BasicResponse.of(googleSocialSignService.getSocialLogInURL());
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Operation(
@@ -65,8 +66,9 @@ public class AuthenticationController {
     )
     @LogMonitoring
     @GetMapping("auth/kakao/url")
-    public String loginUrlKakao() {
-        return kakaoSocialSignService.getSocialLogInURL();
+    public ResponseEntity<BasicResponse> loginUrlKakao() {
+        BasicResponse response = BasicResponse.of(kakaoSocialSignService.getSocialLogInURL());
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Operation(
@@ -75,8 +77,9 @@ public class AuthenticationController {
     )
     @LogMonitoring
     @GetMapping("auth/naver/url")
-    public String loginUrlNaver() {
-        return naverSocialSignService.getSocialLogInURL();
+    public ResponseEntity<BasicResponse> loginUrlNaver() {
+        BasicResponse response = BasicResponse.of(naverSocialSignService.getSocialLogInURL());
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
 
