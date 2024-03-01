@@ -35,4 +35,19 @@ public class RestExceptionHandler {
                 .status(businessException.getHttpStatus())
                 .body(BasicResponse.of(businessException));
     }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<BasicResponse> handleRuntimeException(RuntimeException exception) {
+        LOGGER.error("[ExceptionHandler] Runtime exception occurred: ", exception);
+
+        ErrorCode errorCode = ErrorCode.FAIL_PROCEED;
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        BusinessException businessException = new BusinessException(errorCode, status, "서버 내부 오류가 발생했습니다.");
+        LOGGER.error("[ExceptionHandler] Message: {}, Detail: {}", businessException.getMessage(), exception.getMessage());
+
+        return ResponseEntity
+                .status(status)
+                .body(BasicResponse.of(businessException));
+    }
 }
