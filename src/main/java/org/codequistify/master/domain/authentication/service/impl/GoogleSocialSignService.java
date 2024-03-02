@@ -3,8 +3,8 @@ package org.codequistify.master.domain.authentication.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.authentication.service.SocialSignService;
 import org.codequistify.master.domain.authentication.vo.OAuthData;
-import org.codequistify.master.domain.authentication.vo.OAuthResourceVO;
-import org.codequistify.master.domain.authentication.vo.OAuthTokenVO;
+import org.codequistify.master.domain.authentication.vo.OAuthResource;
+import org.codequistify.master.domain.authentication.vo.OAuthToken;
 import org.codequistify.master.domain.player.converter.PlayerConverter;
 import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
@@ -49,8 +49,8 @@ public class GoogleSocialSignService implements SocialSignService {
 
     @LogMethodInvocation
     public OAuthData getOAuthData(String code) {
-        OAuthTokenVO token = getOAuthToken(code);
-        OAuthResourceVO resource = getUserResource(token.access_token());
+        OAuthToken token = getOAuthToken(code);
+        OAuthResource resource = getUserResource(token.access_token());
         return OAuthData.of(token, resource);
     }
 
@@ -91,7 +91,7 @@ public class GoogleSocialSignService implements SocialSignService {
     }
 
     @LogMethodInvocation
-    private OAuthTokenVO getOAuthToken(String code) {
+    private OAuthToken getOAuthToken(String code) {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("code", code);
         body.add("client_id", oAuthKey.getGOOGLE_CLIENT_ID());
@@ -105,7 +105,7 @@ public class GoogleSocialSignService implements SocialSignService {
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
 
         try {
-            OAuthTokenVO response = restTemplate.postForObject(oAuthKey.getGOOGLE_TOKEN_URI(), entity, OAuthTokenVO.class);
+            OAuthToken response = restTemplate.postForObject(oAuthKey.getGOOGLE_TOKEN_URI(), entity, OAuthToken.class);
             LOGGER.info("[getOAuthToken] token 정보{}", response);
             return response;
         } catch (RestClientException exception) {
@@ -115,14 +115,14 @@ public class GoogleSocialSignService implements SocialSignService {
     }
 
     @LogMethodInvocation
-    private OAuthResourceVO getUserResource(String accessToken) {
+    private OAuthResource getUserResource(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
 
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
-            return restTemplate.exchange(oAuthKey.getGOOGLE_RESOURCE_URI(), HttpMethod.GET, entity, OAuthResourceVO.class).getBody();
+            return restTemplate.exchange(oAuthKey.getGOOGLE_RESOURCE_URI(), HttpMethod.GET, entity, OAuthResource.class).getBody();
         } catch (NullPointerException | RestClientException exception) {
             LOGGER.info("[getUserResource] 정보 요청 실패");
             throw new BusinessException(ErrorCode.OAUTH_COMMUNICATION_FAILURE, HttpStatus.INTERNAL_SERVER_ERROR);

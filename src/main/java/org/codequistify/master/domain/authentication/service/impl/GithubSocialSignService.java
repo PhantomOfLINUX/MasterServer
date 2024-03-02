@@ -5,7 +5,6 @@ import org.codequistify.master.domain.authentication.service.SocialSignService;
 import org.codequistify.master.domain.authentication.vo.OAuthData;
 import org.codequistify.master.domain.authentication.vo.OAuthResource;
 import org.codequistify.master.domain.authentication.vo.OAuthToken;
-import org.codequistify.master.domain.authentication.vo.ResourceOfKakao;
 import org.codequistify.master.domain.player.converter.PlayerConverter;
 import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
@@ -26,27 +25,32 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
-public class KakaoSocialSignService implements SocialSignService {
+public class GithubSocialSignService implements SocialSignService {
     private final PlayerDetailsService playerDetailsService;
-    private final PlayerConverter playerConverter;
-    private final Logger LOGGER = LoggerFactory.getLogger(KakaoSocialSignService.class);
     private final RestTemplate restTemplate;
+
+    private final PlayerConverter playerConverter;
+    private final Logger LOGGER = LoggerFactory.getLogger(GithubSocialSignService.class);
     private final OAuthKey oAuthKey;
 
     /*
-    카카오 소셜 로그인 주소 반환
+    깃허브 소셜 로그인 주소 반환
      */
     @Override
     public String getSocialLogInURL() {
-        return "https://kauth.kakao.com/oauth/authorize?response_type=code" +
-                "&client_id=" + oAuthKey.getKAKAO_CLIENT_ID() +
-                "&redirect_uri=" + oAuthKey.getKAKAO_REDIRECT_URI();
+        return "https://github.com/login/oauth/authorize?" +
+                "client_id=" + oAuthKey.getGITHUB_CLIENT_ID() +
+                "&redirect_uri=" + URLEncoder.encode(oAuthKey.getGITHUB_REDIRECT_URI(), StandardCharsets.UTF_8) +
+                "&response_type=code" +
+                "&state=" + URLEncoder.encode("pol", StandardCharsets.UTF_8);
     }
-
 
     @LogMethodInvocation
     public OAuthData getOAuthData(String code) {
@@ -70,7 +74,7 @@ public class KakaoSocialSignService implements SocialSignService {
         playerDetailsService.save(player);
 
         PlayerProfile response = playerConverter.convert(player);
-        LOGGER.info("[socialLogin] 카카오 로그인, Player: {}", player.getUsername());
+        LOGGER.info("[socialLogin] 깃허브 로그인, Player: {}", player.getUsername());
 
         return response;
     }
@@ -82,12 +86,12 @@ public class KakaoSocialSignService implements SocialSignService {
         Player player = Player.builder()
                 .name(oAuthData.resource().name())
                 .email(oAuthData.resource().email())
-                .oAuthType(OAuthType.KAKAO)
+                .oAuthType(OAuthType.GITHUB)
                 .oAuthId(oAuthData.resource().id())
                 .level(0)
                 .build();
         player = playerDetailsService.save(player);
-        LOGGER.info("[socialSignUp] 신규 카카오 사용자 등록, Player: {}", oAuthData.resource().email());
+        LOGGER.info("[socialSignUp] 신규 깃허브 사용자 등록, Player: {}", oAuthData.resource().email());
         return player;
     }
 
@@ -95,9 +99,10 @@ public class KakaoSocialSignService implements SocialSignService {
     private OAuthToken getOAuthToken(String code) {
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("code", code);
-        body.add("client_id", oAuthKey.getKAKAO_CLIENT_ID());
-        body.add("redirect_uri", oAuthKey.getKAKAO_REDIRECT_URI());
+        body.add("client_id", oAuthKey.getGITHUB_CLIENT_ID());
+        body.add("client_secret", oAuthKey.getGITHUB_CLIENT_SECRET());
         body.add("grant_type", "authorization_code");
+        body.add("state", "pol");
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -105,11 +110,11 @@ public class KakaoSocialSignService implements SocialSignService {
         HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
 
         try {
-            OAuthToken response = restTemplate.postForObject(oAuthKey.getKAKAO_TOKEN_URI(), entity, OAuthToken.class);
-            LOGGER.info("[getOAuthToken] token 정보{}", response);
+            OAuthToken response = restTemplate.postForObject(oAuthKey.getGITHUB_TOKEN_URI(), entity, OAuthToken.class);
+            LOGGER.info("[getAccessToken] token 정보 {}", response);
             return response;
         } catch (RestClientException exception) {
-            LOGGER.info("[getOAuthToken] 토큰 요청 실패");
+            LOGGER.info("[getAccessToken] 토큰 요청 실패 {}", exception.getMessage());
             throw new BusinessException(ErrorCode.OAUTH_COMMUNICATION_FAILURE, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -122,14 +127,14 @@ public class KakaoSocialSignService implements SocialSignService {
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         try {
-            Map<String, String> map = restTemplate.exchange(oAuthKey.getKAKAO_RESOURCE_URI(), HttpMethod.GET, entity, ResourceOfKakao.class).getBody().properties();
-            OAuthResource response = new OAuthResource(map.get("id"), map.get("email"), map.get("nickname"));
+            Map<String, String> map  = restTemplate.exchange(oAuthKey.getGITHUB_RESOURCE_URI(), HttpMethod.GET, entity, HashMap.class).getBody();
+            OAuthResource response = new OAuthResource(String.valueOf(map.get("id")), map.get("login")+"@github.com", map.get("name"));
             LOGGER.info("[getUserResource] 리소스: {}", response);
             return response;
+            //return null;
         } catch (NullPointerException | RestClientException exception) {
-            LOGGER.info("[getUserResource] 정보 요청 실패");
+            LOGGER.info("[getUserResource] 정보 요청 실패 {}", exception.getMessage());
             throw new BusinessException(ErrorCode.OAUTH_COMMUNICATION_FAILURE, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 }

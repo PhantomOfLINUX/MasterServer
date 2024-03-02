@@ -40,4 +40,16 @@ public class OAuthKey {
     private String NAVER_TOKEN_URI;
     @Value("${oauth2.naver.resource-uri}")
     private String NAVER_RESOURCE_URI;
+
+    // Github
+    @Value("${oauth2.github.client-id}")
+    private String GITHUB_CLIENT_ID;
+    @Value("${oauth2.github.client-secret}")
+    private String GITHUB_CLIENT_SECRET;
+    @Value("${oauth2.github.redirect-uri}")
+    private String GITHUB_REDIRECT_URI;
+    @Value("${oauth2.github.token-uri}")
+    private String GITHUB_TOKEN_URI;
+    @Value("${oauth2.github.resource-uri}")
+    private String GITHUB_RESOURCE_URI;
 }

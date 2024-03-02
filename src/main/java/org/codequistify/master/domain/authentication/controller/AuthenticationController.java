@@ -15,6 +15,7 @@ import org.codequistify.master.domain.authentication.domain.EmailVerificationTyp
 import org.codequistify.master.domain.authentication.dto.*;
 import org.codequistify.master.domain.authentication.service.AuthenticationService;
 import org.codequistify.master.domain.authentication.service.EmailVerificationService;
+import org.codequistify.master.domain.authentication.service.impl.GithubSocialSignService;
 import org.codequistify.master.domain.authentication.service.impl.GoogleSocialSignService;
 import org.codequistify.master.domain.authentication.service.impl.KakaoSocialSignService;
 import org.codequistify.master.domain.authentication.service.impl.NaverSocialSignService;
@@ -44,6 +45,8 @@ public class AuthenticationController {
     private final GoogleSocialSignService googleSocialSignService;
     private final KakaoSocialSignService kakaoSocialSignService;
     private final NaverSocialSignService naverSocialSignService;
+    private final GithubSocialSignService githubSocialSignService;
+
     private final AuthenticationService authenticationService;
 
     private final EmailVerificationService emailVerificationService;
@@ -80,6 +83,16 @@ public class AuthenticationController {
     @GetMapping("auth/naver/url")
     public ResponseEntity<BasicResponse> loginUrlNaver() {
         BasicResponse response = BasicResponse.of(naverSocialSignService.getSocialLogInURL());
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+    @Operation(
+            summary = "깃허브 로그인 url 발급",
+            description = "깃허브 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다."
+    )
+    @LogMonitoring
+    @GetMapping("auth/github/url")
+    public ResponseEntity<BasicResponse> loginUrlGithub() {
+        BasicResponse response = BasicResponse.of(githubSocialSignService.getSocialLogInURL());
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
@@ -192,6 +205,32 @@ public class AuthenticationController {
         addRefreshTokenToCookie_DEV(loginResponse.token().refreshToken(), response);
 
         LOGGER.info("[socialSignInNaver] 네이버 로그인, Player: {}", playerProfile.uid());
+        return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
+    }
+
+    @Operation(
+            summary = "깃허브 로그인 요청",
+            description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 profile과 인증 토큰을 발급받는다."
+    )
+    @LogMonitoring
+    @PostMapping("auth/github")
+    public ResponseEntity<LoginResponse> socialLogInGithub(@RequestBody SocialLogInRequest request, HttpServletResponse response) {
+        OAuthData oAuthData = githubSocialSignService.getOAuthData(request.code());
+
+        PlayerProfile playerProfile;
+        try {
+            playerProfile = githubSocialSignService.socialLogIn(oAuthData);
+        } catch (BusinessException exception) {
+            githubSocialSignService.socialSignUp(oAuthData); // 로그인 되어 있지 않을 때 회원가입 먼저 실행
+            playerProfile = githubSocialSignService.socialLogIn(oAuthData);
+        }
+
+        LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
+
+        addRefreshTokenToCookie(loginResponse.token().refreshToken(), response);
+        addRefreshTokenToCookie_DEV(loginResponse.token().refreshToken(), response);
+
+        LOGGER.info("[socialSignInNaver] 깃허브 로그인, Player: {}", playerProfile.uid());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
 
@@ -444,5 +483,14 @@ public class AuthenticationController {
                 .body(socialLogInNaver(request, response));
     }
      */
+    //서버용인증
+    @GetMapping("auth/callback/github")
+    @Operation()
+    public ResponseEntity<?> githubLogin(@RequestParam String code, HttpServletResponse response) {
+        SocialLogInRequest request = new SocialLogInRequest(code);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(socialLogInGithub(request, response));
+    }
 
 }

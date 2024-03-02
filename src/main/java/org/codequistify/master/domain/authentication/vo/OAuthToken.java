@@ -1,6 +1,6 @@
 package org.codequistify.master.domain.authentication.vo;
 
-public record OAuthTokenVO(
+public record OAuthToken(
         String access_token,
         String refresh_token,
         Long expires_in,
