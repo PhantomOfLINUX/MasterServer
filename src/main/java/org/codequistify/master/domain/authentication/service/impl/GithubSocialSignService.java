@@ -88,6 +88,7 @@ public class GithubSocialSignService implements SocialSignService {
                 .email(oAuthData.resource().email())
                 .oAuthType(OAuthType.GITHUB)
                 .oAuthId(oAuthData.resource().id())
+                .locked(false)
                 .level(0)
                 .build();
         player = playerDetailsService.save(player);

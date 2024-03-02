@@ -48,6 +48,7 @@ public class AuthenticationTokenFilter extends OncePerRequestFilter {
         String token = tokenProvider.resolveToken(request);
 
         String aud = tokenProvider.getAudience(token);
+        LOGGER.info("[] aud  {}", aud);
         if (aud == null || aud.isBlank()) {
             throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
         }
