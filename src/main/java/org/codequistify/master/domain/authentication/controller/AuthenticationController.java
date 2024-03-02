@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import org.codequistify.master.domain.authentication.service.impl.NaverSocialSig
 import org.codequistify.master.domain.authentication.vo.OAuthData;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
+import org.codequistify.master.domain.player.service.PlayerDetailsService;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
@@ -34,7 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -48,8 +49,9 @@ public class AuthenticationController {
     private final GithubSocialSignService githubSocialSignService;
 
     private final AuthenticationService authenticationService;
-
     private final EmailVerificationService emailVerificationService;
+    private final PlayerDetailsService playerDetailsService;
+
     private final TokenProvider tokenProvider;
     private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationController.class);
 
@@ -327,7 +329,10 @@ public class AuthenticationController {
     )
     @LogMonitoring
     @PostMapping("auth/logout")
-    public ResponseEntity<BasicResponse> LogOut(@AuthenticationPrincipal Player player) {
+    public ResponseEntity<BasicResponse> LogOut(HttpServletRequest request) {
+        String token = tokenProvider.resolveToken(request);
+        String aud = tokenProvider.getAudience(token);
+        Player player = playerDetailsService.findOnePlayerByUid(aud);
         if (player == null) {
             throw new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.UNAUTHORIZED);
         }
