@@ -98,61 +98,6 @@ public class AuthenticationController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    private TokenResponse generateTokens(PlayerProfile playerProfile) {
-        String refreshToken = tokenProvider.generateRefreshToken(playerProfile);
-        authenticationService.updateRefreshToken(playerProfile.uid(), refreshToken); // refresh token db에 저장
-
-        String accessToken = tokenProvider.generateAccessToken(playerProfile);
-
-        return new TokenResponse(refreshToken, accessToken);
-    }
-
-    private void addTokensToCookie(TokenResponse tokenResponse, HttpServletResponse response) {
-        addRefreshTokenToCookie(tokenResponse.refreshToken(), response);
-        addAccessTokensToCookies(tokenResponse.accessToken(), response);
-        addRefreshTokenToCookie_DEV(tokenResponse.refreshToken(), response);
-        addAccessTokensToCookies_DEV(tokenResponse.accessToken(), response);
-    }
-    private void addRefreshTokenToCookie(String refreshToken, HttpServletResponse response) {
-        Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setDomain("pol.or.kr");
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 일주일
-
-        response.addCookie(refreshTokenCookie);
-    }
-    private void addAccessTokensToCookies(String accessToken, HttpServletResponse response) {
-        Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN", accessToken);
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(true);
-        accessTokenCookie.setDomain("pol.or.kr");
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(60 * 60); // 한 시간
-
-        response.addCookie(accessTokenCookie);
-    }
-
-    //TODO 임시
-    private void addRefreshTokenToCookie_DEV(String refreshToken, HttpServletResponse response) {
-        Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN_DEV", refreshToken);
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
-
-        response.addCookie(refreshTokenCookie);
-    }
-
-    //TODO 임시
-    private void addAccessTokensToCookies_DEV(String accessToken, HttpServletResponse response) {
-        Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN_DEV", accessToken);
-        accessTokenCookie.setDomain("localhost");
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(60 * 60);
-
-        response.addCookie(accessTokenCookie);
-    }
-
     @Operation(
             summary = "구글 로그인 요청",
             description = "redirect로 받은 code를 인자로 전달한다. 유효한 code라면 사용자 profile과 인증 토큰을 발급받는다."
@@ -171,7 +116,7 @@ public class AuthenticationController {
         }
 
         TokenResponse tokenResponse = generateTokens(playerProfile);
-        addTokensToCookie(tokenResponse, response);
+        this.addTokensToCookie(tokenResponse, response);
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
@@ -197,7 +142,7 @@ public class AuthenticationController {
         }
 
         TokenResponse tokenResponse = generateTokens(playerProfile);
-        addTokensToCookie(tokenResponse, response);
+        this.addTokensToCookie(tokenResponse, response);
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
@@ -223,7 +168,7 @@ public class AuthenticationController {
         }
 
         TokenResponse tokenResponse = generateTokens(playerProfile);
-        addTokensToCookie(tokenResponse, response);
+        this.addTokensToCookie(tokenResponse, response);
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
@@ -249,7 +194,7 @@ public class AuthenticationController {
         }
 
         TokenResponse tokenResponse = generateTokens(playerProfile);
-        addTokensToCookie(tokenResponse, response);
+        this.addTokensToCookie(tokenResponse, response);
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
@@ -274,7 +219,7 @@ public class AuthenticationController {
         emailVerificationService.markEmailVerificationAsUsed(emailVerification);
 
         TokenResponse tokenResponse = generateTokens(playerProfile);
-        addTokensToCookie(tokenResponse, response);
+        this.addTokensToCookie(tokenResponse, response);
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
@@ -292,7 +237,7 @@ public class AuthenticationController {
         PlayerProfile playerProfile = authenticationService.logIn(request);
 
         TokenResponse tokenResponse = generateTokens(playerProfile);
-        addTokensToCookie(tokenResponse, response);
+        this.addTokensToCookie(tokenResponse, response);
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
@@ -350,7 +295,7 @@ public class AuthenticationController {
     )
     @LogMonitoring
     @PostMapping("auth/logout")
-    public ResponseEntity<BasicResponse> LogOut(HttpServletRequest request) {
+    public ResponseEntity<BasicResponse> LogOut(HttpServletRequest request, HttpServletResponse servletResponse) {
         String token = tokenProvider.resolveToken(request);
         String aud = tokenProvider.getAudience(token);
         Player player = playerDetailsService.findOnePlayerByUid(aud);
@@ -359,6 +304,9 @@ public class AuthenticationController {
         }
         authenticationService.logOut(player);
         LOGGER.info("[LogOut] Player: {}, 로그아웃 완료", player.getUid());
+
+        this.removeTokenFromCookie(servletResponse);
+        this.removeTokenFromCookie_DEV(servletResponse);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(BasicResponse.of("SUCCESS"));
@@ -465,6 +413,100 @@ public class AuthenticationController {
         TokenResponse response = new TokenResponse("", accessToken);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+
+    private TokenResponse generateTokens(PlayerProfile playerProfile) {
+        String refreshToken = tokenProvider.generateRefreshToken(playerProfile);
+        authenticationService.updateRefreshToken(playerProfile.uid(), refreshToken); // refresh token db에 저장
+
+        String accessToken = tokenProvider.generateAccessToken(playerProfile);
+
+        return new TokenResponse(refreshToken, accessToken);
+    }
+
+    private void addTokensToCookie(TokenResponse tokenResponse, HttpServletResponse response) {
+        addRefreshTokenToCookie(tokenResponse.refreshToken(), response);
+        addAccessTokensToCookies(tokenResponse.accessToken(), response);
+        addRefreshTokenToCookie_DEV(tokenResponse.refreshToken(), response);
+        addAccessTokensToCookies_DEV(tokenResponse.accessToken(), response);
+    }
+    private void addRefreshTokenToCookie(String refreshToken, HttpServletResponse response) {
+        Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN", refreshToken);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setDomain("pol.or.kr");
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 일주일
+
+        response.addCookie(refreshTokenCookie);
+    }
+    private void addAccessTokensToCookies(String accessToken, HttpServletResponse response) {
+        Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN", accessToken);
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setDomain("pol.or.kr");
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(60 * 60); // 한 시간
+
+        response.addCookie(accessTokenCookie);
+    }
+
+    private void removeTokenFromCookie(HttpServletResponse response) {
+        Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN", null);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setDomain("pol.or.kr");
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(0); // 지속시간을 0으로 하여 덮어쓰기
+
+        Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN", null);
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setDomain("pol.or.kr");
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(0);
+
+        response.addCookie(refreshTokenCookie);
+        response.addCookie(accessTokenCookie);
+    }
+
+    private void removeTokenFromCookie_DEV(HttpServletResponse response) {
+        Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN_DEV", null);
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(true);
+        refreshTokenCookie.setDomain("localhost");
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(0);
+
+        Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN_DEV", null);
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setDomain("localhost");
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(0);
+
+        response.addCookie(refreshTokenCookie);
+        response.addCookie(accessTokenCookie);
+    }
+
+    //TODO 임시
+    private void addRefreshTokenToCookie_DEV(String refreshToken, HttpServletResponse response) {
+        Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN_DEV", refreshToken);
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
+
+        response.addCookie(refreshTokenCookie);
+    }
+
+    //TODO 임시
+    private void addAccessTokensToCookies_DEV(String accessToken, HttpServletResponse response) {
+        Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN_DEV", accessToken);
+        accessTokenCookie.setDomain("localhost");
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(60 * 60);
+
+        response.addCookie(accessTokenCookie);
     }
 
 

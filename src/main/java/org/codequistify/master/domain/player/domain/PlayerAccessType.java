@@ -1,5 +1,8 @@
 package org.codequistify.master.domain.player.domain;
 
+import lombok.Getter;
+
+@Getter
 public enum PlayerAccessType {
     BASIC_PROBLEMS_ACCESS("ROLE_BASIC_PROBLEMS_ACCESS"),
     ADVANCED_PROBLEMS_ACCESS("ROLE_ADVANCED_PROBLEMS_ACCESS"),
@@ -9,9 +12,5 @@ public enum PlayerAccessType {
 
     PlayerAccessType(String permission) {
         this.permission = permission;
-    }
-
-    public String getPermission() {
-        return this.permission;
     }
 }

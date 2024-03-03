@@ -1,5 +1,8 @@
 package org.codequistify.master.domain.player.domain;
 
+import lombok.Getter;
+
+@Getter
 public enum OAuthType {
     POL(0, "자체"),
     GOOGLE(1, "구글"),

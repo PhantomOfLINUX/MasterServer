@@ -19,14 +19,7 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
 });
 
 document.getElementById('logoutButton').addEventListener('click', function () {
-    const cookies = document.cookie.split('; ');
-    console.log(cookies);
-
-    const temp = cookies.find(row => row.startsWith('POL_ACCESS_TOKEN_DEV='));
-    console.log(temp);
-
-    const accessToken = temp.split('=')[1];
-    console.log(accessToken);
+    const accessToken = document.cookie.split('; ').find(row => row.startsWith('POL_ACCESS_TOKEN=')).split('=')[1];
 
     fetch('api/auth/logout', {
         method: 'POST',

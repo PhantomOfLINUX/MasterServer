@@ -2,27 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>home</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-<h1>Email Verification</h1>
-<form id="emailForm">
-    <label for="email">Enter your email:</label>
-    <input type="email" id="email" required />
-    <button type="submit" id="getEmail">Get Email Data</button>
-    <button type="button" id="sendEmail">
-        Send Verification Email
-    </button>
-    <button type="button" id="getOAuthURL">Get OAuth URL</button>
-</form>
-<h2>Login Section</h2>
-<form id="loginForm">
-    <label for="loginEmail">Email:</label>
-    <input type="email" id="loginEmail" required />
-    <label for="loginPassword">Password:</label>
-    <input type="password" id="loginPassword" required />
-    <button type="submit">Login</button>
-</form>
-<script src="/index.js"></script>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+<div class="bg-white p-6 rounded shadow-md w-1/2 max-w-lg">
+    <form id="loginForm" class="space-y-4">
+        <div>
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+            <input type="email" id="email" name="email" required class="mt-1 p-2 w-full border border-gray-300 rounded-md">
+        </div>
+        <div>
+            <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+            <input type="password" id="password" name="password" required class="mt-1 p-2 w-full border border-gray-300 rounded-md">
+        </div>
+        <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-700">Login</button>
+    </form>
+    <button id="logoutButton" class="mt-4 w-full bg-red-500 text-white p-2 rounded-md hover:bg-red-700">Logout</button>
+</div>
+
+<script src="index.js"></script>
 </body>
 </html>
