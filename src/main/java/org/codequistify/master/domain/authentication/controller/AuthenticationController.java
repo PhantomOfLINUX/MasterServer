@@ -98,17 +98,21 @@ public class AuthenticationController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-
-    private LoginResponse getLoginResponseWithToken(PlayerProfile playerProfile) {
+    private TokenResponse generateTokens(PlayerProfile playerProfile) {
         String refreshToken = tokenProvider.generateRefreshToken(playerProfile);
         authenticationService.updateRefreshToken(playerProfile.uid(), refreshToken); // refresh token db에 저장
 
         String accessToken = tokenProvider.generateAccessToken(playerProfile);
 
-        TokenResponse tokenResponse = new TokenResponse(refreshToken, accessToken);
-        return new LoginResponse(playerProfile, tokenResponse);
+        return new TokenResponse(refreshToken, accessToken);
     }
 
+    private void addTokensToCookie(TokenResponse tokenResponse, HttpServletResponse response) {
+        addRefreshTokenToCookie(tokenResponse.refreshToken(), response);
+        addAccessTokensToCookies(tokenResponse.accessToken(), response);
+        addRefreshTokenToCookie_DEV(tokenResponse.refreshToken(), response);
+        addAccessTokensToCookies_DEV(tokenResponse.accessToken(), response);
+    }
     private void addRefreshTokenToCookie(String refreshToken, HttpServletResponse response) {
         Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
@@ -119,18 +123,34 @@ public class AuthenticationController {
 
         response.addCookie(refreshTokenCookie);
     }
+    private void addAccessTokensToCookies(String accessToken, HttpServletResponse response) {
+        Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN", accessToken);
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true);
+        accessTokenCookie.setDomain("pol.or.kr");
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(60 * 60); // 한 시간
+
+        response.addCookie(accessTokenCookie);
+    }
 
     //TODO 임시
     private void addRefreshTokenToCookie_DEV(String refreshToken, HttpServletResponse response) {
         Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN_DEV", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(false);
         refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 일주일
+        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
 
         response.addCookie(refreshTokenCookie);
+    }
 
-        response.addCookie(refreshTokenCookie);
+    //TODO 임시
+    private void addAccessTokensToCookies_DEV(String accessToken, HttpServletResponse response) {
+        Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN_DEV", accessToken);
+        accessTokenCookie.setDomain("localhost");
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(60 * 60);
+
+        response.addCookie(accessTokenCookie);
     }
 
     @Operation(
@@ -150,9 +170,10 @@ public class AuthenticationController {
             playerProfile = googleSocialSignService.socialLogIn(oAuthData);
         }
 
-        LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
-        addRefreshTokenToCookie(loginResponse.token().refreshToken(), response);
-        addRefreshTokenToCookie_DEV(loginResponse.token().refreshToken(), response);
+        TokenResponse tokenResponse = generateTokens(playerProfile);
+        addTokensToCookie(tokenResponse, response);
+
+        LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
         LOGGER.info("[socialSignInGoogle] 구글 로그인, Player: {}", playerProfile.uid());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
@@ -175,10 +196,10 @@ public class AuthenticationController {
             playerProfile = kakaoSocialSignService.socialLogIn(oAuthData);
         }
 
-        LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
+        TokenResponse tokenResponse = generateTokens(playerProfile);
+        addTokensToCookie(tokenResponse, response);
 
-        addRefreshTokenToCookie(loginResponse.token().refreshToken(), response);
-        addRefreshTokenToCookie_DEV(loginResponse.token().refreshToken(), response);
+        LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
         LOGGER.info("[socialSignInKakao] 카카오 로그인, Player: {}", playerProfile.uid());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
@@ -201,10 +222,10 @@ public class AuthenticationController {
             playerProfile = naverSocialSignService.socialLogIn(oAuthData);
         }
 
-        LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
+        TokenResponse tokenResponse = generateTokens(playerProfile);
+        addTokensToCookie(tokenResponse, response);
 
-        addRefreshTokenToCookie(loginResponse.token().refreshToken(), response);
-        addRefreshTokenToCookie_DEV(loginResponse.token().refreshToken(), response);
+        LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
         LOGGER.info("[socialSignInNaver] 네이버 로그인, Player: {}", playerProfile.uid());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
@@ -227,10 +248,10 @@ public class AuthenticationController {
             playerProfile = githubSocialSignService.socialLogIn(oAuthData);
         }
 
-        LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
+        TokenResponse tokenResponse = generateTokens(playerProfile);
+        addTokensToCookie(tokenResponse, response);
 
-        addRefreshTokenToCookie(loginResponse.token().refreshToken(), response);
-        addRefreshTokenToCookie_DEV(loginResponse.token().refreshToken(), response);
+        LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
         LOGGER.info("[socialSignInNaver] 깃허브 로그인, Player: {}", playerProfile.uid());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
@@ -252,10 +273,10 @@ public class AuthenticationController {
         // 인증메일 사용처리
         emailVerificationService.markEmailVerificationAsUsed(emailVerification);
 
-        LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
+        TokenResponse tokenResponse = generateTokens(playerProfile);
+        addTokensToCookie(tokenResponse, response);
 
-        addRefreshTokenToCookie(loginResponse.token().refreshToken(), response);
-        addRefreshTokenToCookie_DEV(loginResponse.token().refreshToken(), response);
+        LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
         LOGGER.info("[SignUpPOL] pol 회원가입, Player: {}", playerProfile.uid());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
@@ -270,10 +291,10 @@ public class AuthenticationController {
     public ResponseEntity<LoginResponse> logInPOL(@Valid @RequestBody LogInRequest request, HttpServletResponse response) {
         PlayerProfile playerProfile = authenticationService.logIn(request);
 
-        LoginResponse loginResponse = getLoginResponseWithToken(playerProfile);
+        TokenResponse tokenResponse = generateTokens(playerProfile);
+        addTokensToCookie(tokenResponse, response);
 
-        addRefreshTokenToCookie(loginResponse.token().refreshToken(), response);
-        addRefreshTokenToCookie_DEV(loginResponse.token().refreshToken(), response);
+        LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
         LOGGER.info("[LogInPOL] pol 로그인, Player: {}", playerProfile.uid());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
