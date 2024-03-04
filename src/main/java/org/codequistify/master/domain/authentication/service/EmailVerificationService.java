@@ -43,7 +43,6 @@ public class EmailVerificationService {
     private final Logger LOGGER = LoggerFactory.getLogger(EmailVerificationService.class);
 
     @Async
-    @LogMonitoring
     @Transactional
     public void sendVerifyMail(String email, EmailVerificationType emailVerificationType) throws MessagingException {
         String authCode;
