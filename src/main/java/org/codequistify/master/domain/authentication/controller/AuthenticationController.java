@@ -259,8 +259,9 @@ public class AuthenticationController {
     )
     @LogMonitoring
     @PostMapping("auth/refresh")
-    public ResponseEntity<TokenResponse> regenerateAccessToken(@RequestBody TokenRequest request) {
+    public ResponseEntity<TokenResponse> regenerateAccessToken(@RequestBody TokenRequest request, HttpServletResponse response) {
         TokenResponse tokenResponse = authenticationService.regenerateAccessToken(request);
+        this.addTokensToCookie(tokenResponse, response);
 
         LOGGER.info("[regenerateAccessToken] AccessToken 재발급");
         return ResponseEntity.status(HttpStatus.OK).body(tokenResponse);
