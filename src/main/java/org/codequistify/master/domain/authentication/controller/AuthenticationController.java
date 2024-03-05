@@ -259,7 +259,7 @@ public class AuthenticationController {
     )
     @LogMonitoring
     @PostMapping("auth/refresh")
-    public ResponseEntity<TokenResponse> regenerateAccessToken(TokenRequest request) {
+    public ResponseEntity<TokenResponse> regenerateAccessToken(@RequestBody TokenRequest request) {
         TokenResponse tokenResponse = authenticationService.regenerateAccessToken(request);
 
         LOGGER.info("[regenerateAccessToken] AccessToken 재발급");
