@@ -54,7 +54,8 @@ public class PlayerDetailsController {
             summary = "계정 삭제",
             description = "계정을 삭제합니다. 즉시 해당 계정에 대한 데이터가 소실됩니다. 복구는 불가능합니다.")
     @DeleteMapping("{uid}")
-    public ResponseEntity<BasicResponse> deletePlayer(@AuthenticationPrincipal Player player, @PathVariable String uid) {
+    public ResponseEntity<BasicResponse> deletePlayer(@AuthenticationPrincipal Player player,
+                                                      @PathVariable String uid) {
         if (!uid.equals(player.getUid())) {
             throw new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
         }
@@ -65,4 +66,8 @@ public class PlayerDetailsController {
         BasicResponse response = BasicResponse.of("SUCCESS");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    //전화번호 인증
+
+
 }
