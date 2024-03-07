@@ -116,7 +116,7 @@ public class AuthenticationController {
         }
 
         TokenResponse tokenResponse = generateTokens(playerProfile);
-        this.addTokensToCookie(tokenResponse, response);
+        this.addTokenToCookie(tokenResponse, response);
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
@@ -142,7 +142,7 @@ public class AuthenticationController {
         }
 
         TokenResponse tokenResponse = generateTokens(playerProfile);
-        this.addTokensToCookie(tokenResponse, response);
+        this.addTokenToCookie(tokenResponse, response);
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
@@ -168,7 +168,7 @@ public class AuthenticationController {
         }
 
         TokenResponse tokenResponse = generateTokens(playerProfile);
-        this.addTokensToCookie(tokenResponse, response);
+        this.addTokenToCookie(tokenResponse, response);
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
@@ -194,7 +194,7 @@ public class AuthenticationController {
         }
 
         TokenResponse tokenResponse = generateTokens(playerProfile);
-        this.addTokensToCookie(tokenResponse, response);
+        this.addTokenToCookie(tokenResponse, response);
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
@@ -219,7 +219,7 @@ public class AuthenticationController {
         emailVerificationService.markEmailVerificationAsUsed(emailVerification);
 
         TokenResponse tokenResponse = generateTokens(playerProfile);
-        this.addTokensToCookie(tokenResponse, response);
+        this.addTokenToCookie(tokenResponse, response);
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
@@ -237,7 +237,7 @@ public class AuthenticationController {
         PlayerProfile playerProfile = authenticationService.logIn(request);
 
         TokenResponse tokenResponse = generateTokens(playerProfile);
-        this.addTokensToCookie(tokenResponse, response);
+        this.addTokenToCookie(tokenResponse, response);
 
         LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
 
@@ -249,8 +249,7 @@ public class AuthenticationController {
             summary = "엑세스 토큰 재발급",
             description = """
                     AccessToken을 재발급 한다.
-
-                     RefreshToken 값을 body로 받는다. 이때 token은 'Bearer' 없이 token 값만을 적어야 한다.""",
+                    RefreshToken 값을 body로 받는다. 이때 token은 'Bearer' 없이 token 값만을 적어야 한다.""",
             responses = {
                     @ApiResponse(responseCode = "200", description = "정상적으로 재발급"),
                     @ApiResponse(responseCode = "400", description = "잘못된 요청, id 불일치 또는 빈 요청 등"),
@@ -261,7 +260,7 @@ public class AuthenticationController {
     @PostMapping("auth/refresh")
     public ResponseEntity<TokenResponse> regenerateAccessToken(@RequestBody TokenRequest request, HttpServletResponse response) {
         TokenResponse tokenResponse = authenticationService.regenerateAccessToken(request);
-        this.addTokensToCookie(tokenResponse, response);
+        this.addTokenToCookie(tokenResponse, response);
 
         LOGGER.info("[regenerateAccessToken] AccessToken 재발급");
         return ResponseEntity.status(HttpStatus.OK).body(tokenResponse);
@@ -340,11 +339,8 @@ public class AuthenticationController {
             summary = "인증메일 발송 요청",
             description = """
                     회원가입 인증메일을 발송하는 요청이다. 중복된 이메일인지 함께 검증한다.
-
                     type 목록은 다음과 같다.
-
                     - 회원가입 : *'REGISTRATION'*
-
                     - 비밀번호 초기화 : *'PASSWORD_RESET'*"""
     )
     @PostMapping("auth/email/verification")
@@ -426,9 +422,9 @@ public class AuthenticationController {
         return new TokenResponse(refreshToken, accessToken);
     }
 
-    private void addTokensToCookie(TokenResponse tokenResponse, HttpServletResponse response) {
+    private void addTokenToCookie(TokenResponse tokenResponse, HttpServletResponse response) {
         addRefreshTokenToCookie(tokenResponse.refreshToken(), response);
-        addAccessTokensToCookies(tokenResponse.accessToken(), response);
+        addAccessTokenToCookie(tokenResponse.accessToken(), response);
         addRefreshTokenToCookie_DEV(tokenResponse.refreshToken(), response);
         addAccessTokensToCookies_DEV(tokenResponse.accessToken(), response);
     }
@@ -442,7 +438,7 @@ public class AuthenticationController {
 
         response.addCookie(refreshTokenCookie);
     }
-    private void addAccessTokensToCookies(String accessToken, HttpServletResponse response) {
+    private void addAccessTokenToCookie(String accessToken, HttpServletResponse response) {
         Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN", accessToken);
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(true);
@@ -494,6 +490,7 @@ public class AuthenticationController {
     //TODO 임시
     private void addRefreshTokenToCookie_DEV(String refreshToken, HttpServletResponse response) {
         Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN_DEV", refreshToken);
+        refreshTokenCookie.setDomain("localhost");
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
 
