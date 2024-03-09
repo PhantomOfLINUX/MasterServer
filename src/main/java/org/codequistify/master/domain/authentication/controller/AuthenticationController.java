@@ -426,13 +426,13 @@ public class AuthenticationController {
         addRefreshTokenToCookie(tokenResponse.refreshToken(), response);
         addAccessTokenToCookie(tokenResponse.accessToken(), response);
         addRefreshTokenToCookie_DEV(tokenResponse.refreshToken(), response);
-        addAccessTokensToCookies_DEV(tokenResponse.accessToken(), response);
+        addAccessTokenToCookies_DEV(tokenResponse.accessToken(), response);
     }
     private void addRefreshTokenToCookie(String refreshToken, HttpServletResponse response) {
         Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN", refreshToken);
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(true);
-        //refreshTokenCookie.setDomain("www.pol.or.kr");
+        refreshTokenCookie.setDomain("pol.or.kr");
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60); // 일주일
 
@@ -442,7 +442,7 @@ public class AuthenticationController {
         Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN", accessToken);
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(true);
-        //accessTokenCookie.setDomain("www.pol.or.kr");
+        accessTokenCookie.setDomain("pol.or.kr");
         accessTokenCookie.setPath("/");
         accessTokenCookie.setMaxAge(60 * 60); // 한 시간
 
@@ -453,14 +453,14 @@ public class AuthenticationController {
         Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN", null);
         refreshTokenCookie.setHttpOnly(true);
         refreshTokenCookie.setSecure(true);
-        //refreshTokenCookie.setDomain("www.pol.or.kr");
+        refreshTokenCookie.setDomain("pol.or.kr");
         refreshTokenCookie.setPath("/");
         refreshTokenCookie.setMaxAge(0); // 지속시간을 0으로 하여 덮어쓰기
 
         Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN", null);
         accessTokenCookie.setHttpOnly(true);
         accessTokenCookie.setSecure(true);
-        //accessTokenCookie.setDomain("www.pol.or.kr");
+        accessTokenCookie.setDomain("pol.or.kr");
         accessTokenCookie.setPath("/");
         accessTokenCookie.setMaxAge(0);
 
@@ -498,7 +498,7 @@ public class AuthenticationController {
     }
 
     //TODO 임시
-    private void addAccessTokensToCookies_DEV(String accessToken, HttpServletResponse response) {
+    private void addAccessTokenToCookies_DEV(String accessToken, HttpServletResponse response) {
         Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN_DEV", accessToken);
         accessTokenCookie.setDomain("localhost");
         accessTokenCookie.setPath("/");
