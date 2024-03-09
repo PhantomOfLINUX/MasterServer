@@ -426,7 +426,7 @@ public class AuthenticationController {
         addRefreshTokenToCookie(tokenResponse.refreshToken(), response);
         addAccessTokenToCookie(tokenResponse.accessToken(), response);
         addRefreshTokenToCookie_DEV(tokenResponse.refreshToken(), response);
-        addAccessTokensToCookies_DEV(tokenResponse.accessToken(), response);
+        addAccessTokenToCookies_DEV(tokenResponse.accessToken(), response);
     }
     private void addRefreshTokenToCookie(String refreshToken, HttpServletResponse response) {
         Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN", refreshToken);
@@ -498,7 +498,7 @@ public class AuthenticationController {
     }
 
     //TODO 임시
-    private void addAccessTokensToCookies_DEV(String accessToken, HttpServletResponse response) {
+    private void addAccessTokenToCookies_DEV(String accessToken, HttpServletResponse response) {
         Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN_DEV", accessToken);
         accessTokenCookie.setDomain("localhost");
         accessTokenCookie.setPath("/");
