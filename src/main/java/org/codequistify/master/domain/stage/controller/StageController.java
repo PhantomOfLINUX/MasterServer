@@ -97,6 +97,7 @@ public class StageController {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
+    // 문제 풀이 완료 요청
 
 
     // 스테이지 수정

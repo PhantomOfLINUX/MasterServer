@@ -5,6 +5,7 @@ import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.UpdatePasswordRequest;
 import org.codequistify.master.domain.player.repository.PlayerRepository;
+import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.slf4j.Logger;
@@ -27,12 +28,14 @@ public class PlayerDetailsService implements UserDetailsService {
 
     @Override
     @Transactional
+    @LogMonitoring
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         LOGGER.info("[loadUserByUsername] loadUserByUsername: {}", username);
         return playerRepository.getPlayerByUid(username);
     }
 
     @Transactional
+    @LogMonitoring
     public void resetPassword(Player player, UpdatePasswordRequest request) {
         player.encodePassword(request.password());
         playerRepository.save(player);
@@ -41,6 +44,7 @@ public class PlayerDetailsService implements UserDetailsService {
     }
 
     @Transactional
+    @LogMonitoring
     public void updatePassword(Player player, UpdatePasswordRequest request) {
         // 비밀번호 데이터는 담기지 않으므로 다시 조회해야함
         player = playerRepository.getReferenceById(player.getId()); // jwt 필터에서 null 아닌 player 객체만 들어옴
@@ -94,6 +98,7 @@ public class PlayerDetailsService implements UserDetailsService {
     }
 
     @Transactional
+    @LogMonitoring
     public void deletePlayer(Player player) {
         player.dataClear();
         playerRepository.save(player);

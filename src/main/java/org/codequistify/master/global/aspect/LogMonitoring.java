@@ -7,6 +7,8 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
+@LogMethodInvocation
+@LogExecutionTime
 public @interface LogMonitoring {
 
 }
