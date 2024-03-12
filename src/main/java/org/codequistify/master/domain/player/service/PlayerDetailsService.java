@@ -5,6 +5,7 @@ import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.UpdatePasswordRequest;
 import org.codequistify.master.domain.player.repository.PlayerRepository;
+import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
@@ -28,7 +29,7 @@ public class PlayerDetailsService implements UserDetailsService {
 
     @Override
     @Transactional
-    @LogMonitoring
+    @LogExecutionTime
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         LOGGER.info("[loadUserByUsername] loadUserByUsername: {}", username);
         return playerRepository.getPlayerByUid(username);

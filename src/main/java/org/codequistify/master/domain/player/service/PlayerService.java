@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.converter.PlayerConverter;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.repository.PlayerRepository;
-import org.codequistify.master.global.aspect.LogMonitoring;
+import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,7 +16,7 @@ public class PlayerService {
     private final PlayerRepository playerRepository;
     private final PlayerConverter playerConverter;
 
-    @LogMonitoring
+    @LogExecutionTime
     public List<PlayerProfile> findAllPlayerProfiles() {
         return playerRepository.findAll().stream()
                 .map(playerConverter::convert)
