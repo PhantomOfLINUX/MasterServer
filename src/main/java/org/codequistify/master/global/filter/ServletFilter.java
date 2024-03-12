@@ -12,8 +12,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
-public class LogFilter extends OncePerRequestFilter {
-    private final Logger LOGGER = LoggerFactory.getLogger(LogFilter.class);
+public class ServletFilter extends OncePerRequestFilter {
+    private final Logger LOGGER = LoggerFactory.getLogger(ServletFilter.class);
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
