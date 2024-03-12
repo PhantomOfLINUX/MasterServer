@@ -4,9 +4,11 @@ import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.lab.dto.PtyUrlResponse;
 import org.codequistify.master.domain.lab.service.LabService;
+import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,7 +27,8 @@ public class LabController {
     )
     @LogMonitoring
     @GetMapping("lab/pty/stage/{stage_id}")
-    public ResponseEntity<PtyUrlResponse> getPtyConnectionURL(@PathVariable(name = "stage_id") Long stageId) {
+    public ResponseEntity<PtyUrlResponse> getPtyConnectionURL(@AuthenticationPrincipal Player player,
+                                                              @PathVariable(name = "stage_id") Long stageId) {
         //Integer nodePort = labService.createStageOnKubernetes(stageId);
         PtyUrlResponse response = PtyUrlResponse.of(WS_HOST+":5050");
 
