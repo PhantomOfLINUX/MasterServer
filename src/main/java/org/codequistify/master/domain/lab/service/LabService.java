@@ -7,14 +7,13 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.lab.factory.PodFactory;
 import org.codequistify.master.domain.lab.factory.ServiceFactory;
 import org.codequistify.master.domain.lab.vo.Label;
+import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.domain.StageImageType;
 import org.codequistify.master.domain.stage.service.impl.StageServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
 
 @org.springframework.stereotype.Service
 @RequiredArgsConstructor
@@ -26,22 +25,21 @@ public class LabService {
     private final KubernetesClient kubernetesClient;
 
     @Transactional
-    public Integer createStageOnKubernetes(Long stageId){
+    public Integer createStageOnKubernetes(Player player, Long stageId){
         Stage stage = stageService.findStageById(stageId);
 
-        String uuid = UUID.randomUUID().toString();
-        Label selector = new Label("uuid", uuid);
+        Label selector = new Label("player", player.getUid());
 
-        Service service = createServiceOnKubernetes(stage, uuid, selector);
-        Pod pod = createPodOnKubernetes(stage, uuid, selector);
+        Service service = createServiceOnKubernetes(stage, selector);
+        Pod pod = createPodOnKubernetes(stage, selector);
 
         Integer nodePort = service.getSpec().getPorts().get(0).getNodePort();
 
         return nodePort;
     }
 
-    private Service createServiceOnKubernetes(Stage stage, String uuid, Label selector) {
-        String serviceName = generateServiceName(stage.getStageImageType(), uuid);
+    private Service createServiceOnKubernetes(Stage stage, Label selector) {
+        String serviceName = generateServiceName(stage.getStageImage(), selector.value());
         Service service = serviceFactory.create(serviceName, 8080, 8080, selector);
 
         service = kubernetesClient.services()
@@ -52,9 +50,9 @@ public class LabService {
         return service;
     }
 
-    private Pod createPodOnKubernetes(Stage stage, String uuid, Label selector) {
-        String podName = generatePodName(stage.getStageImageType(), uuid);
-        Pod pod = podFactory.create(podName, stage.getStageImageType(), 8080, selector);
+    private Pod createPodOnKubernetes(Stage stage, Label selector) {
+        String podName = generatePodName(stage.getStageImage(), selector.value());
+        Pod pod = podFactory.create(podName, stage.getStageImage(), 8080, selector);
 
         pod = kubernetesClient.pods()
                 .inNamespace("pol-lab")
@@ -64,11 +62,11 @@ public class LabService {
         return pod;
     }
 
-    private String generateServiceName(StageImageType imageType, String uuid) {
-        return imageType.name().toLowerCase() + "-svc-" + uuid;
+    private String generateServiceName(StageImageType stageImage, String uid) {
+        return stageImage.name().toLowerCase() + "-svc-" + uid;
     }
 
-    private String generatePodName(StageImageType imageType, String uuid) {
-        return imageType.name().toLowerCase() + "-pod-" + uuid;
+    private String generatePodName(StageImageType stageImage, String uid) {
+        return stageImage.name().toLowerCase() + "-pod-" + uid;
     }
 }
