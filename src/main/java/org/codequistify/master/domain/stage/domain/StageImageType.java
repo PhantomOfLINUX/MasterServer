@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum StageImageType {
-    STAGE001("jeongrae/pol_test", "v1"),
+    STAGE001("polhub/stage01-ls", "latest"),
     STAGE002("jeongrae/pol_test", "v1");
 
     private final String image;

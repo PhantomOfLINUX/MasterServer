@@ -1,8 +1,8 @@
 package org.codequistify.master.domain.lab.factory;
 
 import io.fabric8.kubernetes.api.model.Service;
-import org.codequistify.master.domain.lab.vo.Label;
+import org.codequistify.master.domain.stage.domain.Stage;
 
 public interface ServiceFactory {
-    Service create(String name, int port, int targetPort, Label selector);
+    Service create(Stage stage, int port, String uid);
 }

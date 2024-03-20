@@ -6,6 +6,7 @@ import org.codequistify.master.domain.stage.domain.StageGroupType;
 import java.util.List;
 
 public record StageRegistryRequest(
+        Long code,
         String title,
         String description,
         StageGroupType groupType,
