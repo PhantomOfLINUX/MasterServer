@@ -23,6 +23,9 @@ public class Stage extends BaseTimeEntity {
     @Column(name = "stage_id")
     private Long id;
 
+    @Column(name = "code", unique = true)
+    private Long code;
+
     @Column(name = "title")
     private String title;
 
@@ -59,7 +62,7 @@ public class Stage extends BaseTimeEntity {
         this.questions = questions.stream()
                 .peek(question -> {
                     String id = "Q" +
-                            String.format("%03d", this.id) +
+                            String.format("%03d", this.code) +
                             "-" +
                             String.format("%03d", question.getIndex()) +
                             "-" +
