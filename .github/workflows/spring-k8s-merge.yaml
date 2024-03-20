@@ -1,0 +1,73 @@
+name: Spring App CI/CD For Merge
+
+on:
+  push:
+    branches:
+      - test
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create application.properties
+        run: |
+          echo "logging.file.name=/app/logs/pol-back.log" >> application.properties
+          echo "${{ secrets.APPLICATION_DB }}" > src/main/resources/application-db.properties
+          echo "${{ secrets.APPLICATION_MAIL }}" > src/main/resources/application-mail.properties
+          echo "${{ secrets.APPLICATION_SECURITY }}" > src/main/resources/application-security.properties
+          echo "${{ secrets.APPLICATION_HOST }}" > src/main/resources/application-host.properties
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Build with Gradle
+        run: ./gradlew build
+      - name: Build Docker image
+        run: docker build . --file Dockerfile --tag ${{ secrets.DOCKERHUB_ORGNIZATIONS }}/pol-back:${{ github.sha }}
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Push Docker image
+        run: docker push ${{ secrets.DOCKERHUB_ORGNIZATIONS }}/pol-back:${{ github.sha }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GKE_SA_KEY }}
+
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Install gke-gcloud-auth-plugin
+        run: gcloud components install gke-gcloud-auth-plugin
+
+      - name: Configure Docker for GKE
+        run: gcloud auth configure-docker --quiet
+
+      - name: Get GKE credentials
+        run: |
+          gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER }} --zone ${{ secrets.GKE_ZONE }} --project ${{ secrets.GKE_PROJECT }}
+
+      - name: Deploy to GKE
+        run: |
+          kubectl set image deployment/pol-back pol-back=polhub/pol-back:${{ github.sha }}
