@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class LabController {
     private final LabService labService;
 
-    private final String WS_HOST = "ws://ec2-13-125-76-129.ap-northeast-2.compute.amazonaws.com";
+    private final String DEPLOY_HOST = "ws://ec2-13-125-76-129.ap-northeast-2.compute.amazonaws.com";
 
     @Operation(
             summary = "가상 터미널 연결 주소 발급",
@@ -29,8 +29,8 @@ public class LabController {
     @GetMapping("lab/pty/stage/{stage_id}")
     public ResponseEntity<PtyUrlResponse> getPtyConnectionURL(@AuthenticationPrincipal Player player,
                                                               @PathVariable(name = "stage_id") Long stageId) {
-        //Integer nodePort = labService.createStageOnKubernetes(stageId);
-        PtyUrlResponse response = PtyUrlResponse.of(WS_HOST+":5050");
+        //Integer nodePort = labService.createStageOnKubernetes(player, stageId);
+        PtyUrlResponse response = PtyUrlResponse.of(DEPLOY_HOST+":5050");
 
         return ResponseEntity
                 .status(HttpStatus.OK)

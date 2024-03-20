@@ -13,7 +13,7 @@ public class KubernetesPodFactory implements PodFactory {
     private final Logger LOGGER = LoggerFactory.getLogger(KubernetesPodFactory.class);
 
     @Override
-    public Pod create(String name, StageImageType imageType, int port, Label selector) {
+    public Pod create(String name, StageImageType stageImage, int port, Label selector) {
         return new PodBuilder()
                 .withNewMetadata()
                     .withGenerateName(name)
@@ -21,8 +21,8 @@ public class KubernetesPodFactory implements PodFactory {
                 .endMetadata()
                 .withNewSpec()
                     .addNewContainer()
-                        .withName(imageType.name())
-                        .withImage(imageType.getImageName())
+                        .withName(stageImage.name())
+                        .withImage(stageImage.getImageName())
                         .addNewPort()
                             .withContainerPort(port)
                         .endPort()
