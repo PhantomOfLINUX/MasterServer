@@ -3,7 +3,7 @@ name: Spring App CI/CD For Merge
 on:
   push:
     branches:
-      - master
+      master
   workflow_dispatch:
 
 jobs:
