@@ -9,6 +9,8 @@ import org.codequistify.master.domain.lab.factory.ServiceFactory;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.service.impl.StageServiceImpl;
+import org.codequistify.master.global.aspect.LogExecutionTime;
+import org.codequistify.master.global.aspect.LogMethodInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +25,7 @@ public class LabService {
     private final KubernetesClient kubernetesClient;
 
     @Transactional
+    @LogMethodInvocation
     public Integer createStageOnKubernetes(Player player, Long stageId){
         Stage stage = stageService.findStageById(stageId);
 
@@ -35,6 +38,7 @@ public class LabService {
         return nodePort;
     }
 
+    @LogExecutionTime
     private Service createServiceOnKubernetes(Stage stage, String uid) {
         Service service = serviceFactory.create(stage, 8080, uid);
 
@@ -47,6 +51,7 @@ public class LabService {
         return service;
     }
 
+    @LogExecutionTime
     private Pod createPodOnKubernetes(Stage stage, String uid) {
         Pod pod = podFactory.create(stage, 8080, uid);
 
