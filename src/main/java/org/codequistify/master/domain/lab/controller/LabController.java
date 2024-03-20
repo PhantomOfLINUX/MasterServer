@@ -19,6 +19,7 @@ public class LabController {
     private final LabService labService;
 
     private final String DEPLOY_HOST = "ws://ec2-13-125-76-129.ap-northeast-2.compute.amazonaws.com";
+    private final String LAB_HOST = "34.64.143.175";
 
     @Operation(
             summary = "가상 터미널 연결 주소 발급",
@@ -29,8 +30,15 @@ public class LabController {
     @GetMapping("lab/pty/stage/{stage_id}")
     public ResponseEntity<PtyUrlResponse> getPtyConnectionURL(@AuthenticationPrincipal Player player,
                                                               @PathVariable(name = "stage_id") Long stageId) {
-        //Integer nodePort = labService.createStageOnKubernetes(player, stageId);
-        PtyUrlResponse response = PtyUrlResponse.of(DEPLOY_HOST+":5050");
+        if (player.getId() == 174 || player.getId() == 169){
+            PtyUrlResponse response = PtyUrlResponse.of(DEPLOY_HOST+":5050");
+            return ResponseEntity
+                    .status(HttpStatus.OK)
+                    .body(response);
+        }
+
+        Integer nodePort = labService.createStageOnKubernetes(player, stageId);
+        PtyUrlResponse response = PtyUrlResponse.of(LAB_HOST+":"+nodePort);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
