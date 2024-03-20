@@ -24,6 +24,8 @@ import org.codequistify.master.domain.authentication.vo.OAuthData;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.service.PlayerDetailsService;
+import org.codequistify.master.global.aspect.LogExecutionTime;
+import org.codequistify.master.global.aspect.LogMethodInvocation;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
@@ -60,6 +62,8 @@ public class AuthenticationController {
             description = "구글 로그인 화면으로 넘어갈 수 있는 url을 발급한다. 고정값이며 저장해여 사용할 수 있다."
     )
     @LogMonitoring
+    @LogMethodInvocation
+    @LogExecutionTime
     @GetMapping("auth/google/url")
     public ResponseEntity<BasicResponse> loginUrlGoogle() {
         BasicResponse response = BasicResponse.of(googleSocialSignService.getSocialLogInURL());

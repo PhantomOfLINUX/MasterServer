@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 
 @Controller
 @RequiredArgsConstructor
-public class EmailController {
+public class EmailVerificationController {
     private final EmailVerificationService emailVerificationService;
     @GetMapping("home/auth/email/verify")
     @LogMonitoring

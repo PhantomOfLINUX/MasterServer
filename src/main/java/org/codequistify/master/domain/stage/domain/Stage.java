@@ -47,10 +47,10 @@ public class Stage extends BaseTimeEntity {
 
     @Column(name = "stage_image")
     @Enumerated(EnumType.STRING)
-    private StageImageType stageImageType;
+    private StageImageType stageImage;
 
     public void updateStageImage(StageImageType stageImageType) {
-        this.stageImageType = stageImageType;
+        this.stageImage = stageImageType;
     }
 
     @PostPersist

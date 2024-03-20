@@ -7,15 +7,15 @@ public enum StageImageType {
     STAGE001("jeongrae/pol_test", "v1"),
     STAGE002("jeongrae/pol_test", "v1");
 
-    private final String name;
-    private final String version;
+    private final String image;
+    private final String tag;
 
-    StageImageType(String name, String version) {
-        this.name = name;
-        this.version = version;
+    StageImageType(String image, String tag) {
+        this.image = image;
+        this.tag = tag;
     }
 
     public String getImageName() {
-        return this.name + this.version;
+        return this.image + this.tag;
     }
 }
