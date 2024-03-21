@@ -1,28 +1,38 @@
 package org.codequistify.master.domain.stage.service.impl;
 
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.stage.convertoer.QuestionConverter;
 import org.codequistify.master.domain.stage.convertoer.StageConverter;
-import org.codequistify.master.domain.stage.domain.Question;
-import org.codequistify.master.domain.stage.domain.Stage;
+import org.codequistify.master.domain.stage.domain.*;
 import org.codequistify.master.domain.stage.dto.*;
+import org.codequistify.master.domain.stage.repository.CompletedStageRepository;
 import org.codequistify.master.domain.stage.repository.QuestionRepository;
 import org.codequistify.master.domain.stage.repository.StageRepository;
 import org.codequistify.master.domain.stage.service.StageService;
+import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class StageServiceImpl implements StageService {
     private final StageRepository stageRepository;
     private final QuestionRepository questionRepository;
+    private final CompletedStageRepository completedStageRepository;
+    private final JPAQueryFactory queryFactory;
 
     private final StageConverter stageConverter;
     private final QuestionConverter questionConverter;
@@ -38,19 +48,52 @@ public class StageServiceImpl implements StageService {
 
     @Override
     @Transactional
-    public StagePageResponse findStageByGroup(SearchCriteria searchCriteria) {
-        PageRequest pageRequest = PageRequest.of(searchCriteria.page_index()-1, searchCriteria.page_size());
+    @LogMonitoring
+    public StagePageResponse findStagesByCriteria(SearchCriteria searchCriteria, Player player) {
+        PageRequest pageRequest = PageRequest.of(searchCriteria.getPage_index()-1, searchCriteria.getPage_size());
 
-        if (searchCriteria.stageGroupType() == null) {
-            StagePageResponse response = stageConverter.convert(
-                    stageRepository.findAll(pageRequest)
-            );
-            return response;
+        QStage qStage = QStage.stage;
+        QCompletedStage qCompletedStage = QCompletedStage.completedStage;
+
+        BooleanBuilder whereClause = new BooleanBuilder();
+
+        /*
+
+        // playerId와 isCompleted 조건 적용
+        if (searchCriteria.getIsCompleted() != null) {
+            whereClause.and(qCompletedStage.player.id.eq(player.getId())
+                    .and(qCompletedStage.isCompleted.eq(searchCriteria.getIsCompleted())));
         }
 
-        StagePageResponse response = stageConverter.convert(
-                stageRepository.findByStageGroup(searchCriteria.stageGroupType(), pageRequest)
-        );
+         */
+
+        // stageGroupTypes 조건 적용
+        if (searchCriteria.getStageGroupTypes() != null && !searchCriteria.getStageGroupTypes().isEmpty()) {
+            whereClause.and(qStage.stageGroup.in(searchCriteria.getStageGroupTypes()));
+        }
+
+        // difficultyLevels 조건 적용
+        if (searchCriteria.getDifficultyLevels() != null && !searchCriteria.getDifficultyLevels().isEmpty()) {
+            whereClause.and(qStage.difficultyLevel.in(searchCriteria.getDifficultyLevels()));
+        }
+
+        // 조회 쿼리 실행
+        List<Stage> results = queryFactory.selectFrom(qStage)
+                .where(whereClause)
+                .offset(pageRequest.getOffset())
+                .limit(pageRequest.getPageSize())
+                .fetch();
+
+        // 전체 개수 조회
+        long total = queryFactory.selectFrom(qStage)
+                .where(whereClause)
+                .fetchCount();
+
+        // Page 객체 생성 및 반환
+        Page<Stage> pages =  new PageImpl<>(results, pageRequest, total);
+        StagePageResponse response = stageConverter.convert(pages);
+
+        LOGGER.info("[findStagesByCriteria] page 조회");
         return response;
     }
 
@@ -98,4 +141,21 @@ public class StageServiceImpl implements StageService {
                 });
     }
 
+    @Override
+    public void recordStageComplete(Long stageId, Player player) {
+        Stage stage = stageRepository.findById(stageId)
+                .orElseThrow(() -> {
+                    LOGGER.info("[recordStageComplete] 등록되지 않은 stage에 대한 등록, stage: {}", stageId);
+                    return new BusinessException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND);
+                });
+
+        CompletedStage completedStage = CompletedStage.builder()
+                .player(player)
+                .stage(stage)
+                .isCompleted(true).build();
+
+        completedStage = completedStageRepository.save(completedStage);
+        LOGGER.info("[recordStageComplete] player: {}, {} 클리어", player.getUid(), stageId);
+
+    }
 }
