@@ -1,14 +1,24 @@
 package org.codequistify.master.domain.stage.dto;
 
 import jakarta.validation.constraints.Positive;
+import lombok.Data;
 import org.codequistify.master.domain.stage.domain.DifficultyLevelType;
 import org.codequistify.master.domain.stage.domain.StageGroupType;
 
-public record SearchCriteria(
-        @Positive(message = "4104") int page_index,
-        @Positive(message = "4104") int page_size,
-        StageGroupType stageGroupType,
-        DifficultyLevelType level,
-        Boolean isSolved
-) {
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+public class SearchCriteria {
+    @Positive(message = "4104")
+    private int page_index = 1;
+
+    @Positive(message = "4104")
+    private int page_size = 10;
+
+    private List<StageGroupType> stageGroupTypes = new ArrayList<>();
+
+    private List<DifficultyLevelType> difficultyLevels = new ArrayList<>();
+
+    private Boolean isCompleted = false;
 }
