@@ -36,6 +36,6 @@ public class KubernetesServiceFactory implements ServiceFactory{
     }
 
     private String generateServiceName(StageImageType stageImage, String uid) {
-        return stageImage.name().toLowerCase() + "-svc-" + uid;
+        return (stageImage.name() + "-svc-" + uid).toLowerCase();
     }
 }
