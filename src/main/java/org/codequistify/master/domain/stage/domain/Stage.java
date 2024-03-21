@@ -7,7 +7,9 @@ import org.codequistify.master.global.util.BaseTimeEntity;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Getter
@@ -16,7 +18,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "stage")
+@Table(name = "stage", indexes = @Index(name = "idx_code_idx", columnList = "code"))
 public class Stage extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -51,6 +53,12 @@ public class Stage extends BaseTimeEntity {
     @Column(name = "stage_image")
     @Enumerated(EnumType.STRING)
     private StageImageType stageImage;
+
+    @Column(name = "exp")
+    private Integer exp;
+
+    @OneToMany(mappedBy = "stage")
+    private Set<CompletedStage> completedStages = new HashSet<>();
 
     public void updateStageImage(StageImageType stageImageType) {
         this.stageImage = stageImageType;
