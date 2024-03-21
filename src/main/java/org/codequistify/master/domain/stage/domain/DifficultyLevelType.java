@@ -4,11 +4,11 @@ import lombok.Getter;
 
 @Getter
 public enum DifficultyLevelType {
-    VERY_EASY(1),
-    EASY(2),
-    NORMAL(3),
-    HARD(4),
-    VERY_HARD(5);
+    L1(1),
+    L2(2),
+    L3(3),
+    L4(4),
+    L5(5);
 
     private final int level;
     DifficultyLevelType(int level) {

@@ -1,14 +1,11 @@
 package org.codequistify.master.domain.stage.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.stage.domain.DifficultyLevelType;
+import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.stage.domain.Stage;
-import org.codequistify.master.domain.stage.domain.StageGroupType;
 import org.codequistify.master.domain.stage.dto.*;
 import org.codequistify.master.domain.stage.service.StageService;
 import org.codequistify.master.global.aspect.LogMonitoring;
@@ -17,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -48,21 +46,15 @@ public class StageController {
 
                     - 검색가능 조건은 다음과 같습니다. *'스테이지 분류', '세부 난이도', '풀이 여부'*
 
-                    - **현재 풀이여부, 세부난이도에 대한 검색 기능은 미구현입니다.**
+                    - **현재 풀이여부는 true, false 만 가능합니다.**
 
-                    """,
-            parameters = {
-                    @Parameter(name = "page_index", description = "요청할 페이지 번호, 양수*", example = "1"),
-                    @Parameter(name = "page_size", description = "요청할 페이지 크기, 양수*", example = "10"),
-                    @Parameter(name = "stageGroupType", description = "스테이지 분류", schema = @Schema(implementation = StageGroupType.class)),
-                    @Parameter(name = "level", description = "스테이지 세부 난이도", schema = @Schema(implementation = DifficultyLevelType.class)),
-                    @Parameter(name = "isSolved", description = "풀이 여부", schema = @Schema(implementation = Boolean.class))
-            }
+                    """
     )
     @LogMonitoring
     @GetMapping("stages")
-    public ResponseEntity<StagePageResponse> findAllStages(@Parameter(hidden = true) @Valid @ModelAttribute SearchCriteria searchCriteria) {
-        StagePageResponse stages = stageService.findStageByGroup(searchCriteria);
+    public ResponseEntity<StagePageResponse> findAllStagesByCriteria(@AuthenticationPrincipal Player player,
+                                                           @Valid @ModelAttribute SearchCriteria searchCriteria) {
+        StagePageResponse stages = stageService.findStagesByCriteria(searchCriteria, player);
 
         return ResponseEntity.status(HttpStatus.OK).body(stages);
     }
@@ -98,6 +90,17 @@ public class StageController {
     }
 
     // 문제 풀이 완료 요청
+    // TODO 경험치 제공은 미구현
+    @PostMapping("stages/{stageId}/complete")
+    public ResponseEntity<BasicResponse> completeStage(@AuthenticationPrincipal Player player,
+                                           @PathVariable Long stageId,
+                                           @RequestBody StageCompletionRequest request) {
+
+        stageService.recordStageComplete(stageId, player);
+
+        BasicResponse response = BasicResponse.of("SUCCESS");
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 
 
     // 스테이지 수정
