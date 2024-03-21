@@ -16,6 +16,6 @@ public enum StageImageType {
     }
 
     public String getImageName() {
-        return this.image + this.tag;
+        return this.image + ":" + this.tag;
     }
 }
