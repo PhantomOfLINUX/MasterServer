@@ -59,7 +59,8 @@ public class StageConverter {
                 stages.getTotalPages(),
                 stages.getSize(),
                 stages.getNumber()+1,
-                stages.getNumberOfElements()
+                stages.getNumberOfElements(),
+                (int) stages.getTotalElements()
         );
 
         List<StageResponse> response = this.convert(stages.getContent());
