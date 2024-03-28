@@ -4,6 +4,7 @@ public record PageParameters(
         int totalPages,
         int pageSize,
         int currentPageIndex,
-        int currentPageOfElement
+        int currentPageOfElement,
+        int totalElement
 ) {
 }
