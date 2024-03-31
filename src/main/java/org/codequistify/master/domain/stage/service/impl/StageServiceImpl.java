@@ -57,16 +57,6 @@ public class StageServiceImpl implements StageService {
 
         BooleanBuilder whereClause = new BooleanBuilder();
 
-        /*
-
-        // playerId와 isCompleted 조건 적용
-        if (searchCriteria.getIsCompleted() != null) {
-            whereClause.and(qCompletedStage.player.id.eq(player.getId())
-                    .and(qCompletedStage.isCompleted.eq(searchCriteria.getIsCompleted())));
-        }
-
-         */
-
         // stageGroupTypes 조건 적용
         if (searchCriteria.getStageGroupTypes() != null && !searchCriteria.getStageGroupTypes().isEmpty()) {
             whereClause.and(qStage.stageGroup.in(searchCriteria.getStageGroupTypes()));
@@ -77,15 +67,29 @@ public class StageServiceImpl implements StageService {
             whereClause.and(qStage.difficultyLevel.in(searchCriteria.getDifficultyLevels()));
         }
 
+        // CompletedStatus 조건 적용
+        if (searchCriteria.getCompleted() != null) {
+            if (searchCriteria.getCompleted() == CompletedStatus.NOT_COMPLETED) {
+                // NOT_COMPLETED 상태는 Completed 테이블에 기록되지 않은 상태
+                whereClause.and(qCompletedStage.id.isNull());
+            } else {
+                whereClause.and(qCompletedStage.status.eq(searchCriteria.getCompleted())
+                        .and(qCompletedStage.player.id.eq(player.getId())));
+            }
+        }
+
         // 조회 쿼리 실행
         List<Stage> results = queryFactory.selectFrom(qStage)
+                .leftJoin(qStage.completedStages, qCompletedStage)
                 .where(whereClause)
                 .offset(pageRequest.getOffset())
                 .limit(pageRequest.getPageSize())
                 .fetch();
 
         // 전체 개수 조회
-        long total = queryFactory.selectFrom(qStage)
+        long total = queryFactory.select(qStage)
+                .from(qStage)
+                .leftJoin(qStage.completedStages, qCompletedStage)
                 .where(whereClause)
                 .fetchCount();
 
@@ -141,8 +145,9 @@ public class StageServiceImpl implements StageService {
                 });
     }
 
+    // 스테이지 등록
     @Override
-    public void recordStageComplete(Long stageId, Player player) {
+    public void recordStageComplete(Long stageId, Player player, CompletedStatus status) {
         Stage stage = stageRepository.findById(stageId)
                 .orElseThrow(() -> {
                     LOGGER.info("[recordStageComplete] 등록되지 않은 stage에 대한 등록, stage: {}", stageId);
@@ -152,10 +157,15 @@ public class StageServiceImpl implements StageService {
         CompletedStage completedStage = CompletedStage.builder()
                 .player(player)
                 .stage(stage)
-                .isCompleted(true).build();
+                .status(status).build();
 
         completedStage = completedStageRepository.save(completedStage);
         LOGGER.info("[recordStageComplete] player: {}, {} 클리어", player.getUid(), stageId);
 
+    }
+
+
+    public List<StageResponseTEMP> findStageWithCompleted(Player player) {
+        return stageRepository.findAllByPlayerIdWithCompleted(player.getId());
     }
 }

@@ -7,7 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.dto.*;
-import org.codequistify.master.domain.stage.service.StageService;
+import org.codequistify.master.domain.stage.service.impl.StageServiceImpl;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.util.BasicResponse;
 import org.slf4j.Logger;
@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Stage")
 @RequestMapping("api")
 public class StageController {
-    private final StageService stageService;
+    private final StageServiceImpl stageService;
     private final Logger LOGGER = LoggerFactory.getLogger(Stage.class);
 
     // 스테이지 등록
@@ -53,7 +53,7 @@ public class StageController {
     @LogMonitoring
     @GetMapping("stages")
     public ResponseEntity<StagePageResponse> findAllStagesByCriteria(@AuthenticationPrincipal Player player,
-                                                           @Valid @ModelAttribute SearchCriteria searchCriteria) {
+                                                                     @Valid @ModelAttribute SearchCriteria searchCriteria) {
         StagePageResponse stages = stageService.findStagesByCriteria(searchCriteria, player);
 
         return ResponseEntity.status(HttpStatus.OK).body(stages);
@@ -92,15 +92,26 @@ public class StageController {
     // 문제 풀이 완료 요청
     // TODO 경험치 제공은 미구현
     @PostMapping("stages/{stageId}/complete")
+    @LogMonitoring
     public ResponseEntity<BasicResponse> completeStage(@AuthenticationPrincipal Player player,
                                            @PathVariable Long stageId,
                                            @RequestBody StageCompletionRequest request) {
 
-        stageService.recordStageComplete(stageId, player);
+        stageService.recordStageComplete(stageId, player, request.status());
 
         BasicResponse response = BasicResponse.of("SUCCESS");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+    @GetMapping("stages/{stageId}")
+    @LogMonitoring
+    public ResponseEntity<?> getStages(@AuthenticationPrincipal Player player) {
+
+
+        BasicResponse response = BasicResponse.of("SUCCESS");
+        return ResponseEntity.status(HttpStatus.OK).body(stageService.findStageWithCompleted(player));
+    }
+
 
 
     // 스테이지 수정

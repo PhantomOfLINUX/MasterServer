@@ -23,14 +23,15 @@ public class CompletedStage {
     @JoinColumn(name = "stage_id")
     private Stage stage;
 
-    @Column(name = "is_completed")
-    private Boolean isCompleted;
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private CompletedStatus status;
 
     @Builder
-    public CompletedStage(Player player, Stage stage, Boolean isCompleted) {
+    public CompletedStage(Player player, Stage stage, CompletedStatus status) {
         this.player = player;
         this.stage = stage;
-        this.isCompleted = isCompleted;
+        this.status = status;
     }
 
     protected CompletedStage() {
