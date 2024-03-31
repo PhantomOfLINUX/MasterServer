@@ -46,7 +46,8 @@ public class StageConverter {
                 stage.getDescription(),
                 stage.getStageGroup(),
                 stage.getDifficultyLevel(),
-                stage.getQuestionCount());
+                stage.getQuestionCount(),
+                null);
     }
 
     public List<StageResponse> convert(List<Stage> stages) {

@@ -1,6 +1,7 @@
 package org.codequistify.master.domain.stage.service.impl;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
@@ -50,7 +51,7 @@ public class StageServiceImpl implements StageService {
     @Transactional
     @LogMonitoring
     public StagePageResponse findStagesByCriteria(SearchCriteria searchCriteria, Player player) {
-        PageRequest pageRequest = PageRequest.of(searchCriteria.getPage_index()-1, searchCriteria.getPage_size());
+        PageRequest pageRequest = PageRequest.of(searchCriteria.getPage_index() - 1, searchCriteria.getPage_size());
 
         QStage qStage = QStage.stage;
         QCompletedStage qCompletedStage = QCompletedStage.completedStage;
@@ -78,24 +79,43 @@ public class StageServiceImpl implements StageService {
             }
         }
 
-        // 조회 쿼리 실행
-        List<Stage> results = queryFactory.selectFrom(qStage)
+        List<StageResponse> results = queryFactory
+                .select(Projections.constructor(StageResponse.class,
+                        qStage.id,
+                        qStage.title,
+                        qStage.description,
+                        qStage.stageGroup,
+                        qStage.difficultyLevel,
+                        qStage.questionCount,
+                        qCompletedStage.status.coalesce(CompletedStatus.NOT_COMPLETED))) // coalesce 처리로 NOT_COMPLETED 상태 기본값 설정
+                .from(qStage)
                 .leftJoin(qStage.completedStages, qCompletedStage)
+                .on(qCompletedStage.player.id.eq(player.getId()))
                 .where(whereClause)
                 .offset(pageRequest.getOffset())
                 .limit(pageRequest.getPageSize())
                 .fetch();
 
         // 전체 개수 조회
-        long total = queryFactory.select(qStage)
+        long total = queryFactory
                 .from(qStage)
                 .leftJoin(qStage.completedStages, qCompletedStage)
+                .on(qCompletedStage.player.id.eq(player.getId()))
                 .where(whereClause)
                 .fetchCount();
 
         // Page 객체 생성 및 반환
-        Page<Stage> pages =  new PageImpl<>(results, pageRequest, total);
-        StagePageResponse response = stageConverter.convert(pages);
+        Page<StageResponse> pages = new PageImpl<>(results, pageRequest, total);
+        PageParameters pageParameters = PageParameters.of(
+                pages.getTotalPages(),
+                pages.getSize(),
+                pages.getNumber() + 1,
+                pages.getNumberOfElements(),
+                (int) pages.getTotalElements()
+        );
+
+
+        StagePageResponse response = StagePageResponse.of(pages.getContent(), pageParameters);
 
         LOGGER.info("[findStagesByCriteria] page 조회");
         return response;
@@ -126,8 +146,8 @@ public class StageServiceImpl implements StageService {
 
         String correctAnswer = question.getCorrectAnswer();
         boolean isCorrect = correctAnswer.equalsIgnoreCase(request.answer());
-        boolean isLast = !questionRepository.existsByIndex(request.questionIndex()+1);
-        int nextIndex = isLast ? -1 : request.questionIndex()+1;
+        boolean isLast = !questionRepository.existsByIndex(request.questionIndex() + 1);
+        int nextIndex = isLast ? -1 : request.questionIndex() + 1;
 
         return new GradingResponse(
                 isCorrect,
@@ -137,7 +157,7 @@ public class StageServiceImpl implements StageService {
     }
 
     @Transactional
-    public Stage findStageById(Long stageId){
+    public Stage findStageById(Long stageId) {
         return stageRepository.findById(stageId)
                 .orElseThrow(() -> {
                     LOGGER.info("[findStageById] 등록되지 않은 스테이지 id: {}", stageId);
@@ -162,10 +182,5 @@ public class StageServiceImpl implements StageService {
         completedStage = completedStageRepository.save(completedStage);
         LOGGER.info("[recordStageComplete] player: {}, {} 클리어", player.getUid(), stageId);
 
-    }
-
-
-    public List<StageResponseTEMP> findStageWithCompleted(Player player) {
-        return stageRepository.findAllByPlayerIdWithCompleted(player.getId());
     }
 }
