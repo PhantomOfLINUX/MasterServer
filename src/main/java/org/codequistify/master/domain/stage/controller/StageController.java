@@ -45,15 +45,26 @@ public class StageController {
                     - 스테이지 목록을 페이지 단위로 조회합니다.
 
                     - 검색가능 조건은 다음과 같습니다. *'스테이지 분류', '세부 난이도', '풀이 여부'*
-
-                    - **현재 풀이여부는 true, false 만 가능합니다.**
+                    
+                    풀이여부
+                    - "COMPLETED" : 풀이완료
+                    - "NOT_COMPLETED" : 미풀이
+                    - "IN_PROGRESS" : 풀이 진행중
+                    
+                    스테이지 분류
+                    - "BASIC_PROBLEMS" : 기본문제
+                    - "ADVANCED_PROBLEMS" : 심화문제
+                    - "MOCK_TESTS" : 모의고사
+                    
+                    세부난이도
+                    - "L1", "L2", "L3", "L4", "L5"
 
                     """
     )
     @LogMonitoring
     @GetMapping("stages")
     public ResponseEntity<StagePageResponse> findAllStagesByCriteria(@AuthenticationPrincipal Player player,
-                                                           @Valid @ModelAttribute SearchCriteria searchCriteria) {
+                                                                     @Valid @ModelAttribute SearchCriteria searchCriteria) {
         StagePageResponse stages = stageService.findStagesByCriteria(searchCriteria, player);
 
         return ResponseEntity.status(HttpStatus.OK).body(stages);
@@ -92,15 +103,17 @@ public class StageController {
     // 문제 풀이 완료 요청
     // TODO 경험치 제공은 미구현
     @PostMapping("stages/{stageId}/complete")
+    @LogMonitoring
     public ResponseEntity<BasicResponse> completeStage(@AuthenticationPrincipal Player player,
-                                           @PathVariable Long stageId,
-                                           @RequestBody StageCompletionRequest request) {
+                                                       @PathVariable Long stageId,
+                                                       @RequestBody StageCompletionRequest request) {
 
-        stageService.recordStageComplete(stageId, player);
+        stageService.recordStageComplete(stageId, player, request.status());
 
         BasicResponse response = BasicResponse.of("SUCCESS");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
 
 
     // 스테이지 수정

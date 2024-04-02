@@ -2,6 +2,7 @@ package org.codequistify.master.domain.stage.dto;
 
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
+import org.codequistify.master.domain.stage.domain.CompletedStatus;
 import org.codequistify.master.domain.stage.domain.DifficultyLevelType;
 import org.codequistify.master.domain.stage.domain.StageGroupType;
 
@@ -20,5 +21,5 @@ public class SearchCriteria {
 
     private List<DifficultyLevelType> difficultyLevels = new ArrayList<>();
 
-    private Boolean isCompleted = false;
+    private CompletedStatus completed;
 }

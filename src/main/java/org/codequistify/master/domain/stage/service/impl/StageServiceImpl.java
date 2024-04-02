@@ -1,6 +1,7 @@
 package org.codequistify.master.domain.stage.service.impl;
 
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
@@ -50,22 +51,12 @@ public class StageServiceImpl implements StageService {
     @Transactional
     @LogMonitoring
     public StagePageResponse findStagesByCriteria(SearchCriteria searchCriteria, Player player) {
-        PageRequest pageRequest = PageRequest.of(searchCriteria.getPage_index()-1, searchCriteria.getPage_size());
+        PageRequest pageRequest = PageRequest.of(searchCriteria.getPage_index() - 1, searchCriteria.getPage_size());
 
         QStage qStage = QStage.stage;
         QCompletedStage qCompletedStage = QCompletedStage.completedStage;
 
         BooleanBuilder whereClause = new BooleanBuilder();
-
-        /*
-
-        // playerId와 isCompleted 조건 적용
-        if (searchCriteria.getIsCompleted() != null) {
-            whereClause.and(qCompletedStage.player.id.eq(player.getId())
-                    .and(qCompletedStage.isCompleted.eq(searchCriteria.getIsCompleted())));
-        }
-
-         */
 
         // stageGroupTypes 조건 적용
         if (searchCriteria.getStageGroupTypes() != null && !searchCriteria.getStageGroupTypes().isEmpty()) {
@@ -77,21 +68,54 @@ public class StageServiceImpl implements StageService {
             whereClause.and(qStage.difficultyLevel.in(searchCriteria.getDifficultyLevels()));
         }
 
-        // 조회 쿼리 실행
-        List<Stage> results = queryFactory.selectFrom(qStage)
+        // CompletedStatus 조건 적용
+        if (searchCriteria.getCompleted() != null) {
+            if (searchCriteria.getCompleted() == CompletedStatus.NOT_COMPLETED) {
+                // NOT_COMPLETED 상태는 Completed 테이블에 기록되지 않은 상태
+                whereClause.and(qCompletedStage.id.isNull());
+            } else {
+                whereClause.and(qCompletedStage.status.eq(searchCriteria.getCompleted())
+                        .and(qCompletedStage.player.id.eq(player.getId())));
+            }
+        }
+
+        List<StageResponse> results = queryFactory
+                .select(Projections.constructor(StageResponse.class,
+                        qStage.id,
+                        qStage.title,
+                        qStage.description,
+                        qStage.stageGroup,
+                        qStage.difficultyLevel,
+                        qStage.questionCount,
+                        qCompletedStage.status.coalesce(CompletedStatus.NOT_COMPLETED))) // coalesce 처리로 NOT_COMPLETED 상태 기본값 설정
+                .from(qStage)
+                .leftJoin(qStage.completedStages, qCompletedStage)
+                .on(qCompletedStage.player.id.eq(player.getId()))
                 .where(whereClause)
                 .offset(pageRequest.getOffset())
                 .limit(pageRequest.getPageSize())
                 .fetch();
 
         // 전체 개수 조회
-        long total = queryFactory.selectFrom(qStage)
+        long total = queryFactory
+                .from(qStage)
+                .leftJoin(qStage.completedStages, qCompletedStage)
+                .on(qCompletedStage.player.id.eq(player.getId()))
                 .where(whereClause)
                 .fetchCount();
 
         // Page 객체 생성 및 반환
-        Page<Stage> pages =  new PageImpl<>(results, pageRequest, total);
-        StagePageResponse response = stageConverter.convert(pages);
+        Page<StageResponse> pages = new PageImpl<>(results, pageRequest, total);
+        PageParameters pageParameters = PageParameters.of(
+                pages.getTotalPages(),
+                pages.getSize(),
+                pages.getNumber() + 1,
+                pages.getNumberOfElements(),
+                (int) pages.getTotalElements()
+        );
+
+
+        StagePageResponse response = StagePageResponse.of(pages.getContent(), pageParameters);
 
         LOGGER.info("[findStagesByCriteria] page 조회");
         return response;
@@ -122,8 +146,8 @@ public class StageServiceImpl implements StageService {
 
         String correctAnswer = question.getCorrectAnswer();
         boolean isCorrect = correctAnswer.equalsIgnoreCase(request.answer());
-        boolean isLast = !questionRepository.existsByIndex(request.questionIndex()+1);
-        int nextIndex = isLast ? -1 : request.questionIndex()+1;
+        boolean isLast = !questionRepository.existsByIndex(request.questionIndex() + 1);
+        int nextIndex = isLast ? -1 : request.questionIndex() + 1;
 
         return new GradingResponse(
                 isCorrect,
@@ -133,7 +157,7 @@ public class StageServiceImpl implements StageService {
     }
 
     @Transactional
-    public Stage findStageById(Long stageId){
+    public Stage findStageById(Long stageId) {
         return stageRepository.findById(stageId)
                 .orElseThrow(() -> {
                     LOGGER.info("[findStageById] 등록되지 않은 스테이지 id: {}", stageId);
@@ -141,8 +165,9 @@ public class StageServiceImpl implements StageService {
                 });
     }
 
+    // 스테이지 등록
     @Override
-    public void recordStageComplete(Long stageId, Player player) {
+    public void recordStageComplete(Long stageId, Player player, CompletedStatus status) {
         Stage stage = stageRepository.findById(stageId)
                 .orElseThrow(() -> {
                     LOGGER.info("[recordStageComplete] 등록되지 않은 stage에 대한 등록, stage: {}", stageId);
@@ -152,7 +177,7 @@ public class StageServiceImpl implements StageService {
         CompletedStage completedStage = CompletedStage.builder()
                 .player(player)
                 .stage(stage)
-                .isCompleted(true).build();
+                .status(status).build();
 
         completedStage = completedStageRepository.save(completedStage);
         LOGGER.info("[recordStageComplete] player: {}, {} 클리어", player.getUid(), stageId);
