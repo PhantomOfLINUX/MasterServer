@@ -1,12 +1,13 @@
 package org.codequistify.master.domain.stage.domain;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import org.codequistify.master.domain.player.domain.Player;
 
-@ToString
+@ToString(exclude = "stage")
 @Getter
 @Entity
 @Table(name = "completed_stage")
@@ -21,6 +22,7 @@ public class CompletedStage {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stage_id")
+    @JsonBackReference
     private Stage stage;
 
     @Column(name = "status")
