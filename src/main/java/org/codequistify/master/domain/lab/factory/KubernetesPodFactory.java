@@ -36,6 +36,6 @@ public class KubernetesPodFactory implements PodFactory {
     }
 
     private String generatePodName(StageImageType stageImage, String uid) {
-        return (stageImage.name() + "-pod-" + uid).toLowerCase();
+        return stageImage.name().toLowerCase() + "-pod-" + uid;
     }
 }
