@@ -22,7 +22,7 @@ public class KubernetesServiceFactory implements ServiceFactory{
                     .addToLabels("player", uid)
                 .endMetadata()
                 .withNewSpec()
-                    .withType("NodePort")
+                    .withType("ClusterIP")
                     .addNewPort()
                         .withName("http")
                         .withProtocol("TCP")
@@ -36,6 +36,6 @@ public class KubernetesServiceFactory implements ServiceFactory{
     }
 
     private String generateServiceName(StageImageType stageImage, String uid) {
-        return (stageImage.name() + "-svc-" + uid).toLowerCase();
+        return stageImage.name().toLowerCase() + "-svc-" + uid;
     }
 }

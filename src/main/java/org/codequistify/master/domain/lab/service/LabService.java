@@ -10,32 +10,37 @@ import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.service.impl.StageServiceImpl;
 import org.codequistify.master.global.aspect.LogExecutionTime;
-import org.codequistify.master.global.aspect.LogMethodInvocation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
 
 @org.springframework.stereotype.Service
 @RequiredArgsConstructor
 public class LabService {
     private final StageServiceImpl stageService;
     private final Logger LOGGER = LoggerFactory.getLogger(LabService.class);
+
     private final PodFactory podFactory;
     private final ServiceFactory serviceFactory;
+
     private final KubernetesClient kubernetesClient;
 
-    @Transactional
-    @LogMethodInvocation
-    public Integer createStageOnKubernetes(Player player, Long stageId){
-        Stage stage = stageService.findStageById(stageId);
+    @LogExecutionTime
+    public void createStageOnKubernetes(Player player, Stage stage){
+        String uid = player.getUid().toLowerCase();
 
-        Service service = createServiceOnKubernetes(stage, player.getUid());
-        Pod pod = createPodOnKubernetes(stage, player.getUid());
+        Service service = createServiceOnKubernetes(stage, uid);
+        Pod pod = createPodOnKubernetes(stage, uid);
 
         Integer nodePort = service.getSpec().getPorts().get(0).getNodePort();
-        LOGGER.info("[createStageOnKubernetes] stage: {} , {} 포트에서 실행", stageId, nodePort);
+        LOGGER.info("[createStageOnKubernetes] stage: {} , {} 포트에서 실행", stage.getId(), nodePort);
 
-        return nodePort;
+    }
+
+    public void deleteStageOnKubernetes(Player player, Stage stage) {
+        String uid = player.getUid().toLowerCase();
+
+        this.deletePodIfExists(stage, uid);
+        this.deleteServiceIfExists(stage, uid);
     }
 
     @LogExecutionTime
@@ -43,11 +48,11 @@ public class LabService {
         Service service = serviceFactory.create(stage, 8080, uid);
 
         service = kubernetesClient.services()
-                .inNamespace("lab")
+                .inNamespace("default")
                 .resource(service)
                 .create();
 
-        LOGGER.info("[createServiceOnKubernetes] service: {}", service);
+        LOGGER.info("[createServiceOnKubernetes] service: {}", service.getSpec());
         return service;
     }
 
@@ -56,11 +61,33 @@ public class LabService {
         Pod pod = podFactory.create(stage, 8080, uid);
 
         pod = kubernetesClient.pods()
-                .inNamespace("lab")
+                .inNamespace("default")
                 .resource(pod)
                 .create();
 
-        LOGGER.info("[createPodOnKubernetes] pod: {}", pod);
+        LOGGER.info("[createPodOnKubernetes] pod: {}", pod.getSpec());
         return pod;
+    }
+
+    @LogExecutionTime
+    private void deletePodIfExists(Stage stage, String uid) {
+        String podName = stage.getStageImage().name().toLowerCase() + "-pod-" + uid;
+        LOGGER.info(podName);
+
+        kubernetesClient.pods()
+                .inNamespace("default")
+                .withName(podName)
+                .delete();
+    }
+
+    @LogExecutionTime
+    private void deleteServiceIfExists(Stage stage, String uid) {
+        String svcName = stage.getStageImage().name().toLowerCase() + "-svc-" + uid;
+        LOGGER.info(svcName);
+
+        kubernetesClient.services()
+                .inNamespace("default")
+                .withName(svcName)
+                .delete();
     }
 }
