@@ -28,11 +28,10 @@ public class LabService {
     public void createStageOnKubernetes(Player player, Stage stage){
         String uid = player.getUid().toLowerCase();
 
-        Service service = createServiceOnKubernetes(stage, uid);
-        Pod pod = createPodOnKubernetes(stage, uid);
+        this.createServiceOnKubernetes(stage, uid);
+        this.createPodOnKubernetes(stage, uid);
 
-        Integer nodePort = service.getSpec().getPorts().get(0).getNodePort();
-        LOGGER.info("[createStageOnKubernetes] stage: {} , {} 포트에서 실행", stage.getId(), nodePort);
+        LOGGER.info("[createStageOnKubernetes] stage: {}", stage.getId());
 
     }
 
