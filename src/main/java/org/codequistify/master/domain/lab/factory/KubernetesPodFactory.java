@@ -19,7 +19,7 @@ public class KubernetesPodFactory implements PodFactory {
 
         return new PodBuilder()
                 .withNewMetadata()
-                    .withGenerateName(podName)
+                    .withName(podName)
                     .addToLabels("app", "pol")
                     .addToLabels("tire", "term")
                     .addToLabels("player", uid)
