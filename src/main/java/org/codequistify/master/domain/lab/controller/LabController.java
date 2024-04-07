@@ -28,7 +28,7 @@ public class LabController {
     private final StageServiceImpl stageService;
 
     private final String DEPLOY_HOST = "ws://ec2-13-125-76-129.ap-northeast-2.compute.amazonaws.com";
-    private final String LAB_HOST = "https://lab.pol.or.kr";
+    private final String LAB_HOST = "wss://lab.pol.or.kr";
 
     private final Logger LOGGER = LoggerFactory.getLogger(LabController.class);
 
@@ -36,8 +36,10 @@ public class LabController {
             summary = "가상 터미널 (PShell) 생성요청",
             description = """
                     :stage에 대한 터미널(PShell)을 생성한다.
+                    기존 터미널이 존재할경우, 제거하고 생성한다.
+                    제거시에는 약 35s 이상이 소요된다.
                     
-                    사용시에는 xHeaders 배열에 들어있는 헤더 값을 추가해서 connection 연결을 보내야한다.
+                    사용시에는 쿼리파라미터 값을 추가해서 connection 연결을 보내야한다.
                     """
     )
     @LogMonitoring
@@ -59,11 +61,11 @@ public class LabController {
 
     // 접속 가능한 주소 조회
     @Operation(
-            summary = "가상 터미널 (PShell) 접속 주소 - 헤더 조회",
+            summary = "가상 터미널 (PShell) 접속 주소 & 쿼리파라미터 조회",
             description = """
-                    :stage에 대한 터미널(PShell)에 접속할 수 있는 헤더 정보를 조회한다.
+                    :stage에 대한 터미널(PShell)에 접속할 수 있는 쿼리파라미터 정보를 조회한다.
                     
-                    사용시에는 xHeaders 배열에 들어있는 헤더 값을 추가해서 connection 연결을 보내야한다.
+                    사용시에는 쿼리파라미터 값을 추가해서 connection 연결을 보내야한다.
                     """
     )
     @GetMapping("lab/terminal/access-url/{stage_id}")

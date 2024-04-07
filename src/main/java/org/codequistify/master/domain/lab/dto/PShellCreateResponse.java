@@ -1,18 +1,14 @@
 package org.codequistify.master.domain.lab.dto;
 
-import java.util.List;
-
 public record PShellCreateResponse(
         String url,
-        List<XHeader> xHeaders
+        String query
 ) {
     public static PShellCreateResponse of (String url, String uid, String stageImageName) {
+        String query = "?uid=" + uid.toLowerCase() + "&stage=" + stageImageName;
         return new PShellCreateResponse(
-                url,
-                List.of(
-                        new XHeader("X-POL-UID", uid.toLowerCase()),
-                        new XHeader("X-POL-STAGE", stageImageName)
-                )
+                url+query,
+                query
         );
     }
 
