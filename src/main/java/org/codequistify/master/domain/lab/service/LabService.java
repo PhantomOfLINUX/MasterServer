@@ -46,8 +46,8 @@ public class LabService {
         kubernetesResourceManager.deleteAsyncService(stage, uid);
 
         int retryCount = 0;
-        while (retryCount < THRESHOLD) {
-            if (!kubernetesResourceManager.existPod(stage, uid)) { // pod 삭제가 svc 보다 반드시 오래걸린다는 가정
+        while (retryCount <= THRESHOLD) {
+            if (!kubernetesResourceManager.existsPod(stage, uid)) { // pod 삭제가 svc 보다 반드시 오래걸린다는 가정
                 LOGGER.info("[deleteSyncStageOnKubernetes] 삭제 확인 {}번 시도", retryCount);
                 return;
             }
@@ -63,8 +63,8 @@ public class LabService {
 
     @LogExecutionTime
     public boolean existsStageOnKubernetes(Player player, Stage stage) {
-        boolean podExists = kubernetesResourceManager.getPod(stage, player.getUid()) != null;
-        boolean serviceExists = kubernetesResourceManager.getService(stage, player.getUid()) != null;
+        boolean podExists = kubernetesResourceManager.existsPod(stage, player.getUid());
+        boolean serviceExists = kubernetesResourceManager.existsService(stage, player.getUid());
 
         return podExists && serviceExists;
     }

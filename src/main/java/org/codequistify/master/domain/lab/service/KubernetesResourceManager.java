@@ -60,7 +60,7 @@ public class KubernetesResourceManager {
                 .withName(svcName)
                 .delete();
 
-        LOGGER.info("[deleteServiceIfExists] result {}", result);
+        LOGGER.info("[deleteAsyncService] result {}", result);
     }
 
     @LogExecutionTime
@@ -72,7 +72,7 @@ public class KubernetesResourceManager {
                 .withName(podName)
                 .delete();
 
-        LOGGER.info("[deletePodIfExists] result {}", result);
+        LOGGER.info("[deleteAsyncPod] result {}", result);
     }
 
     public Service getService(Stage stage, String uid) {
@@ -83,12 +83,12 @@ public class KubernetesResourceManager {
                 .withName(svcName)
                 .get();
 
-        LOGGER.info("[getServic] name : {}", service.getMetadata().getName());
+        LOGGER.info("[getService] name : {}", service.getMetadata().getName());
         return service;
     }
 
     public Pod getPod(Stage stage, String uid) {
-        String podName = KubernetesResourceNaming.getServiceName(stage.getStageImage().name(), uid);
+        String podName = KubernetesResourceNaming.getPodName(stage.getStageImage().name(), uid);
 
         Pod pod = kubernetesClient.pods()
                 .inNamespace("default")
@@ -99,28 +99,28 @@ public class KubernetesResourceManager {
         return pod;
     }
 
-    public boolean existService(Stage stage, String uid) {
+    public boolean existsService(Stage stage, String uid) {
         String svcName = KubernetesResourceNaming.getServiceName(stage.getStageImage().name(), uid);
 
-        boolean exist = kubernetesClient.services()
+        boolean exists = kubernetesClient.services()
                 .inNamespace("default")
                 .withName(svcName)
                 .get() != null;
 
-        LOGGER.info("[existService] name : {}", svcName);
-        return exist;
+        //LOGGER.info("[existsService] name: {}, exists: {}", svcName, exists);
+        return exists;
     }
 
-    public boolean existPod(Stage stage, String uid) {
-        String podName = KubernetesResourceNaming.getServiceName(stage.getStageImage().name(), uid);
+    public boolean existsPod(Stage stage, String uid) {
+        String podName = KubernetesResourceNaming.getPodName(stage.getStageImage().name(), uid);
 
-        boolean exist = kubernetesClient.pods()
+        boolean exists = kubernetesClient.pods()
                 .inNamespace("default")
                 .withName(podName)
                 .get() != null;
 
-        LOGGER.info("[existPod] name : {}", podName);
-        return exist;
+        //LOGGER.info("[existsPod] name: {}, exists: {}", podName, exists);
+        return exists;
     }
 
 }
