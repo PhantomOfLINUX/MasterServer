@@ -15,6 +15,8 @@ import org.springframework.http.HttpStatus;
 public class LabService {
     private final KubernetesResourceManager kubernetesResourceManager;
     private final Logger LOGGER = LoggerFactory.getLogger(LabService.class);
+    private final static int THRESHOLD = 20;
+    private final static int SLEEP_PERIOD = 5000;
 
     @LogExecutionTime
     public void createStageOnKubernetes(Player player, Stage stage){
@@ -28,7 +30,7 @@ public class LabService {
     }
 
     @LogExecutionTime
-    public void deleteStageOnKubernetes(Player player, Stage stage) {
+    public void deleteAsyncStageOnKubernetes(Player player, Stage stage) {
         String uid = player.getUid().toLowerCase();
 
         kubernetesResourceManager.deleteAsyncPod(stage, uid);
@@ -39,9 +41,24 @@ public class LabService {
     public void deleteSyncStageOnKubernetes(Player player, Stage stage) {
         String uid = player.getUid().toLowerCase();
 
+        // 삭제 요청을 먼저 같이 보내야 pod가 제거되는 동안 svc도 제거됨
         kubernetesResourceManager.deleteAsyncPod(stage, uid);
         kubernetesResourceManager.deleteAsyncService(stage, uid);
 
+        int retryCount = 0;
+        while (retryCount < THRESHOLD) {
+            if (!kubernetesResourceManager.existPod(stage, uid)) { // pod 삭제가 svc 보다 반드시 오래걸린다는 가정
+                LOGGER.info("[deleteSyncStageOnKubernetes] 삭제 확인 {}번 시도", retryCount);
+                return;
+            }
+            try {
+                Thread.sleep(SLEEP_PERIOD);
+                retryCount++;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
     }
 
     @LogExecutionTime
@@ -49,29 +66,7 @@ public class LabService {
         boolean podExists = kubernetesResourceManager.getPod(stage, player.getUid()) != null;
         boolean serviceExists = kubernetesResourceManager.getService(stage, player.getUid()) != null;
 
-        return podExists || serviceExists;
+        return podExists && serviceExists;
     }
-
-    public boolean waitForResourceDeletion(Player player, Stage stage) {
-        int threshold = 20;
-        int retryCount = 0;
-
-        while (retryCount < threshold) {
-            if (!existsStageOnKubernetes(player, stage)) {
-                LOGGER.info("[waitForResourceDeletion] {}번 시도", retryCount);
-                return true;  // 리소스가 더 이상 존재하지 않으면 삭제 성공
-            }
-            try {
-                Thread.sleep(5000);  // 5초 간격으로 다시 확인
-                retryCount++;
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        }
-        LOGGER.info("[waitForResourceDeletion] 최대 시도 실패");
-        return false;  // 최대 시도 횟수 도달 시 삭제 실패
-    }
-
 
 }

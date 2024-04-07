@@ -46,11 +46,8 @@ public class LabController {
                                                             @PathVariable(name = "stage_id") Long stageId) {
         Stage stage = stageService.findStageById(stageId);
 
-        labService.deleteStageOnKubernetes(player, stage); // 기존에 워크로드가 존재할 경우 제거
-
-        if (labService.waitForResourceDeletion(player, stage)) {
-            labService.createStageOnKubernetes(player, stage); // 신규 PShell 생성
-        }
+        labService.deleteSyncStageOnKubernetes(player, stage); // 동기 삭제
+        labService.createStageOnKubernetes(player, stage);
 
         PShellCreateResponse response = PShellCreateResponse
                 .of(LAB_HOST, player.getUid(), stage.getStageImage().name().toLowerCase());

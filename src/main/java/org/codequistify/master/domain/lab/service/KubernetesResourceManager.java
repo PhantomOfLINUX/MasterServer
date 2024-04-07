@@ -99,4 +99,28 @@ public class KubernetesResourceManager {
         return pod;
     }
 
+    public boolean existService(Stage stage, String uid) {
+        String svcName = KubernetesResourceNaming.getServiceName(stage.getStageImage().name(), uid);
+
+        boolean exist = kubernetesClient.services()
+                .inNamespace("default")
+                .withName(svcName)
+                .get() != null;
+
+        LOGGER.info("[existService] name : {}", svcName);
+        return exist;
+    }
+
+    public boolean existPod(Stage stage, String uid) {
+        String podName = KubernetesResourceNaming.getServiceName(stage.getStageImage().name(), uid);
+
+        boolean exist = kubernetesClient.pods()
+                .inNamespace("default")
+                .withName(podName)
+                .get() != null;
+
+        LOGGER.info("[existPod] name : {}", podName);
+        return exist;
+    }
+
 }
