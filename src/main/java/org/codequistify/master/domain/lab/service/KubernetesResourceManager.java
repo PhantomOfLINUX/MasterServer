@@ -34,7 +34,7 @@ public class KubernetesResourceManager {
                 .resource(service)
                 .create();
 
-        LOGGER.info("[createServiceOnKubernetes] service: {}", service.getMetadata());
+        LOGGER.info("[createServiceOnKubernetes] service: {}", service.getMetadata().getName());
         return service;
     }
 
@@ -47,7 +47,7 @@ public class KubernetesResourceManager {
                 .resource(pod)
                 .create();
 
-        LOGGER.info("[createPodOnKubernetes] pod: {}", pod.getMetadata());
+        LOGGER.info("[createPodOnKubernetes] pod: {}", pod.getMetadata().getName());
         return pod;
     }
 
