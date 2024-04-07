@@ -7,11 +7,11 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.lab.factory.PodFactory;
 import org.codequistify.master.domain.lab.factory.ServiceFactory;
+import org.codequistify.master.domain.lab.utils.KubernetesResourceNaming;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.service.impl.StageServiceImpl;
 import org.codequistify.master.global.aspect.LogExecutionTime;
-import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.slf4j.Logger;
@@ -31,7 +31,7 @@ public class LabService {
 
     private final KubernetesClient kubernetesClient;
 
-    @LogMonitoring
+    @LogExecutionTime
     public void createStageOnKubernetes(Player player, Stage stage){
         String uid = player.getUid().toLowerCase();
 
@@ -42,12 +42,30 @@ public class LabService {
 
     }
 
-    @LogMonitoring
+    @LogExecutionTime
     public void deleteStageOnKubernetes(Player player, Stage stage) {
         String uid = player.getUid().toLowerCase();
 
         this.deletePodIfExists(stage, uid);
         this.deleteServiceIfExists(stage, uid);
+    }
+
+    @LogExecutionTime
+    public boolean existsStageOnKubernetes(Player player, Stage stage) {
+        String podName = KubernetesResourceNaming.getPodName(stage.getStageImage().name(), player.getUid());
+        String svcName = KubernetesResourceNaming.getServiceName(stage.getStageImage().name(), player.getUid());
+
+        boolean podExists = kubernetesClient.pods()
+                .inNamespace("default")
+                .withName(podName)
+                .get() != null;
+
+        boolean serviceExists = kubernetesClient.services()
+                .inNamespace("default")
+                .withName(svcName)
+                .get() != null;
+
+        return podExists || serviceExists;
     }
 
     @LogExecutionTime
@@ -78,7 +96,7 @@ public class LabService {
 
     @LogExecutionTime
     private void deletePodIfExists(Stage stage, String uid) {
-        String podName = stage.getStageImage().name().toLowerCase() + "-pod-" + uid;
+        String podName = KubernetesResourceNaming.getPodName(stage.getStageImage().name(), uid);
 
         List<StatusDetails> result = kubernetesClient.pods()
                 .inNamespace("default")
@@ -90,7 +108,7 @@ public class LabService {
 
     @LogExecutionTime
     private void deleteServiceIfExists(Stage stage, String uid) {
-        String svcName = stage.getStageImage().name().toLowerCase() + "-svc-" + uid;
+        String svcName = KubernetesResourceNaming.getServiceName(stage.getStageImage().name(), uid);
 
         List<StatusDetails> result = kubernetesClient.services()
                 .inNamespace("default")
@@ -101,12 +119,11 @@ public class LabService {
     }
 
     public boolean waitForResourceDeletion(Player player, Stage stage) {
-        String uid = player.getUid().toLowerCase();
         int threshold = 20;
         int retryCount = 0;
 
         while (retryCount < threshold) {
-            if (!resourceExists(stage, uid)) {
+            if (!existsStageOnKubernetes(player, stage)) {
                 LOGGER.info("[waitForResourceDeletion] {}번 시도", retryCount);
                 return true;  // 리소스가 더 이상 존재하지 않으면 삭제 성공
             }
@@ -122,26 +139,5 @@ public class LabService {
         return false;  // 최대 시도 횟수 도달 시 삭제 실패
     }
 
-
-    @LogExecutionTime
-    private boolean resourceExists(Stage stage, String uid) {
-        String podName = stage.getStageImage().name().toLowerCase() + "-pod-" + uid;
-        String svcName = stage.getStageImage().name().toLowerCase() + "-svc-" + uid;
-
-        // 포드 존재 여부 확인
-        boolean podExists = kubernetesClient.pods()
-                .inNamespace("default")
-                .withName(podName)
-                .get() != null;
-
-        // 서비스 존재 여부 확인
-        boolean serviceExists = kubernetesClient.services()
-                .inNamespace("default")
-                .withName(svcName)
-                .get() != null;
-
-        // 포드 또는 서비스가 존재하면 true 반환
-        return podExists || serviceExists;
-    }
 
 }
