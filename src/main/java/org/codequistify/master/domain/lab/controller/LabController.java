@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.lab.dto.PShellCreateResponse;
+import org.codequistify.master.domain.lab.dto.PShellExistsResponse;
 import org.codequistify.master.domain.lab.service.LabService;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.stage.domain.Stage;
@@ -14,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -31,9 +33,9 @@ public class LabController {
     private final Logger LOGGER = LoggerFactory.getLogger(LabController.class);
 
     @Operation(
-            summary = "가상 터미널 생성요청",
+            summary = "가상 터미널 (PShell) 생성요청",
             description = """
-                    :stage에 대한 터미널을 생성한다.
+                    :stage에 대한 터미널(PShell)을 생성한다.
                     
                     사용시에는 xHeaders 배열에 들어있는 헤더 값을 추가해서 connection 연결을 보내야한다.
                     """
@@ -44,11 +46,8 @@ public class LabController {
                                                             @PathVariable(name = "stage_id") Long stageId) {
         Stage stage = stageService.findStageById(stageId);
 
-        labService.deleteStageOnKubernetes(player, stage); // 기존에 워크로드가 존재할 경우 제거
-
-        if (labService.waitForResourceDeletion(player, stage)) {
-            labService.createStageOnKubernetes(player, stage); // 신규 PShell 생성
-        }
+        labService.deleteSyncStageOnKubernetes(player, stage); // 동기 삭제
+        labService.createStageOnKubernetes(player, stage);
 
         PShellCreateResponse response = PShellCreateResponse
                 .of(LAB_HOST, player.getUid(), stage.getStageImage().name().toLowerCase());
@@ -58,7 +57,52 @@ public class LabController {
                 .body(response);
     }
 
-    // 접속 가능한 주소 발급
+    // 접속 가능한 주소 조회
+    @Operation(
+            summary = "가상 터미널 (PShell) 접속 주소 - 헤더 조회",
+            description = """
+                    :stage에 대한 터미널(PShell)에 접속할 수 있는 헤더 정보를 조회한다.
+                    
+                    사용시에는 xHeaders 배열에 들어있는 헤더 값을 추가해서 connection 연결을 보내야한다.
+                    """
+    )
+    @GetMapping("lab/terminal/access-url/{stage_id}")
+    public ResponseEntity<PShellCreateResponse> getPShellAccessUrl(@AuthenticationPrincipal Player player,
+                                                                   @PathVariable(name = "stage_id") Long stageId) {
+        Stage stage = stageService.findStageById(stageId);
+
+        PShellCreateResponse response = PShellCreateResponse
+                .of(LAB_HOST, player.getUid(), stage.getStageImage().name().toLowerCase());
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
+
 
     // 현재 터미널 존재 여부 조회
+    @Operation(
+            summary = "기존 가상 터미널 (PShell) 존재여부 조회",
+            description = """
+                    :stage에 대한 기존 터미널(PShell)이 존재하는지를 확인한다.
+                    """
+    )
+    @GetMapping("/lab/terminal/existence/{stage_id}")
+    public ResponseEntity<PShellExistsResponse> checkPShellExistence(@AuthenticationPrincipal Player player,
+                                                                     @PathVariable(name = "stage_id") Long stageId) {
+        Stage stage = stageService.findStageById(stageId);
+
+        boolean stageExists = labService.existsStageOnKubernetes(player, stage);
+
+        PShellExistsResponse response = new PShellExistsResponse(
+                player.getUid(),
+                stageId,
+                stage.getStageImage().name(),
+                stageExists
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
 }
