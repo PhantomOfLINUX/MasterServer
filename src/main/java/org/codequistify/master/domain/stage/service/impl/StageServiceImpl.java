@@ -5,6 +5,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.dto.PlayerStageProgressResponse;
 import org.codequistify.master.domain.stage.convertoer.QuestionConverter;
 import org.codequistify.master.domain.stage.convertoer.StageConverter;
 import org.codequistify.master.domain.stage.domain.*;
@@ -167,6 +168,7 @@ public class StageServiceImpl implements StageService {
 
     // 스테이지 등록
     @Override
+    @Transactional
     public void recordStageComplete(Long stageId, Player player, CompletedStatus status) {
         Stage stage = stageRepository.findById(stageId)
                 .orElseThrow(() -> {
@@ -182,5 +184,17 @@ public class StageServiceImpl implements StageService {
         completedStage = completedStageRepository.save(completedStage);
         LOGGER.info("[recordStageComplete] player: {}, {} 클리어", player.getUid(), stageId);
 
+    }
+
+    @Override
+    @Transactional
+    public PlayerStageProgressResponse getCompletedStagesByPlayerId(Long playerId) {
+        return new PlayerStageProgressResponse(completedStageRepository.findCompletedStagesByPlayerId(playerId));
+    }
+
+    @Override
+    @Transactional
+    public PlayerStageProgressResponse getInProgressStagesByPlayerId(Long playerId) {
+        return new PlayerStageProgressResponse(completedStageRepository.findInProgressStagesByPlayerId(playerId));
     }
 }
