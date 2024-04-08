@@ -126,6 +126,12 @@ public class StageSearchServiceImpl implements StageSearchService {
         return new PlayerStageProgressResponse(completedStageRepository.findInProgressStagesByPlayerId(playerId));
     }
 
+    @Override // 수정일 기준 데이터 조회
+    @Transactional
+    public List<HeatMapDataPoint> getHeatMapDataPointsByModifiedDate(Long playerId) {
+        return completedStageRepository.countDataByModifiedDate(playerId);
+    }
+
     @Override // 입력 쿼리를 기반으로 일치하는 문제 조건 검색
     @Transactional
     @LogMonitoring

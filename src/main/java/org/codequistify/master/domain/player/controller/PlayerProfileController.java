@@ -9,6 +9,7 @@ import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.dto.PlayerStageProgressResponse;
 import org.codequistify.master.domain.player.service.PlayerProfileService;
 import org.codequistify.master.domain.stage.domain.CompletedStatus;
+import org.codequistify.master.domain.stage.dto.HeatMapDataPoint;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
@@ -72,6 +73,15 @@ public class PlayerProfileController {
         if (status.equals(CompletedStatus.IN_PROGRESS)) {
             response = playerProfileService.getInProgressStagesByPlayerId(player);
         }
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
+
+    @GetMapping("me/heat-map")
+    public ResponseEntity<List<HeatMapDataPoint>> getHeatMapPointsForPlayer(@AuthenticationPrincipal Player player) {
+        List<HeatMapDataPoint> response = playerProfileService.getHeatMapDataPointsByModifiedDate(player);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

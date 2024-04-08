@@ -6,12 +6,13 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.global.util.BaseTimeEntity;
 
 @ToString(exclude = "stage")
 @Getter
 @Entity
 @Table(name = "completed_stage")
-public class CompletedStage {
+public class CompletedStage extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
