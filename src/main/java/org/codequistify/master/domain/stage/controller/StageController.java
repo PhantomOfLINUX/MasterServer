@@ -44,20 +44,26 @@ public class StageController {
             description = """
                     - 스테이지 목록을 페이지 단위로 조회합니다.
 
-                    - 검색가능 조건은 다음과 같습니다. *'스테이지 분류', '세부 난이도', '풀이 여부'*
+                    - 검색가능 조건은 다음과 같습니다. *'스테이지 분류', '세부 난이도', '풀이 여부', '검색 텍스트 포함'*
                     
-                    풀이여부
+                    *풀이여부*
+                    - completedStatus 와 일치하는 상태를 가지는 문제를 필터링합니다.
                     - "COMPLETED" : 풀이완료
                     - "NOT_COMPLETED" : 미풀이
                     - "IN_PROGRESS" : 풀이 진행중
                     
-                    스테이지 분류
+                    *스테이지 분류*
+                    - stageGroupTypes 과 일치하는 타입을 가지는 문제를 필터링합니다.
                     - "BASIC_PROBLEMS" : 기본문제
                     - "ADVANCED_PROBLEMS" : 심화문제
                     - "MOCK_TESTS" : 모의고사
                     
-                    세부난이도
+                    *세부난이도*
+                    - difficultLevels 배열안에 있는 난이도를 가지는 문제를 필터링합니다.
                     - "L1", "L2", "L3", "L4", "L5"
+                    
+                    *텍스트 검색*
+                    - searchText 가 'title', 'description', 'stageCode' 중 일치하는 문제를 필터링합니다
 
                     """
     )
