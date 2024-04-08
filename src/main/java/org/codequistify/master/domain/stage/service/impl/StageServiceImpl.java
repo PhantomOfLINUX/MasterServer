@@ -2,6 +2,8 @@ package org.codequistify.master.domain.stage.service.impl;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
@@ -48,11 +50,12 @@ public class StageServiceImpl implements StageService {
         stage = stageRepository.save(stage);
     }
 
-    @Override
+    @Override // 입력 쿼리를 기반으로 일치하는 문제 조건 검색
     @Transactional
     @LogMonitoring
     public StagePageResponse findStagesByCriteria(SearchCriteria searchCriteria, Player player) {
-        PageRequest pageRequest = PageRequest.of(searchCriteria.getPage_index() - 1, searchCriteria.getPage_size());
+        PageRequest pageRequest = PageRequest
+                .of(searchCriteria.getPage_index() - 1, searchCriteria.getPage_size());
 
         QStage qStage = QStage.stage;
         QCompletedStage qCompletedStage = QCompletedStage.completedStage;
@@ -80,9 +83,20 @@ public class StageServiceImpl implements StageService {
             }
         }
 
+        // searchText 조건 적용
+        if (searchCriteria.getSearchText() != null && !searchCriteria.getSearchText().isBlank()) {
+            BooleanExpression descriptionContains = qStage.description.contains(searchCriteria.getSearchText());
+            BooleanExpression titleContains = qStage.title.contains(searchCriteria.getSearchText());
+            BooleanExpression stageImageContains = Expressions.stringTemplate("cast({0} as string)", qStage.stageImage)
+                    .contains(searchCriteria.getSearchText());
+
+            whereClause.and(descriptionContains.or(titleContains).or(stageImageContains));
+        }
+
         List<StageResponse> results = queryFactory
                 .select(Projections.constructor(StageResponse.class,
                         qStage.id,
+                        Expressions.stringTemplate("cast({0} as string)", qStage.stageImage),
                         qStage.title,
                         qStage.description,
                         qStage.stageGroup,

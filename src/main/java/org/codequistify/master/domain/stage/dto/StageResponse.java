@@ -6,6 +6,7 @@ import org.codequistify.master.domain.stage.domain.StageGroupType;
 
 public record StageResponse(
         Long id,
+        String stageCode,
         String title,
         String description,
         StageGroupType stageGroupType,
