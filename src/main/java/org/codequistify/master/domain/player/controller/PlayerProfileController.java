@@ -80,6 +80,10 @@ public class PlayerProfileController {
     }
 
     @GetMapping("me/heat-map")
+    @Operation(
+            summary = "자신의 문제풀이 heatmap 정보 조회",
+            description = "자신의 문제풀이 내역에 대한 heatmap 정보를 조회한다"
+    )
     public ResponseEntity<List<HeatMapDataPoint>> getHeatMapPointsForPlayer(@AuthenticationPrincipal Player player) {
         List<HeatMapDataPoint> response = playerProfileService.getHeatMapDataPointsByModifiedDate(player);
 
