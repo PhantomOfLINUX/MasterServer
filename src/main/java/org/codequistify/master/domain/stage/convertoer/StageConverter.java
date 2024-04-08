@@ -42,12 +42,12 @@ public class StageConverter {
     public StageResponse convert(Stage stage) {
         return new StageResponse(
                 stage.getId(),
+                stage.getStageImage().name(),
                 stage.getTitle(),
                 stage.getDescription(),
                 stage.getStageGroup(),
                 stage.getDifficultyLevel(),
-                stage.getQuestionCount(),
-                null);
+                stage.getQuestionCount(), null);
     }
 
     public List<StageResponse> convert(List<Stage> stages) {
