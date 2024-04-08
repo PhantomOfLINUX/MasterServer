@@ -8,7 +8,7 @@ import org.codequistify.master.domain.lab.dto.PShellExistsResponse;
 import org.codequistify.master.domain.lab.service.LabService;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.stage.domain.Stage;
-import org.codequistify.master.domain.stage.service.impl.StageServiceImpl;
+import org.codequistify.master.domain.stage.service.impl.StageSearchServiceImpl;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Lab")
 public class LabController {
     private final LabService labService;
-    private final StageServiceImpl stageService;
+    private final StageSearchServiceImpl stageSearchService;
 
     private final String DEPLOY_HOST = "ws://ec2-13-125-76-129.ap-northeast-2.compute.amazonaws.com";
     private final String LAB_HOST = "wss://lab.pol.or.kr";
@@ -46,7 +46,7 @@ public class LabController {
     @PostMapping("lab/terminal/stage/{stage_id}")
     public ResponseEntity<PShellCreateResponse> applyPShell(@AuthenticationPrincipal Player player,
                                                             @PathVariable(name = "stage_id") Long stageId) {
-        Stage stage = stageService.findStageById(stageId);
+        Stage stage = stageSearchService.getStageById(stageId);
 
         labService.deleteSyncStageOnKubernetes(player, stage); // 동기 삭제
         labService.createStageOnKubernetes(player, stage);
@@ -71,7 +71,7 @@ public class LabController {
     @GetMapping("lab/terminal/access-url/{stage_id}")
     public ResponseEntity<PShellCreateResponse> getPShellAccessUrl(@AuthenticationPrincipal Player player,
                                                                    @PathVariable(name = "stage_id") Long stageId) {
-        Stage stage = stageService.findStageById(stageId);
+        Stage stage = stageSearchService.getStageById(stageId);
 
         PShellCreateResponse response = PShellCreateResponse
                 .of(LAB_HOST, player.getUid(), stage.getStageImage().name().toLowerCase());
@@ -92,7 +92,7 @@ public class LabController {
     @GetMapping("/lab/terminal/existence/{stage_id}")
     public ResponseEntity<PShellExistsResponse> checkPShellExistence(@AuthenticationPrincipal Player player,
                                                                      @PathVariable(name = "stage_id") Long stageId) {
-        Stage stage = stageService.findStageById(stageId);
+        Stage stage = stageSearchService.getStageById(stageId);
 
         boolean stageExists = labService.existsStageOnKubernetes(player, stage);
 
