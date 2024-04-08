@@ -22,4 +22,6 @@ public class SearchCriteria {
     private List<DifficultyLevelType> difficultyLevels = new ArrayList<>();
 
     private CompletedStatus completed;
+
+    private String searchText;
 }
