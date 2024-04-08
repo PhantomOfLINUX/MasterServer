@@ -5,6 +5,7 @@ import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.UpdatePasswordRequest;
 import org.codequistify.master.domain.player.repository.PlayerRepository;
+import org.codequistify.master.domain.stage.service.StageService;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
@@ -24,6 +25,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class PlayerDetailsService implements UserDetailsService {
     private final PlayerRepository playerRepository;
+    private final StageService stageService;
 
     private final Logger LOGGER = LoggerFactory.getLogger(PlayerDetailsService.class);
 

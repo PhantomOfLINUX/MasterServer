@@ -1,6 +1,7 @@
 package org.codequistify.master.domain.stage.service;
 
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.dto.PlayerStageProgressResponse;
 import org.codequistify.master.domain.stage.domain.CompletedStatus;
 import org.codequistify.master.domain.stage.dto.*;
 
@@ -18,4 +19,9 @@ public interface StageService {
     // 스테이지 수정
     // 스테이지 문항 수정
     // 스테이지 옵션 수정
+
+    PlayerStageProgressResponse getCompletedStagesByPlayerId(Long playerId);
+    PlayerStageProgressResponse getInProgressStagesByPlayerId(Long playerId);
+
+
 }
