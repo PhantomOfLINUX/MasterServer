@@ -6,6 +6,7 @@ import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.dto.QuestionResponse;
 import org.codequistify.master.domain.stage.dto.SearchCriteria;
 import org.codequistify.master.domain.stage.dto.StagePageResponse;
+import org.codequistify.master.domain.stage.dto.StageResponse;
 
 public interface StageSearchService {
     // 스테이지 조회
@@ -22,4 +23,8 @@ public interface StageSearchService {
 
     // 진행중인 스테이지 목록 조회
     PlayerStageProgressResponse getInProgressStagesByPlayerId(Long playerId);
+
+    //preview 메서드
+    StageResponse getStageByChoCho(String src);
+    StageResponse getStageBySearchText(String searchText);
 }

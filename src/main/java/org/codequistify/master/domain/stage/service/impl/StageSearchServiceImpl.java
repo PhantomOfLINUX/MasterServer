@@ -5,6 +5,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerStageProgressResponse;
@@ -16,6 +17,7 @@ import org.codequistify.master.domain.stage.repository.CompletedStageRepository;
 import org.codequistify.master.domain.stage.repository.QuestionRepository;
 import org.codequistify.master.domain.stage.repository.StageRepository;
 import org.codequistify.master.domain.stage.service.StageSearchService;
+import org.codequistify.master.domain.stage.utils.HangulExtractor;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
@@ -66,6 +68,50 @@ public class StageSearchServiceImpl implements StageSearchService {
 
         LOGGER.info("[findQuestion] 문항 조회, id: {}, index: {}", stageId, questionIndex);
         return response;
+    }
+
+    public StageResponse getStageByChoCho(String query) {
+        HangulExtractor hangulExtractor = new HangulExtractor();
+        String choSrc = hangulExtractor.extractChoseongs(query);
+
+        //int index = 1;
+        //PageRequest pageRequest = PageRequest.of(index, 10);
+
+        return stageConverter.convert(
+                stageRepository.findAll().stream().parallel()
+                        .filter(stage -> {
+                            if (hangulExtractor.containsByChoseong(stage.getTitle(), choSrc)) {
+                                return true;
+                            }
+                            if (hangulExtractor.containsByChoseong(stage.getDescription(), choSrc)) {
+                                return true;
+                            }
+                            return false;
+                        }).findAny()
+                        .orElseThrow(() -> new EntityNotFoundException())
+        );
+    }
+
+    public StageResponse getStageBySearchText(String query) {
+        return stageConverter.convert(
+                stageRepository.findAll().stream().parallel()
+                        .filter(stage -> {
+                            if (stage.getTitle().toLowerCase()
+                                    .contains(query.toLowerCase())) {
+                                return true;
+                            }
+                            if (stage.getDescription().toLowerCase()
+                                    .contains(query.toLowerCase())) {
+                                return true;
+                            }
+                            if (stage.getStageImage().name().toLowerCase()
+                                    .contains(query.toLowerCase())) {
+                                return true;
+                            }
+                            return false;
+                        }).findAny()
+                        .orElseThrow(() -> new EntityNotFoundException())
+        );
     }
 
     @Override // 완료 스테이지 조회

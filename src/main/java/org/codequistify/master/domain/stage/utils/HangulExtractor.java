@@ -2,12 +2,12 @@ package org.codequistify.master.domain.stage.utils;
 
 import java.util.List;
 
-public class HangulChoseongExtractor {
-    private final static List<Character> choseongs = List
+public class HangulExtractor {
+    public final static List<Character> choseongs = List
             .of('ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ');
     private final static int JUNGSEONGS_COUNT = 21;
     private final static int JONGSEONGS_COUNT = 28;
-    public String extractChoseong(String src) {
+    public String extractChoseongs(String src) {
         StringBuilder sb = new StringBuilder();
 
         for (Character ch : src.toCharArray()) {
@@ -23,6 +23,17 @@ public class HangulChoseongExtractor {
 
         System.out.println(sb.toString());
         return sb.toString();
+    }
+
+    public boolean equalsByChoseong(String str, String choseongs) {
+        return this.extractChoseongs(str).equals(choseongs);
+    }
+
+    public boolean containsByChoseong(String str, String choseongs) {
+        if (str.length() > choseongs.length()) {
+            return this.extractChoseongs(str).contains(choseongs);
+        }
+        return choseongs.contains(this.extractChoseongs(str));
     }
 
     private boolean isHangul(Character ch) {
