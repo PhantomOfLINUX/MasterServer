@@ -8,6 +8,7 @@ import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.dto.*;
 import org.codequistify.master.domain.stage.service.StageService;
+import org.codequistify.master.domain.stage.utils.HangulChoseongExtractor;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.util.BasicResponse;
 import org.slf4j.Logger;
@@ -127,4 +128,15 @@ public class StageController {
     // 스테이지 문항 수정
 
     // 스테이지 옵션 수정
+
+    // 초성 검색
+    @GetMapping("/chocho")
+    public ResponseEntity<HangulChoseongExtractor.ChoCho> HangulQuery(@RequestParam String src) {
+        HangulChoseongExtractor hangulChoseongExtractor = new HangulChoseongExtractor();
+        HangulChoseongExtractor.ChoCho response = new HangulChoseongExtractor
+                .ChoCho(hangulChoseongExtractor
+                .extractChoseong(src));
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 }
