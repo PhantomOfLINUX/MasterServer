@@ -20,7 +20,7 @@ public class SwaggerConfig {
     @Value("${host.api.server}")
     private String DEVELOP_HOST;
 
-    @Value("${app.version}:v0.0.1")
+    @Value("${app.version:v0.0.1}")
     private String APP_VERSION;
 
     @Bean
