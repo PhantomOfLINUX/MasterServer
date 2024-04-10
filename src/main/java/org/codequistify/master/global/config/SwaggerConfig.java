@@ -14,8 +14,8 @@ import java.util.Collections;
 
 @Configuration
 public class SwaggerConfig {
-//    @Value("${host.deploy.api.server}")
-//    private String DEPLOY_HOST;
+    @Value("${host.deploy.api.server}")
+    private String DEPLOY_HOST;
 
     @Value("${host.api.server}")
     private String DEVELOP_HOST;
@@ -34,9 +34,9 @@ public class SwaggerConfig {
                 .url(DEVELOP_HOST)
                 .description("Develop server");
 
-//        Server deploy = new Server()
-//                .url(DEPLOY_HOST)
-//                .description("Deploy server");
+        Server deploy = new Server()
+                .url(DEPLOY_HOST)
+                .description("Deploy server");
 
         SecurityScheme securityScheme = new SecurityScheme()
                 .type(SecurityScheme.Type.HTTP)
@@ -49,7 +49,7 @@ public class SwaggerConfig {
 
         return new OpenAPI()
                 .addServersItem(develop)
-//                .addServersItem(deploy)
+                .addServersItem(deploy)
                 .info(info)
                 .components(new Components().addSecuritySchemes("Authorization", securityScheme))
                 .security(Collections.singletonList(securityRequirement));
