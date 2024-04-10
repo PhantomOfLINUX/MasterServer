@@ -70,4 +70,4 @@ jobs:
 
       - name: Deploy to GKE
         run: |
-          kubectl set image deployment/pol-back pol-back=polhub/pol-back:${{ github.sha }}
+          kubectl set image deployment/pol-back pol-back=${{ secrets.DOCKERHUB_ORGNIZATIONS }}/pol-back:${{ github.sha }} --record
