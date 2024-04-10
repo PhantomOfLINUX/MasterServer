@@ -14,26 +14,29 @@ import java.util.Collections;
 
 @Configuration
 public class SwaggerConfig {
-    @Value("${host.deploy.api.server}")
-    private String DEPLOY_HOST;
+//    @Value("${host.deploy.api.server}")
+//    private String DEPLOY_HOST;
 
-    @Value("${host.develop.api.server}")
+    @Value("${host.api.server}")
     private String DEVELOP_HOST;
+
+    @Value("${app.version}:v0.0.1")
+    private String APP_VERSION;
 
     @Bean
     public OpenAPI openAPI() {
         Info info = new Info()
                 .title("POL Master Server")
                 .description("POL의 마스터 서버 API 정보 명세서입니다.")
-                .version("v0.0.1");
+                .version(APP_VERSION);
 
         Server develop = new Server()
                 .url(DEVELOP_HOST)
                 .description("Develop server");
 
-        Server deploy = new Server()
-                .url(DEPLOY_HOST)
-                .description("Deploy server");
+//        Server deploy = new Server()
+//                .url(DEPLOY_HOST)
+//                .description("Deploy server");
 
         SecurityScheme securityScheme = new SecurityScheme()
                 .type(SecurityScheme.Type.HTTP)
@@ -46,7 +49,7 @@ public class SwaggerConfig {
 
         return new OpenAPI()
                 .addServersItem(develop)
-                .addServersItem(deploy)
+//                .addServersItem(deploy)
                 .info(info)
                 .components(new Components().addSecuritySchemes("Authorization", securityScheme))
                 .security(Collections.singletonList(securityRequirement));
