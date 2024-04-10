@@ -18,6 +18,9 @@ jobs:
           echo "${{ secrets.APPLICATION_MAIL }}" > src/main/resources/application-mail.properties
           echo "${{ secrets.APPLICATION_SECURITY }}" > src/main/resources/application-security.properties
           echo "${{ secrets.APPLICATION_HOST }}" > src/main/resources/application-host.properties
+          export HOST_API_SERVER="${{ secrets.HOST_API_SERVER }}"
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c 1-7)
+          export APP_VERSION=$SHORT_SHA
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
