@@ -26,7 +26,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/plyers")
+@RequestMapping("/api/players")
 @Tag(name = "Player")
 public class PlayerProfileController {
     private final PlayerProfileService playerProfileService;
