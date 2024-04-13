@@ -47,15 +47,17 @@ public class StageManagementServiceImpl implements StageManagementService {
     @Override
     @Transactional
     public GradingResponse checkAnswerCorrectness(GradingRequest request) {
-        Question question = questionRepository.findById(request.questionId())
+        Question question = questionRepository.findByStageIdAndIndex(request.stageId(), request.questionIndex())
                 .orElseThrow(() -> {
-                    LOGGER.info("");
-                    return new BusinessException(ErrorCode.UNKNOWN, HttpStatus.BAD_REQUEST);
+                    LOGGER.info("[checkAnswerCorrectness] {}, id: {}, index: {}",
+                            ErrorCode.QUESTION_NOT_FOUND.getMessage(), request.stageId(), request.questionIndex());
+                    return new BusinessException(ErrorCode.QUESTION_NOT_FOUND, HttpStatus.NOT_FOUND);
                 });
 
         String correctAnswer = question.getCorrectAnswer();
         boolean isCorrect = correctAnswer.equalsIgnoreCase(request.answer());
-        boolean isLast = !questionRepository.existsByIndex(request.questionIndex() + 1);
+        boolean isLast = !questionRepository
+                .existsByStageIdAndIndex(request.stageId(), request.questionIndex() + 1);
         int nextIndex = isLast ? -1 : request.questionIndex() + 1;
 
         return new GradingResponse(
@@ -68,22 +70,74 @@ public class StageManagementServiceImpl implements StageManagementService {
     // 스테이지 등록
     @Override
     @Transactional
-    public void recordStageComplete(Long stageId, Player player, CompletedStatus status) {
-        Stage stage = stageRepository.findById(stageId)
+    public void recordStageComplete(Player player, Long stageId) {
+        if (!completedStageRepository.existsByPlayerIdAndStageId(player.getId(), stageId)) {
+            Stage stage = stageRepository.findById(stageId)
+                    .orElseThrow(() -> {
+                        LOGGER.info("[recordStageComplete] {}}, stage: {}",
+                                ErrorCode.STAGE_NOT_FOUND.getMessage(), stageId);
+                        return new BusinessException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND);
+                    });
+
+            CompletedStage completedStage = CompletedStage.builder()
+                    .player(player)
+                    .stage(stage)
+                    .status(CompletedStatus.COMPLETED).build();
+            completedStage.updateQuestionIndex(stage.getQuestionCount());
+
+            completedStage = completedStageRepository.save(completedStage);
+            LOGGER.info("[recordStageComplete] player: {}, {} 클리어", player.getUid(), stageId);
+        }
+
+        CompletedStage completedStage = completedStageRepository
+                .findByPlayerIdAndStageId(player.getId(), stageId)
+                .orElseThrow(()->{
+                    LOGGER.info("[updateInProgressStage] {}, stage: {}",
+                            ErrorCode.STAGE_PROGRESS_NOT_FOUND.getMessage(), stageId);
+                    return new BusinessException(ErrorCode.STAGE_PROGRESS_NOT_FOUND, HttpStatus.NOT_FOUND);
+                });
+
+        completedStage.updateCompleted();
+        completedStage = completedStageRepository.save(completedStage);
+        LOGGER.info("[recordStageComplete] player: {}, {} 클리어", player.getUid(), stageId);
+    }
+
+
+    @Transactional
+    public void recordInProgressStageInit(Player player, GradingRequest request) {
+        Stage stage = stageRepository.findById(request.stageId())
                 .orElseThrow(() -> {
-                    LOGGER.info("[recordStageComplete] 등록되지 않은 stage에 대한 등록, stage: {}", stageId);
+                    LOGGER.info("[recordStageComplete] {}, stage: {}",
+                            ErrorCode.STAGE_NOT_FOUND.getMessage(), request.stageId());
                     return new BusinessException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND);
                 });
 
         CompletedStage completedStage = CompletedStage.builder()
                 .player(player)
                 .stage(stage)
-                .status(status).build();
+                .status(CompletedStatus.IN_PROGRESS).build();
 
-        completedStage = completedStageRepository.save(completedStage);
-        LOGGER.info("[recordStageComplete] player: {}, {} 클리어", player.getUid(), stageId);
-
+        completedStageRepository.save(completedStage);
+        LOGGER.info("[recordInProgressStageInit] 풀이 시작 기록 stage: {}, index: {}",
+                request.stageId(), request.questionIndex());
     }
+
+    @Transactional
+    public void updateInProgressStage(Player player, GradingRequest request) {
+        CompletedStage completedStage = completedStageRepository
+                .findByPlayerIdAndStageId(player.getId(), request.stageId())
+                .orElseThrow(()->{
+                    LOGGER.info("[updateInProgressStage] {}, stage: {}",
+                            ErrorCode.STAGE_PROGRESS_NOT_FOUND.getMessage(), request.stageId());
+                    return new BusinessException(ErrorCode.STAGE_PROGRESS_NOT_FOUND, HttpStatus.NOT_FOUND);
+                });
+
+        completedStage.updateQuestionIndex(request.questionIndex());
+        completedStageRepository.save(completedStage);
+        LOGGER.info("[updateInProgressStage] 진행정도 업데이트 stage: {}, index: {}",
+                request.stageId(), request.questionIndex());
+    }
+
 
 
 }

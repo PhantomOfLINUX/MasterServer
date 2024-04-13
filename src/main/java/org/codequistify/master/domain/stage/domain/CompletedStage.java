@@ -30,6 +30,20 @@ public class CompletedStage extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private CompletedStatus status;
 
+    @Column(name = "question_index", columnDefinition = "0")
+    private Integer questionIndex = 0;
+
+    public void updateQuestionIndex(Integer questionIndex) {
+        this.questionIndex = questionIndex;
+    }
+
+    public void updateCompleted() {
+        if (!status.equals(CompletedStatus.IN_PROGRESS)) {
+            return;
+        }
+        this.status = CompletedStatus.COMPLETED;
+    }
+
     @Builder
     public CompletedStage(Player player, Stage stage, CompletedStatus status) {
         this.player = player;
