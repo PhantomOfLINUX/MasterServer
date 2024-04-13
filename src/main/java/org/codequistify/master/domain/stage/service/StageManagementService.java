@@ -1,7 +1,6 @@
 package org.codequistify.master.domain.stage.service;
 
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.stage.domain.CompletedStatus;
 import org.codequistify.master.domain.stage.dto.GradingRequest;
 import org.codequistify.master.domain.stage.dto.GradingResponse;
 import org.codequistify.master.domain.stage.dto.StageRegistryRequest;
@@ -14,7 +13,14 @@ public interface StageManagementService {
     GradingResponse checkAnswerCorrectness(GradingRequest request);
 
     // 풀이 완료 기록
-    void recordStageComplete(Long stageId, Player player, CompletedStatus status);
+    void recordStageComplete(Player player, Long stageId);
+
+    // 풀이 시작 기록
+    void recordInProgressStageInit(Player player, GradingRequest request);
+
+    // 문제 풀이 정보 기록
+    public void updateInProgressStage(Player player, GradingRequest request);
+
 
     // 스테이지 수정
     // 스테이지 문항 수정

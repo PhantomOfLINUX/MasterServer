@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CompletedStageRepository extends JpaRepository<CompletedStage, Long> {
@@ -28,4 +29,8 @@ public interface CompletedStageRepository extends JpaRepository<CompletedStage, 
             "WHERE cs.player.id = :playerId " +
             "GROUP BY DATE(cs.modifiedDate)")
     List<HeatMapDataPoint> countDataByModifiedDate(@Param("playerId") Long playerId);
+
+    Optional<CompletedStage> findByPlayerIdAndStageId(Long playerId, Long stageId);
+
+    boolean existsByPlayerIdAndStageId(Long playerId, Long stageId);
 }

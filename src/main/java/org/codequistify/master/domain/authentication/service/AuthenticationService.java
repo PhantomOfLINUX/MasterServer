@@ -9,6 +9,7 @@ import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.service.PlayerDetailsService;
+import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
@@ -137,7 +138,7 @@ public class AuthenticationService {
         return new TokenResponse(request.refreshToken(), accessToken);
     }
 
-    @LogMonitoring
+    @LogExecutionTime
     public TokenInfo analyzeTokenInfo(String token) {
         Claims claims = tokenProvider.getClaims(token);
         if (claims == null) {

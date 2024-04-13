@@ -1,7 +1,7 @@
 package org.codequistify.master.domain.stage.dto;
 
 public record GradingRequest(
-        String questionId,
+        Long stageId,
         Integer questionIndex,
         String answer
 ) {

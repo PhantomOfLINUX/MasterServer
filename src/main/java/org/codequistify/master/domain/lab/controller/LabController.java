@@ -9,6 +9,7 @@ import org.codequistify.master.domain.lab.service.LabService;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.service.impl.StageSearchServiceImpl;
+import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +70,7 @@ public class LabController {
                     """
     )
     @GetMapping("lab/terminal/access-url/{stage_id}")
+    @LogMonitoring
     public ResponseEntity<PShellCreateResponse> getPShellAccessUrl(@AuthenticationPrincipal Player player,
                                                                    @PathVariable(name = "stage_id") Long stageId) {
         Stage stage = stageSearchService.getStageById(stageId);
@@ -89,6 +91,7 @@ public class LabController {
                     :stage에 대한 기존 터미널(PShell)이 존재하는지를 확인한다.
                     """
     )
+    @LogExecutionTime
     @GetMapping("/lab/terminal/existence/{stage_id}")
     public ResponseEntity<PShellExistsResponse> checkPShellExistence(@AuthenticationPrincipal Player player,
                                                                      @PathVariable(name = "stage_id") Long stageId) {

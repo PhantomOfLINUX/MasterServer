@@ -9,7 +9,6 @@ import org.codequistify.master.domain.stage.dto.GradingResponse;
 import org.codequistify.master.domain.stage.dto.StageCompletionRequest;
 import org.codequistify.master.domain.stage.dto.StageRegistryRequest;
 import org.codequistify.master.domain.stage.service.StageManagementService;
-import org.codequistify.master.domain.stage.service.StageSearchService;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.util.BasicResponse;
 import org.slf4j.Logger;
@@ -25,12 +24,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api")
 public class StageManagementController {
     private final StageManagementService stageManagementService;
-    private final StageSearchService stageSearchService;
     private final Logger LOGGER = LoggerFactory.getLogger(StageManagementController.class);
 
     // 스테이지 등록
     @Operation(summary = "스테이지 신규 등록", description = "스테이지 신규 등록")
-    @PostMapping("stage")
+    @PostMapping("stages")
     @LogMonitoring
     public ResponseEntity<BasicResponse> registryStage(@RequestBody StageRegistryRequest request) {
         stageManagementService.saveStage(request);
@@ -48,10 +46,16 @@ public class StageManagementController {
     )
     @LogMonitoring
     @PostMapping("questions/grading")
-    public ResponseEntity<GradingResponse> submitAnswerForGrading(@RequestBody GradingRequest request) {
+    public ResponseEntity<GradingResponse> submitAnswerForGrading(@AuthenticationPrincipal Player player,
+                                                                  @RequestBody GradingRequest request) {
+
         GradingResponse response = stageManagementService.checkAnswerCorrectness(request);
         if (response.isCorrect()) {
+            stageManagementService.updateInProgressStage(player, request);
             return ResponseEntity.status(HttpStatus.OK).body(response);
+        }
+        if (request.questionIndex() == 1) { // 첫문제인 경우 진행 시작 기록
+            stageManagementService.recordInProgressStageInit(player, request);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
@@ -64,7 +68,7 @@ public class StageManagementController {
                                                        @PathVariable Long stageId,
                                                        @RequestBody StageCompletionRequest request) {
 
-        stageManagementService.recordStageComplete(stageId, player, request.status());
+        stageManagementService.recordStageComplete(player, stageId);
 
         BasicResponse response = BasicResponse.of("SUCCESS");
         return ResponseEntity.status(HttpStatus.OK).body(response);

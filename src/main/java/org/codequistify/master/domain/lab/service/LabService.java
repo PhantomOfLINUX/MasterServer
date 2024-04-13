@@ -56,16 +56,17 @@ public class LabService {
                 retryCount++;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                LOGGER.info("[deleteSyncStageOnKubernetes] 인터럽트 오류 발생");
                 throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
     }
 
-    @LogExecutionTime
     public boolean existsStageOnKubernetes(Player player, Stage stage) {
         boolean podExists = kubernetesResourceManager.existsPod(stage, player.getUid());
         boolean serviceExists = kubernetesResourceManager.existsService(stage, player.getUid());
 
+        LOGGER.info("[existsStageOnKubernetes] pod: {}, svc: {}", podExists, serviceExists);
         return podExists && serviceExists;
     }
 
