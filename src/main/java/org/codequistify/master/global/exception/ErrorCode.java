@@ -31,6 +31,7 @@ public enum ErrorCode {
     // 스테이지 관련 오류
     STAGE_NOT_FOUND("존재하지 않는 단계입니다.", "4501_STAGE_NOT_FOUND_ERROR"),
     QUESTION_NOT_FOUND("존재하지 않는 문항입니다.", "4502_QUESTION_NOT_FOUND_ERROR"),
+    STAGE_PROGRESS_NOT_FOUND("진행 상황이 존재하지 않습니다.", "4503_TAGE_PROGRESS_NOT_FOUND_ERROR"),
     // 터미널 관련 오류
     INVALID_HEADER("올바르지 않은 헤더 정보입니다.", "4601_INVALID_HEADER_ERROR"),
     PSHELL_NOT_FOUND("존재하지 PShell 정보입니다", "4602_PSHELL_NOT_FOUND"),

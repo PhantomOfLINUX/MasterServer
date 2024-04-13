@@ -70,10 +70,8 @@ public class Stage extends BaseTimeEntity {
         this.questions = questions.stream()
                 .peek(question -> {
                     String id = "Q" +
-                            String.format("%03d", this.code) +
-                            "-" +
+                            (this.getStageImage().name().substring(1)) +
                             String.format("%03d", question.getIndex()) +
-                            "-" +
                             question.getAnswerType().getCode();
                     question.setQuestionId(id);
                     question.addStage(this);

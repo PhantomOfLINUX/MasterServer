@@ -8,7 +8,7 @@ import java.util.Optional;
 
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, String> {
-    boolean existsByIndex(int questionIndex);
+    boolean existsByStageIdAndIndex(Long stageId, int questionIndex);
 
     Optional<Question> findByStageIdAndIndex(Long stageId, Integer questionIndex);
 }

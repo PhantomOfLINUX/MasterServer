@@ -13,6 +13,7 @@ import org.codequistify.master.domain.stage.dto.StageResponse;
 import org.codequistify.master.domain.stage.service.StageManagementService;
 import org.codequistify.master.domain.stage.service.StageSearchService;
 import org.codequistify.master.domain.stage.utils.HangulExtractor;
+import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +59,7 @@ public class StageSearchController {
 
                     """
     )
-    @LogMonitoring
+    @LogExecutionTime
     @GetMapping("stages")
     public ResponseEntity<StagePageResponse> findAllStagesByCriteria(@AuthenticationPrincipal Player player,
                                                                      @Valid @ModelAttribute SearchCriteria searchCriteria) {
@@ -75,7 +76,7 @@ public class StageSearchController {
     @LogMonitoring
     @GetMapping("stages/{stage_id}/questions/{question_index}")
     public ResponseEntity<QuestionResponse> getQuestionByStage(@PathVariable(name = "stage_id") Long stageId,
-                                                @PathVariable(name = "question_index") Integer questionIndex) {
+                                                               @PathVariable(name = "question_index") Integer questionIndex) {
         QuestionResponse response = stageSearchService.findQuestion(stageId, questionIndex);
 
         LOGGER.info("[getQuestionByStage] 문제 조회 완료 id: {}, index: {}", stageId, questionIndex);

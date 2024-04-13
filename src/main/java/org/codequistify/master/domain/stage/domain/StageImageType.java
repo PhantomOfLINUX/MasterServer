@@ -4,10 +4,10 @@ import lombok.Getter;
 
 @Getter
 public enum StageImageType {
-    STAGE01("polhub/stage01-ls", "v1"),
-    STAGE02("polhub/stage02-cd-pwd", "latest"),
-    STAGE03("jeongrae/socket","latest"),
-    STAGE00("","");
+    S1001("polhub/stage01-ls", "v1"),
+    S1002("polhub/stage02-cd-pwd", "latest"),
+    S1003("jeongrae/socket","latest"),
+    S0000("","");
 
     private final String image;
     private final String tag;
