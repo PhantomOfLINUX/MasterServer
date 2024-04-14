@@ -2,6 +2,7 @@ package org.codequistify.master.domain.stage.domain;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.codequistify.master.global.util.BaseTimeEntity;
 
@@ -14,7 +15,13 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "question", indexes = @Index(name = "idx_question_id", columnList = "id"))
+@Table(name = "question",
+        indexes = {
+                @Index(name = "idx_stageid_questionindex", columnList = "stage_id, question_index")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uc_stageid_questionindex", columnNames = {"stage_id", "question_index"})
+        })
 public class Question extends BaseTimeEntity {
     @Id
     @Column(name = "question_id")
@@ -34,6 +41,7 @@ public class Question extends BaseTimeEntity {
     private AnswerType answerType;
 
     @Column(name = "correct_answer")
+    @NotNull
     private String correctAnswer;
 
     @ElementCollection(fetch = FetchType.EAGER)
