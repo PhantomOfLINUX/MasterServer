@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "player")
+@Table(name = "player", indexes = {@Index(name = "index_uid", columnList = "uid", unique = true)})
 public class Player extends BaseTimeEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
