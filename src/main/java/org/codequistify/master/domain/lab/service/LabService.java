@@ -41,15 +41,25 @@ public class LabService {
     public void deleteSyncStageOnKubernetes(Player player, Stage stage) {
         String uid = player.getUid().toLowerCase();
 
-        // 삭제 요청을 먼저 같이 보내야 pod가 제거되는 동안 svc도 제거됨
         kubernetesResourceManager.deleteAsyncPod(stage, uid);
         kubernetesResourceManager.deleteAsyncService(stage, uid);
 
+        boolean podDeleted = false;
+        boolean serviceDeleted = false;
         int retryCount = 0;
-        while (retryCount <= THRESHOLD) {
-            if (!kubernetesResourceManager.existsPod(stage, uid)) { // pod 삭제가 svc 보다 반드시 오래걸린다는 가정
-                LOGGER.info("[deleteSyncStageOnKubernetes] 삭제 확인 {}번 시도", retryCount);
-                return;
+
+        while (!podDeleted || !serviceDeleted) {
+            if (!podDeleted && !kubernetesResourceManager.existsPod(stage, uid)) {
+                podDeleted = true;
+                LOGGER.info("[deleteSyncStageOnKubernetes] Pod 삭제 확인 {}번 시도", retryCount);
+            }
+            if (!serviceDeleted && !kubernetesResourceManager.existsService(stage, uid)) {
+                serviceDeleted = true;
+                LOGGER.info("[deleteSyncStageOnKubernetes] Service 삭제 확인 {}번 시도", retryCount);
+            }
+            if (retryCount > THRESHOLD) {
+                LOGGER.error("[deleteSyncStageOnKubernetes] {}",ErrorCode.PSHELL_CREATE_FAILED.getMessage());
+                throw new BusinessException(ErrorCode.PSHELL_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             try {
                 Thread.sleep(SLEEP_PERIOD);

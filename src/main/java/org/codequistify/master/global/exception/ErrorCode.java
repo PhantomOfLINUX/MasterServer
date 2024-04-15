@@ -35,6 +35,7 @@ public enum ErrorCode {
     // 터미널 관련 오류
     INVALID_HEADER("올바르지 않은 헤더 정보입니다.", "4601_INVALID_HEADER_ERROR"),
     PSHELL_NOT_FOUND("존재하지 PShell 정보입니다", "4602_PSHELL_NOT_FOUND"),
+    PSHELL_CREATE_FAILED("PShell 생성에 실패하였습니다", "46023_PSHELL_CREATE_FAILED"),
     //
     FAIL_PROCEED("프로세스 실행중 문제가 발생하였습니다.", "5000_FAIL_PROCESSED_ERROR"),
     // 정상
