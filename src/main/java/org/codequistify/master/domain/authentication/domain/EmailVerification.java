@@ -15,23 +15,23 @@ import org.hibernate.annotations.ColumnDefault;
 })
 public class EmailVerification extends BaseTimeEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
-    String email;
+    private String email;
 
-    String code;
+    private String code;
 
     @Column(name = "verified")
     @ColumnDefault("false")
-    Boolean verified;
+    private Boolean verified;
 
     @Column(name = "used")
     @ColumnDefault("false")
-    Boolean used;
+    private Boolean used;
 
     @Column(name = "type")
     @Enumerated(value = EnumType.STRING)
-    EmailVerificationType emailVerificationType;
+    private EmailVerificationType emailVerificationType;
 
     public void verify() {
         this.verified = true;
