@@ -3,6 +3,7 @@ package org.codequistify.master.domain.player.domain;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
+import org.codequistify.master.domain.authentication.domain.PlayerAuthentication;
 import org.codequistify.master.global.util.BaseTimeEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -31,6 +32,9 @@ public class Player extends BaseTimeEntity implements UserDetails {
 
     @Column(name = "uid", unique = true)
     private String uid; // pol 고유 식별 번호
+
+    @OneToOne(mappedBy = "player")
+    private PlayerAuthentication playerAuthentication;
 
     @Column(name = "name")
     private String name;

@@ -1,4 +1,4 @@
 package org.codequistify.master.domain.authentication.domain;
 
-public class KakaoOAuthUsers {
+public class KakaoOAuthUser {
 }

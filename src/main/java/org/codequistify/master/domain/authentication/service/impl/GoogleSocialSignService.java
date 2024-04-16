@@ -1,6 +1,8 @@
 package org.codequistify.master.domain.authentication.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.authentication.repository.GoogleOAuthUserRepository;
+import org.codequistify.master.domain.authentication.repository.PlayerAuthenticationRepository;
 import org.codequistify.master.domain.authentication.service.SocialSignService;
 import org.codequistify.master.domain.authentication.vo.OAuthData;
 import org.codequistify.master.domain.authentication.vo.OAuthResource;
@@ -30,6 +32,8 @@ import org.springframework.web.client.RestTemplate;
 public class GoogleSocialSignService implements SocialSignService {
     private final PlayerDetailsService playerDetailsService;
     private final PlayerConverter playerConverter;
+    private final GoogleOAuthUserRepository googleOAuthUserRepository;
+    private final PlayerAuthenticationRepository playerAuthenticationRepository;
 
     private final Logger LOGGER = LoggerFactory.getLogger(GoogleSocialSignService.class);
     private final RestTemplate restTemplate;
@@ -88,6 +92,16 @@ public class GoogleSocialSignService implements SocialSignService {
                 .build();
         player = playerDetailsService.save(player);
         LOGGER.info("[socialSignUp] 신규 구글 사용자 등록, Player: {}", oAuthData.resource().email());
+
+
+        /*GoogleOAuthUser googleOAuthUser = GoogleOAuthUser.builder()
+                .id(oAuthData.resource().id())
+                .email(oAuthData.resource().email())
+                .name(oAuthData.resource().name())
+                .build();
+        PlayerAuthentication playerAuthentication = new PlayerAuthentication();
+        playerAuthentication.linkGoogleOAuthUser(googleOAuthUser);*/ // 기존 사용자 처리 어떻게 할지 고민
+
         return player;
     }
 
