@@ -25,7 +25,6 @@ public class KubernetesResourceManager {
 
     private final KubernetesClient kubernetesClient;
 
-    @LogExecutionTime
     public Service createServiceOnKubernetes(Stage stage, String uid) {
         Service service = serviceFactory.create(stage, 8080, uid);
 
@@ -34,11 +33,10 @@ public class KubernetesResourceManager {
                 .resource(service)
                 .create();
 
-        LOGGER.info("[createServiceOnKubernetes] service: {}", service.getMetadata().getName());
+        LOGGER.debug("[createServiceOnKubernetes] service: {}", service.getMetadata().getName());
         return service;
     }
 
-    @LogExecutionTime
     public Pod createPodOnKubernetes(Stage stage, String uid) {
         Pod pod = podFactory.create(stage, 8080, uid);
 
@@ -47,11 +45,10 @@ public class KubernetesResourceManager {
                 .resource(pod)
                 .create();
 
-        LOGGER.info("[createPodOnKubernetes] pod: {}", pod.getMetadata().getName());
+        LOGGER.debug("[createPodOnKubernetes] pod: {}", pod.getMetadata().getName());
         return pod;
     }
 
-    @LogExecutionTime
     public void deleteAsyncService(Stage stage, String uid) {
         String svcName = KubernetesResourceNaming.getServiceName(stage.getStageImage().name(), uid);
 
@@ -60,10 +57,9 @@ public class KubernetesResourceManager {
                 .withName(svcName)
                 .delete();
 
-        LOGGER.info("[deleteAsyncService] result {}", result);
+        LOGGER.debug("[deleteAsyncService] result {}", result);
     }
 
-    @LogExecutionTime
     public void deleteAsyncPod(Stage stage, String uid) {
         String podName = KubernetesResourceNaming.getPodName(stage.getStageImage().name(), uid);
 
@@ -72,7 +68,7 @@ public class KubernetesResourceManager {
                 .withName(podName)
                 .delete();
 
-        LOGGER.info("[deleteAsyncPod] result {}", result);
+        LOGGER.debug("[deleteAsyncPod] result {}", result);
     }
 
     public Service getService(Stage stage, String uid) {
@@ -83,7 +79,7 @@ public class KubernetesResourceManager {
                 .withName(svcName)
                 .get();
 
-        LOGGER.info("[getService] name : {}", service.getMetadata().getName());
+        LOGGER.debug("[getService] name : {}", service.getMetadata().getName());
         return service;
     }
 
@@ -95,7 +91,7 @@ public class KubernetesResourceManager {
                 .withName(podName)
                 .get();
 
-        LOGGER.info("[getPod] name : {}", pod.getMetadata().getName());
+        LOGGER.debug("[getPod] name : {}", pod.getMetadata().getName());
         return pod;
     }
 

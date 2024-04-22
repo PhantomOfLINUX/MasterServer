@@ -1,5 +1,7 @@
 package org.codequistify.master.domain.lab.service;
 
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodCondition;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.stage.domain.Stage;
@@ -72,12 +74,43 @@ public class LabService {
         }
     }
 
+    @LogExecutionTime
     public boolean existsStageOnKubernetes(Player player, Stage stage) {
         boolean podExists = kubernetesResourceManager.existsPod(stage, player.getUid());
         boolean serviceExists = kubernetesResourceManager.existsService(stage, player.getUid());
 
         LOGGER.info("[existsStageOnKubernetes] pod: {}, svc: {}", podExists, serviceExists);
         return podExists && serviceExists;
+    }
+
+    @LogExecutionTime
+    public void waitForPodReadiness(Player player, Stage stage) {
+        String uid = player.getUid().toLowerCase();
+        int retryCount = 0;
+        while (true) {
+            Pod pod = kubernetesResourceManager.getPod(stage, uid);
+            if (pod != null && pod.getStatus() != null && pod.getStatus().getConditions() != null) {
+                for (PodCondition condition : pod.getStatus().getConditions()) {
+                    if ("Ready".equals(condition.getType()) && "True".equals(condition.getStatus())) {
+                        LOGGER.info("[waitForPodReadiness] 네트워크 구성완료, pod: {}", pod.getMetadata().getName());
+                        return;
+                    }
+                }
+            }
+
+            if (retryCount > THRESHOLD) {
+                LOGGER.error("[checkPodReady] {}",ErrorCode.PSHELL_CREATE_FAILED.getMessage());
+                throw new BusinessException(ErrorCode.PSHELL_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            try {
+                Thread.sleep(SLEEP_PERIOD);
+                retryCount++;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                LOGGER.info("[checkPodReady] 인터럽트 오류 발생");
+                throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
     }
 
 }
