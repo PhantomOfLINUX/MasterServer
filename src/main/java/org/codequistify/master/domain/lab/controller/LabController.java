@@ -41,7 +41,8 @@ public class LabController {
             description = """
                     :stage에 대한 터미널(PShell)을 생성한다.
                     기존 터미널이 존재할경우, 제거하고 생성한다.
-                    제거시에는 약 35s 이상이 소요된다.
+                    생성시에 네트워크 연결까지 약 10초 정도가 소요되며, 
+                    제거시에는 약 45s 이상이 소요된다.
                     
                     사용시에는 쿼리파라미터 값을 추가해서 connection 연결을 보내야한다.
                     """
@@ -60,6 +61,8 @@ public class LabController {
 
                 PShellCreateResponse response = PShellCreateResponse
                         .of(LAB_HOST, player.getUid(), stage.getStageImage().name().toLowerCase());
+
+                labService.waitForPodReadiness(player, stage);
 
                 return ResponseEntity
                         .status(HttpStatus.OK)
