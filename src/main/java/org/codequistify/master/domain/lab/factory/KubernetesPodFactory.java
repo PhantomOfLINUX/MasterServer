@@ -38,7 +38,7 @@ public class KubernetesPodFactory implements PodFactory {
                             .withNewTcpSocket()
                                 .withPort(new IntOrString(8080))
                             .endTcpSocket()
-                            .withInitialDelaySeconds(10)
+                            .withInitialDelaySeconds(9)
                             .withPeriodSeconds(1)
                         .endReadinessProbe()
                     .endContainer()
