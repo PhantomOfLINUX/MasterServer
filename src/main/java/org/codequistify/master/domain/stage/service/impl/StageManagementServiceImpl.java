@@ -2,13 +2,11 @@ package org.codequistify.master.domain.stage.service.impl;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.lab.service.LabAssignmentService;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.stage.convertoer.QuestionConverter;
 import org.codequistify.master.domain.stage.convertoer.StageConverter;
-import org.codequistify.master.domain.stage.domain.CompletedStage;
-import org.codequistify.master.domain.stage.domain.CompletedStatus;
-import org.codequistify.master.domain.stage.domain.Question;
-import org.codequistify.master.domain.stage.domain.Stage;
+import org.codequistify.master.domain.stage.domain.*;
 import org.codequistify.master.domain.stage.dto.GradingRequest;
 import org.codequistify.master.domain.stage.dto.GradingResponse;
 import org.codequistify.master.domain.stage.dto.StageRegistryRequest;
@@ -30,7 +28,8 @@ public class StageManagementServiceImpl implements StageManagementService {
     private final StageRepository stageRepository;
     private final QuestionRepository questionRepository;
     private final CompletedStageRepository completedStageRepository;
-    private final JPAQueryFactory queryFactory;
+
+    private final LabAssignmentService labAssignmentService;
 
     private final StageConverter stageConverter;
     private final QuestionConverter questionConverter;
@@ -53,6 +52,7 @@ public class StageManagementServiceImpl implements StageManagementService {
                             ErrorCode.QUESTION_NOT_FOUND.getMessage(), request.stageId(), request.questionIndex());
                     return new BusinessException(ErrorCode.QUESTION_NOT_FOUND, HttpStatus.NOT_FOUND);
                 });
+
 
         String correctAnswer = question.getCorrectAnswer();
         boolean isCorrect = correctAnswer.equalsIgnoreCase(request.answer());
