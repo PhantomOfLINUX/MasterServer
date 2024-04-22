@@ -49,7 +49,7 @@ public class StageManagementController {
     public ResponseEntity<GradingResponse> submitAnswerForGrading(@AuthenticationPrincipal Player player,
                                                                   @RequestBody GradingRequest request) {
 
-        GradingResponse response = stageManagementService.checkAnswerCorrectness(request);
+        GradingResponse response = stageManagementService.evaluateAnswer(player, request);
         if (response.isCorrect()) {
             stageManagementService.updateInProgressStage(player, request);
             return ResponseEntity.status(HttpStatus.OK).body(response);

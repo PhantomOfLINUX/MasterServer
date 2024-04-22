@@ -10,7 +10,7 @@ public interface StageManagementService {
     void saveStage(StageRegistryRequest request);
 
     // 문항 채점 요청
-    GradingResponse checkAnswerCorrectness(GradingRequest request);
+    GradingResponse evaluateAnswer(Player player, GradingRequest request);
 
     // 풀이 완료 기록
     void recordStageComplete(Player player, Long stageId);
