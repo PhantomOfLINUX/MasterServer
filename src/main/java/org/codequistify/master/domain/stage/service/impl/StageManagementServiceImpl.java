@@ -1,16 +1,14 @@
 package org.codequistify.master.domain.stage.service.impl;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.lab.service.LabAssignmentService;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.stage.convertoer.QuestionConverter;
 import org.codequistify.master.domain.stage.convertoer.StageConverter;
-import org.codequistify.master.domain.stage.domain.CompletedStage;
-import org.codequistify.master.domain.stage.domain.CompletedStatus;
-import org.codequistify.master.domain.stage.domain.Question;
-import org.codequistify.master.domain.stage.domain.Stage;
+import org.codequistify.master.domain.stage.domain.*;
 import org.codequistify.master.domain.stage.dto.GradingRequest;
 import org.codequistify.master.domain.stage.dto.GradingResponse;
+import org.codequistify.master.domain.stage.dto.StageActionRequest;
 import org.codequistify.master.domain.stage.dto.StageRegistryRequest;
 import org.codequistify.master.domain.stage.repository.CompletedStageRepository;
 import org.codequistify.master.domain.stage.repository.QuestionRepository;
@@ -18,6 +16,7 @@ import org.codequistify.master.domain.stage.repository.StageRepository;
 import org.codequistify.master.domain.stage.service.StageManagementService;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
+import org.codequistify.master.global.util.SuccessResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -30,7 +29,8 @@ public class StageManagementServiceImpl implements StageManagementService {
     private final StageRepository stageRepository;
     private final QuestionRepository questionRepository;
     private final CompletedStageRepository completedStageRepository;
-    private final JPAQueryFactory queryFactory;
+
+    private final LabAssignmentService labAssignmentService;
 
     private final StageConverter stageConverter;
     private final QuestionConverter questionConverter;
@@ -46,7 +46,7 @@ public class StageManagementServiceImpl implements StageManagementService {
 
     @Override
     @Transactional
-    public GradingResponse checkAnswerCorrectness(GradingRequest request) {
+    public GradingResponse evaluateAnswer(Player player, GradingRequest request) {
         Question question = questionRepository.findByStageIdAndIndex(request.stageId(), request.questionIndex())
                 .orElseThrow(() -> {
                     LOGGER.info("[checkAnswerCorrectness] {}, id: {}, index: {}",
@@ -54,8 +54,15 @@ public class StageManagementServiceImpl implements StageManagementService {
                     return new BusinessException(ErrorCode.QUESTION_NOT_FOUND, HttpStatus.NOT_FOUND);
                 });
 
-        String correctAnswer = question.getCorrectAnswer();
-        boolean isCorrect = correctAnswer.equalsIgnoreCase(request.answer());
+        boolean isCorrect;
+        if (question.getAnswerType().equals(AnswerType.PRACTICAL)) {
+            Stage stage = question.getStage();
+            isCorrect = this.evaluatePracticalAnswerCorrectness(player, stage, request);
+        }
+        else {
+            isCorrect = this.evaluateStandardAnswerCorrectness(question, request);
+        }
+
         boolean isLast = !questionRepository
                 .existsByStageIdAndIndex(request.stageId(), request.questionIndex() + 1);
         int nextIndex = isLast ? -1 : request.questionIndex() + 1;
@@ -66,6 +73,47 @@ public class StageManagementServiceImpl implements StageManagementService {
                 isLast
         );
     }
+
+    private boolean evaluateStandardAnswerCorrectness(Question question, GradingRequest request) {
+        String correctAnswer = question.getCorrectAnswer();
+        return correctAnswer.equalsIgnoreCase(request.answer());
+    }
+
+    private boolean evaluatePracticalAnswerCorrectness(Player player, Stage stage, GradingRequest request) {
+        StageActionRequest stageActionRequest = new StageActionRequest(
+                stage.getStageImage().name(),
+                request.questionIndex());
+
+        SuccessResponse response = labAssignmentService
+                .sendGradingRequest(stage.getStageImage().name(), player.getUid().toLowerCase(), stageActionRequest)
+                .getBody();
+
+        return response.success();
+    }
+
+    // compose 메서드
+    @Override
+    @Transactional
+    public SuccessResponse composePShell(Player player, GradingRequest request) {
+        Question question = questionRepository.findByStageIdAndIndex(request.stageId(), request.questionIndex())
+                .orElseThrow(() -> {
+                    LOGGER.info("[checkAnswerCorrectness] {}, id: {}, index: {}",
+                            ErrorCode.QUESTION_NOT_FOUND.getMessage(), request.stageId(), request.questionIndex());
+                    return new BusinessException(ErrorCode.QUESTION_NOT_FOUND, HttpStatus.NOT_FOUND);
+                });
+        Stage stage = question.getStage();
+
+        StageActionRequest stageActionRequest = new StageActionRequest(
+                stage.getStageImage().name(),
+                request.questionIndex());
+
+        SuccessResponse response = labAssignmentService
+                .sendComposeRequest(stage.getStageImage().name(), player.getUid().toLowerCase(), stageActionRequest)
+                .getBody();
+
+        return response;
+    }
+
 
     // 스테이지 등록
     @Override

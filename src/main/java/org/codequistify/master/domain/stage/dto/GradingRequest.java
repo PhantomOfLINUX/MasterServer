@@ -1,8 +1,10 @@
 package org.codequistify.master.domain.stage.dto;
 
+import jakarta.validation.constraints.NotNull;
+
 public record GradingRequest(
-        Long stageId,
-        Integer questionIndex,
+        @NotNull(message = "4101") Long stageId,
+        @NotNull(message = "4101") Integer questionIndex,
         String answer
 ) {
 }
