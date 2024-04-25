@@ -2,6 +2,7 @@ package org.codequistify.master.domain.stage.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.stage.dto.GradingRequest;
@@ -10,12 +11,16 @@ import org.codequistify.master.domain.stage.dto.StageCompletionRequest;
 import org.codequistify.master.domain.stage.dto.StageRegistryRequest;
 import org.codequistify.master.domain.stage.service.StageManagementService;
 import org.codequistify.master.global.aspect.LogMonitoring;
+import org.codequistify.master.global.exception.ErrorCode;
+import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.util.BasicResponse;
+import org.codequistify.master.global.util.SuccessResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -47,7 +52,7 @@ public class StageManagementController {
     @LogMonitoring
     @PostMapping("questions/grading")
     public ResponseEntity<GradingResponse> submitAnswerForGrading(@AuthenticationPrincipal Player player,
-                                                                  @RequestBody GradingRequest request) {
+                                                                  @Valid @RequestBody GradingRequest request) {
 
         GradingResponse response = stageManagementService.evaluateAnswer(player, request);
         if (response.isCorrect()) {
@@ -58,6 +63,27 @@ public class StageManagementController {
             stageManagementService.recordInProgressStageInit(player, request);
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    //다음 문항 구성
+    @Operation(
+            summary = "다음 문제 환경 구성",
+            description = "다음 문제를 풀기 위해 필요한 환경을 구성합니다."
+    )
+    @LogMonitoring
+    @PostMapping("question/compose")
+    public ResponseEntity<BasicResponse> compose(@AuthenticationPrincipal Player player,
+                                                 @Valid @RequestBody GradingRequest request) {
+        SuccessResponse successResponse = stageManagementService.composePShell(player, request);
+
+        if (successResponse.success().equals(false)) {
+            throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        BasicResponse response = BasicResponse.of("SUCCESS");
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
     }
 
     // 문제 풀이 완료 요청

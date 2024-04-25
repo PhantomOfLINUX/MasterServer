@@ -39,7 +39,8 @@ public class LabAssignmentService {
     }
 
     @LogExecutionTime
-    public ResponseEntity<SuccessResponse> sendComposeRequest(String svcName, StageActionRequest request) {
+    public ResponseEntity<SuccessResponse> sendComposeRequest(String stageCode, String uid, StageActionRequest request) {
+        String svcName = KubernetesResourceNaming.getServiceName(stageCode, uid);
         String url = KubernetesResourceNaming.getServiceDNS(svcName, NAMESPACE) + "/compose";
 
         HttpHeaders headers = new HttpHeaders();

@@ -4,6 +4,7 @@ import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.stage.dto.GradingRequest;
 import org.codequistify.master.domain.stage.dto.GradingResponse;
 import org.codequistify.master.domain.stage.dto.StageRegistryRequest;
+import org.codequistify.master.global.util.SuccessResponse;
 
 public interface StageManagementService {
     // 스테이지 저장
@@ -11,6 +12,9 @@ public interface StageManagementService {
 
     // 문항 채점 요청
     GradingResponse evaluateAnswer(Player player, GradingRequest request);
+
+    // 다음 문제 설정 구성
+    SuccessResponse composePShell(Player player, GradingRequest request);
 
     // 풀이 완료 기록
     void recordStageComplete(Player player, Long stageId);

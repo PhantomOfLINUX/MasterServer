@@ -57,10 +57,10 @@ public class StageManagementServiceImpl implements StageManagementService {
         boolean isCorrect;
         if (question.getAnswerType().equals(AnswerType.PRACTICAL)) {
             Stage stage = question.getStage();
-            isCorrect = evaluatePracticalAnswerCorrectness(player, stage, request);
+            isCorrect = this.evaluatePracticalAnswerCorrectness(player, stage, request);
         }
         else {
-            isCorrect = evaluateStandardAnswerCorrectness(question, request);
+            isCorrect = this.evaluateStandardAnswerCorrectness(question, request);
         }
 
         boolean isLast = !questionRepository
@@ -91,6 +91,28 @@ public class StageManagementServiceImpl implements StageManagementService {
         return response.success();
     }
 
+    // compose 메서드
+    @Override
+    @Transactional
+    public SuccessResponse composePShell(Player player, GradingRequest request) {
+        Question question = questionRepository.findByStageIdAndIndex(request.stageId(), request.questionIndex())
+                .orElseThrow(() -> {
+                    LOGGER.info("[checkAnswerCorrectness] {}, id: {}, index: {}",
+                            ErrorCode.QUESTION_NOT_FOUND.getMessage(), request.stageId(), request.questionIndex());
+                    return new BusinessException(ErrorCode.QUESTION_NOT_FOUND, HttpStatus.NOT_FOUND);
+                });
+        Stage stage = question.getStage();
+
+        StageActionRequest stageActionRequest = new StageActionRequest(
+                stage.getStageImage().name(),
+                request.questionIndex());
+
+        SuccessResponse response = labAssignmentService
+                .sendComposeRequest(stage.getStageImage().name(), player.getUid().toLowerCase(), stageActionRequest)
+                .getBody();
+
+        return response;
+    }
 
 
     // 스테이지 등록
