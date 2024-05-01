@@ -2,6 +2,7 @@ package org.codequistify.master.domain.stage.domain;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.codequistify.master.global.util.BaseTimeEntity;
 import org.hibernate.annotations.ColumnDefault;
@@ -18,33 +19,33 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "stage", indexes = @Index(name = "idx_code_idx", columnList = "code"))
+@Table(name = "stage")
 public class Stage extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "stage_id")
     private Long id;
 
-    @Column(name = "code", unique = true)
-    private Long code;
-
     @Column(name = "title")
+    @NotNull
     private String title;
 
     @Column(name = "description")
+    @NotNull
     private String description;
 
     @Column(name = "stage_group")
     @Enumerated(EnumType.STRING)
+    @NotNull
     private StageGroupType stageGroup;
 
     @Column(name = "difficulty_level")
     @Enumerated(EnumType.STRING)
+    @NotNull
     private DifficultyLevelType difficultyLevel;
 
-    @Column(name = "count")
-    @ColumnDefault("0")
-    private Integer questionCount;
+    @Column(name = "count") @ColumnDefault("0")
+    private Integer questionCount = 0;
 
     @OneToMany(mappedBy = "stage", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
@@ -52,7 +53,11 @@ public class Stage extends BaseTimeEntity {
 
     @Column(name = "stage_image")
     @Enumerated(EnumType.STRING)
+    @NotNull
     private StageImageType stageImage;
+
+    @Column(name = "approved") @ColumnDefault("false")
+    private Boolean approved = false;
 
     @Column(name = "exp")
     private Integer exp;

@@ -47,7 +47,7 @@ public class StageManagementController {
     // 문항 채점 요청
     @Operation(
             summary = "문항 채점 요청",
-            description = "문항을 채점합니다. 문항 고유 Id와 순서에 대한 정보, 채점받을 선택을 요청에 포함합니다."
+            description = "문항을 채점합니다. 문항 고유 Id와 순서에 대한 정보, 채점 받을 선택을 요청에 포함합니다."
     )
     @LogMonitoring
     @PostMapping("questions/grading")
@@ -88,10 +88,14 @@ public class StageManagementController {
 
     // 문제 풀이 완료 요청
     // TODO 경험치 제공은 미구현
-    @PostMapping("stages/{stageId}/complete")
+    @Operation(
+            summary = "스테이지 풀이 완료 기록",
+            description = "`stage_id` 에 대한 stage 완료를 기록합니다."
+    )
+    @PostMapping("stages/{stage_id}/complete")
     @LogMonitoring
     public ResponseEntity<BasicResponse> completeStage(@AuthenticationPrincipal Player player,
-                                                       @PathVariable Long stageId,
+                                                       @PathVariable(value = "stage_id") Long stageId,
                                                        @RequestBody StageCompletionRequest request) {
 
         stageManagementService.recordStageComplete(player, stageId);
