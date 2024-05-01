@@ -47,7 +47,13 @@ public class StageManagementController {
     // 문항 채점 요청
     @Operation(
             summary = "문항 채점 요청",
-            description = "문항을 채점합니다. 문항 고유 Id와 순서에 대한 정보, 채점 받을 선택을 요청에 포함합니다."
+            description = """
+                    문항을 채점합니다. 문항 고유 Id와 순서에 대한 정보, 채점 받을 선택을 요청에 포함합니다.
+
+                    마지막 문항인 경우 `nextIndex = -1`, `isLast = true`를 반환힙니다.
+                    
+                    다음 문항(question)이 환경 구성 (compose)을 요구한다면, `isComposable = true` 입니다.
+                    """
     )
     @LogMonitoring
     @PostMapping("questions/grading")
