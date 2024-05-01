@@ -156,6 +156,9 @@ public class StageSearchServiceImpl implements StageSearchService {
         // CompletedStatus 조건 적용
         this.addWhereConditionForCompletedStatus(whereClause, searchCriteria, qCompletedStage, player.getId());
 
+        // 임시 스테이지는 제외
+        whereClause.and(qStage.approved.eq(true));
+
         // 쿼리 결과 조회
         List<StageResponse> results = fetchStageResponses(whereClause, qStage, qCompletedStage, pageRequest, player.getId());
 

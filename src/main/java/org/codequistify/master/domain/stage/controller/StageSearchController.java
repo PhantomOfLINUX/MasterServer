@@ -6,6 +6,8 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.stage.convertoer.StageConverter;
+import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.dto.QuestionResponse;
 import org.codequistify.master.domain.stage.dto.SearchCriteria;
 import org.codequistify.master.domain.stage.dto.StagePageResponse;
@@ -40,19 +42,19 @@ public class StageSearchController {
                     
                     *풀이여부*
                     - completedStatus 와 일치하는 상태를 가지는 문제를 필터링합니다.
-                    - "COMPLETED" : 풀이완료
-                    - "NOT_COMPLETED" : 미풀이
-                    - "IN_PROGRESS" : 풀이 진행중
+                        - "COMPLETED" : 풀이완료
+                        - "NOT_COMPLETED" : 미풀이
+                        - "IN_PROGRESS" : 풀이 진행중
                     
                     *스테이지 분류*
-                    - stageGroupTypes 과 일치하는 타입을 가지는 문제를 필터링합니다.
-                    - "BASIC_PROBLEMS" : 기본문제
-                    - "ADVANCED_PROBLEMS" : 심화문제
-                    - "MOCK_TESTS" : 모의고사
-                    
+                        - stageGroupTypes 과 일치하는 타입을 가지는 문제를 필터링합니다.
+                        - "BASIC_PROBLEMS" : 기본문제
+                        - "ADVANCED_PROBLEMS" : 심화문제
+                        - "MOCK_TESTS" : 모의고사
+                        
                     *세부난이도*
                     - difficultLevels 배열안에 있는 난이도를 가지는 문제를 필터링합니다.
-                    - "L1", "L2", "L3", "L4", "L5"
+                        - "L1", "L2", "L3", "L4", "L5"
                     
                     *텍스트 검색*
                     - searchText 가 'title', 'description', 'stageCode' 중 일치하는 문제를 필터링합니다
@@ -66,6 +68,18 @@ public class StageSearchController {
         StagePageResponse stages = stageSearchService.findStagesByCriteria(searchCriteria, player);
 
         return ResponseEntity.status(HttpStatus.OK).body(stages);
+    }
+
+    @Operation(
+            summary = "스테이지 조회",
+            description = "스테이지을 조회합니다. completedStatus는 항상 `null`로 기록 되어 있습니다."
+    )
+    @LogExecutionTime
+    @GetMapping("stages/{stage_id}")
+    public ResponseEntity<StageResponse> getStageInfoById(@PathVariable(value = "stage_id")Long stageId) {
+        StageResponse response = StageConverter.convert(stageSearchService.getStageById(stageId));
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @Operation(
