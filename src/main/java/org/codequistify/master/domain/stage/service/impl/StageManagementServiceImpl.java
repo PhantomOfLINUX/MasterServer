@@ -67,11 +67,17 @@ public class StageManagementServiceImpl implements StageManagementService {
                 .existsByStageIdAndIndex(request.stageId(), request.questionIndex() + 1);
         int nextIndex = isLast ? -1 : request.questionIndex() + 1;
 
+        Boolean isComposable = questionRepository
+                        .isComposableForStageAndIndex(request.stageId(), request.questionIndex());
+        if (isComposable == null) {
+            isComposable = false;
+        }
+
         return new GradingResponse(
                 isCorrect,
                 nextIndex,
-                isLast
-        );
+                isLast,
+                isComposable);
     }
 
     private boolean evaluateStandardAnswerCorrectness(Question question, GradingRequest request) {
