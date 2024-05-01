@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.codequistify.master.global.util.BaseTimeEntity;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,21 +29,29 @@ public class Question extends BaseTimeEntity {
     private String id;
 
     @Column(name = "question_index")
+    @NotNull
     private Integer index;
 
     @Column(name = "title")
+    @NotNull
     private String title;
 
     @Column(name = "description")
+    @NotNull
     private String description;
 
-    @Column(name = "answer_type")
+    @Column(name = "answer_type") @ColumnDefault("SHORT_ANSWER")
     @Enumerated(EnumType.STRING)
-    private AnswerType answerType;
+    @NotNull
+    private AnswerType answerType = AnswerType.SHORT_ANSWER;
 
     @Column(name = "correct_answer")
     @NotNull
-    private String correctAnswer;
+    private String correctAnswer = "";
+
+    @Column(name = "is_composable") @ColumnDefault("false")
+    @NotNull
+    private boolean isComposable = false;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default
@@ -50,6 +59,7 @@ public class Question extends BaseTimeEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stage_id")
+    @NotNull
     @JsonBackReference
     private Stage stage;
 

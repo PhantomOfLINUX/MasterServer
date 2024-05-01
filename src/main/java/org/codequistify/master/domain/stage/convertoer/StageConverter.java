@@ -39,7 +39,7 @@ public class StageConverter {
                 .build();
     }
 
-    public StageResponse convert(Stage stage) {
+    public static StageResponse convert(Stage stage) {
         return new StageResponse(
                 stage.getId(),
                 stage.getStageImage().name(),
@@ -51,12 +51,12 @@ public class StageConverter {
                 null);
     }
 
-    public List<StageResponse> convert(List<Stage> stages) {
+    public static List<StageResponse> convert(List<Stage> stages) {
         return stages.stream()
-                .map(this::convert).collect(Collectors.toList());
+                .map(StageConverter::convert).collect(Collectors.toList());
     }
 
-    public StagePageResponse convert(Page<Stage> stages) {
+    public static StagePageResponse convert(Page<Stage> stages) {
         PageParameters pageParameters = new PageParameters(
                 stages.getTotalPages(),
                 stages.getSize(),
@@ -65,7 +65,7 @@ public class StageConverter {
                 (int) stages.getTotalElements()
         );
 
-        List<StageResponse> response = this.convert(stages.getContent());
+        List<StageResponse> response = convert(stages.getContent());
 
         return new StagePageResponse(response, pageParameters);
     }
