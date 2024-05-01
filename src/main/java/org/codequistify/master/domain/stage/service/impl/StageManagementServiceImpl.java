@@ -154,6 +154,11 @@ public class StageManagementServiceImpl implements StageManagementService {
 
     @Transactional
     public void recordInProgressStageInit(Player player, GradingRequest request) {
+        if (completedStageRepository
+                .existsByPlayerIdAndStageId(player.getId(), request.stageId())) {
+            return;
+        }
+
         Stage stage = stageRepository.findById(request.stageId())
                 .orElseThrow(() -> {
                     LOGGER.info("[recordStageComplete] {}, stage: {}",
