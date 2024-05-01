@@ -55,13 +55,14 @@ public class StageManagementController {
                                                                   @Valid @RequestBody GradingRequest request) {
 
         GradingResponse response = stageManagementService.evaluateAnswer(player, request);
+        if (request.questionIndex() == 1) { // 첫문제인 경우 진행 시작 기록
+            stageManagementService.recordInProgressStageInit(player, request);
+        }
         if (response.isCorrect()) {
             stageManagementService.updateInProgressStage(player, request);
             return ResponseEntity.status(HttpStatus.OK).body(response);
         }
-        if (request.questionIndex() == 1) { // 첫문제인 경우 진행 시작 기록
-            stageManagementService.recordInProgressStageInit(player, request);
-        }
+
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 

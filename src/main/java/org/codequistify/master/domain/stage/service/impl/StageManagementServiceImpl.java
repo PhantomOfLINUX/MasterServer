@@ -135,6 +135,7 @@ public class StageManagementServiceImpl implements StageManagementService {
 
             completedStage = completedStageRepository.save(completedStage);
             LOGGER.info("[recordStageComplete] player: {}, {} 클리어", player.getUid(), stageId);
+            return;
         }
 
         CompletedStage completedStage = completedStageRepository
