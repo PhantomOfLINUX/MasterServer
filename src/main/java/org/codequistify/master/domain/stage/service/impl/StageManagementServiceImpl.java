@@ -135,6 +135,7 @@ public class StageManagementServiceImpl implements StageManagementService {
 
             completedStage = completedStageRepository.save(completedStage);
             LOGGER.info("[recordStageComplete] player: {}, {} 클리어", player.getUid(), stageId);
+            return;
         }
 
         CompletedStage completedStage = completedStageRepository
@@ -153,6 +154,11 @@ public class StageManagementServiceImpl implements StageManagementService {
 
     @Transactional
     public void recordInProgressStageInit(Player player, GradingRequest request) {
+        if (completedStageRepository
+                .existsByPlayerIdAndStageId(player.getId(), request.stageId())) {
+            return;
+        }
+
         Stage stage = stageRepository.findById(request.stageId())
                 .orElseThrow(() -> {
                     LOGGER.info("[recordStageComplete] {}, stage: {}",
