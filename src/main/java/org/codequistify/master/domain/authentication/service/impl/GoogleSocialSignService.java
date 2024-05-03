@@ -84,7 +84,7 @@ public class GoogleSocialSignService implements SocialSignService {
                 .oAuthType(OAuthType.GOOGLE)
                 .oAuthId(oAuthData.resource().id())
                 .locked(false)
-                .level(0)
+                .exp(0)
                 .build();
         player = playerDetailsService.save(player);
         LOGGER.info("[socialSignUp] 신규 구글 사용자 등록, Player: {}", oAuthData.resource().email());

@@ -89,7 +89,7 @@ public class NaverSocialSignService implements SocialSignService {
                 .oAuthType(OAuthType.NAVER)
                 .oAuthId(oAuthData.resource().id())
                 .locked(false)
-                .level(0)
+                .exp(0)
                 .build();
         player = playerDetailsService.save(player);
         LOGGER.info("[socialSignUp] 신규 네이버 사용자 등록, Player: {}", oAuthData.resource().email());

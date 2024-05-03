@@ -85,7 +85,7 @@ public class KakaoSocialSignService implements SocialSignService {
                 .oAuthType(OAuthType.KAKAO)
                 .oAuthId(oAuthData.resource().id())
                 .locked(false)
-                .level(0)
+                .exp(0)
                 .build();
         player = playerDetailsService.save(player);
         LOGGER.info("[socialSignUp] 신규 카카오 사용자 등록, Player: {}", oAuthData.resource().email());

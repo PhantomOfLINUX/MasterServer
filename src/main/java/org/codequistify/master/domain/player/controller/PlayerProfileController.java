@@ -13,13 +13,11 @@ import org.codequistify.master.domain.stage.dto.HeatMapDataPoint;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
+import org.codequistify.master.global.util.BasicResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,4 +89,18 @@ public class PlayerProfileController {
                 .status(HttpStatus.OK)
                 .body(response);
     }
+
+    @Operation(
+            summary = "관리자 권한 확인",
+            description = "해당 유저가 관리자 권한을 가지고 있는지 검증합니다.")
+    @LogMonitoring
+    @GetMapping("me/admin")
+    public ResponseEntity<BasicResponse> checkAdminRole(@AuthenticationPrincipal Player player) {
+        Boolean isAdmin = playerProfileService.isAdmin(player);
+
+        BasicResponse response = BasicResponse.of(isAdmin.toString());
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+
 }

@@ -89,7 +89,7 @@ public class GithubSocialSignService implements SocialSignService {
                 .oAuthType(OAuthType.GITHUB)
                 .oAuthId(oAuthData.resource().id())
                 .locked(false)
-                .level(0)
+                .exp(0)
                 .build();
         player = playerDetailsService.save(player);
         LOGGER.info("[socialSignUp] 신규 깃허브 사용자 등록, Player: {}", oAuthData.resource().email());
@@ -129,7 +129,7 @@ public class GithubSocialSignService implements SocialSignService {
 
         try {
             Map<String, String> map  = restTemplate.exchange(oAuthKey.getGITHUB_RESOURCE_URI(), HttpMethod.GET, entity, HashMap.class).getBody();
-            OAuthResource response = new OAuthResource(String.valueOf(map.get("id")), map.get("login")+"@github.com", map.get("name"));
+            OAuthResource response = new OAuthResource(String.valueOf(map.get("id")), map.get("login"), map.get("name"));
             LOGGER.info("[getUserResource] 리소스: {}", response);
             return response;
             //return null;

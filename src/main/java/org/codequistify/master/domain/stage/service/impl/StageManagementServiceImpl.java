@@ -3,13 +3,11 @@ package org.codequistify.master.domain.stage.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.lab.service.LabAssignmentService;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.service.PlayerProfileService;
 import org.codequistify.master.domain.stage.convertoer.QuestionConverter;
 import org.codequistify.master.domain.stage.convertoer.StageConverter;
 import org.codequistify.master.domain.stage.domain.*;
-import org.codequistify.master.domain.stage.dto.GradingRequest;
-import org.codequistify.master.domain.stage.dto.GradingResponse;
-import org.codequistify.master.domain.stage.dto.StageActionRequest;
-import org.codequistify.master.domain.stage.dto.StageRegistryRequest;
+import org.codequistify.master.domain.stage.dto.*;
 import org.codequistify.master.domain.stage.repository.CompletedStageRepository;
 import org.codequistify.master.domain.stage.repository.QuestionRepository;
 import org.codequistify.master.domain.stage.repository.StageRepository;
@@ -31,10 +29,12 @@ public class StageManagementServiceImpl implements StageManagementService {
     private final CompletedStageRepository completedStageRepository;
 
     private final LabAssignmentService labAssignmentService;
+    private final PlayerProfileService playerProfileService;
 
     private final StageConverter stageConverter;
     private final QuestionConverter questionConverter;
     private final Logger LOGGER = LoggerFactory.getLogger(StageManagementServiceImpl.class);
+    private final static int LEVEL_STEP_SIZE = 500;
 
     @Override
     @Transactional
@@ -121,40 +121,48 @@ public class StageManagementServiceImpl implements StageManagementService {
     }
 
 
-    // 스테이지 등록
+    // 스테이지 클리어 기록
     @Override
     @Transactional
-    public void recordStageComplete(Player player, Long stageId) {
-        if (!completedStageRepository.existsByPlayerIdAndStageId(player.getId(), stageId)) {
-            Stage stage = stageRepository.findById(stageId)
-                    .orElseThrow(() -> {
-                        LOGGER.info("[recordStageComplete] {}}, stage: {}",
-                                ErrorCode.STAGE_NOT_FOUND.getMessage(), stageId);
-                        return new BusinessException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND);
-                    });
+    public StageCompletionResponse recordStageComplete(Player player, Long stageId) {
+        Stage stage = stageRepository.findById(stageId)
+                .orElseThrow(() -> {
+                    LOGGER.info("[recordStageComplete] {}}, stage: {}",
+                            ErrorCode.STAGE_NOT_FOUND.getMessage(), stageId);
+                    return new BusinessException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND);
+                });
 
-            CompletedStage completedStage = CompletedStage.builder()
+        CompletedStage completedStage;
+        if (!completedStageRepository.existsByPlayerIdAndStageId(player.getId(), stageId)) {
+            completedStage = CompletedStage.builder()
                     .player(player)
                     .stage(stage)
                     .status(CompletedStatus.COMPLETED).build();
-            completedStage.updateQuestionIndex(stage.getQuestionCount());
-
-            completedStage = completedStageRepository.save(completedStage);
-            LOGGER.info("[recordStageComplete] player: {}, {} 클리어", player.getUid(), stageId);
-            return;
         }
-
-        CompletedStage completedStage = completedStageRepository
-                .findByPlayerIdAndStageId(player.getId(), stageId)
-                .orElseThrow(()->{
-                    LOGGER.info("[updateInProgressStage] {}, stage: {}",
-                            ErrorCode.STAGE_PROGRESS_NOT_FOUND.getMessage(), stageId);
-                    return new BusinessException(ErrorCode.STAGE_PROGRESS_NOT_FOUND, HttpStatus.NOT_FOUND);
-                });
-
-        completedStage.updateCompleted();
+        else {
+            completedStage = completedStageRepository
+                    .findByPlayerIdAndStageId(player.getId(), stageId)
+                    .orElseThrow(() -> {
+                        LOGGER.info("[updateInProgressStage] {}, stage: {}",
+                                ErrorCode.STAGE_PROGRESS_NOT_FOUND.getMessage(), stageId);
+                        return new BusinessException(ErrorCode.STAGE_PROGRESS_NOT_FOUND, HttpStatus.NOT_FOUND);
+                    });
+            completedStage.updateCompleted();
+        }
+        completedStage.updateQuestionIndex(stage.getQuestionCount());
         completedStage = completedStageRepository.save(completedStage);
+
+        int updatedExp = playerProfileService.increaseExp(player, stage.getDifficultyLevel().getExp());
+
+        StageCompletionResponse response = new StageCompletionResponse(
+                player.getExp(),
+                player.getExp() / LEVEL_STEP_SIZE,
+                updatedExp,
+                updatedExp / LEVEL_STEP_SIZE
+        );
+
         LOGGER.info("[recordStageComplete] player: {}, {} 클리어", player.getUid(), stageId);
+        return response;
     }
 
 

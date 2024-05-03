@@ -3,11 +3,15 @@ package org.codequistify.master.domain.player.domain;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
+import org.codequistify.master.domain.player.service.UidGenerator;
 import org.codequistify.master.global.util.BaseTimeEntity;
+import org.hibernate.annotations.ColumnDefault;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -42,7 +46,7 @@ public class Player extends BaseTimeEntity implements UserDetails {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @Column(name = "oauth_type")
+    @Column(name = "oauth_type") @ColumnDefault("pol")
     @Enumerated(EnumType.STRING)
     private OAuthType oAuthType;
 
@@ -53,7 +57,7 @@ public class Player extends BaseTimeEntity implements UserDetails {
     @Builder.Default
     private List<String> roles = new ArrayList<>();
 
-    @Column(name = "locked")
+    @Column(name = "locked") @ColumnDefault("false")
     private Boolean locked;
 
     // 수정 많음 테이블 분할 필요
@@ -64,8 +68,8 @@ public class Player extends BaseTimeEntity implements UserDetails {
     @Column(name = "refresh_token")
     private String refreshToken;
 
-    @Column(name = "level")
-    private Integer level;
+    @Column(name = "exp") @ColumnDefault("0")
+    private Integer exp = 0;
 
     @Override
     public String getUsername() {
@@ -120,17 +124,17 @@ public class Player extends BaseTimeEntity implements UserDetails {
     }
 
     // 비밀번호 암호화
-    public void encodePassword() {
-        this.password = new BCryptPasswordEncoder().encode(this.password);
+    public void encodePassword(PasswordEncoder passwordEncoder) {
+        this.password = passwordEncoder.encode(this.password);
     }
 
-    public void encodePassword(String password) {
-        this.password = new BCryptPasswordEncoder().encode(password);
+    public void encodePassword(String password, PasswordEncoder passwordEncoder) {
+        this.password = passwordEncoder.encode(password);
     }
 
     // 비밀번호 일치 판정
-    public boolean decodePassword(String password) {
-        return new BCryptPasswordEncoder().matches(password, this.password);
+    public boolean decodePassword(String password, PasswordEncoder passwordEncoder) {
+        return passwordEncoder.matches(password, this.password);
     }
 
     // OAuth 발급 AccessToken 설정
@@ -149,8 +153,8 @@ public class Player extends BaseTimeEntity implements UserDetails {
     }
 
     public int increaseLevelPoint(int point) {
-        this.level += point;
-        return this.level;
+        this.exp += point;
+        return this.exp;
     }
 
     public void addRoles(List<PlayerRoleType> roles, List<PlayerAccessType> permissions) {
@@ -164,57 +168,13 @@ public class Player extends BaseTimeEntity implements UserDetails {
 
     @PrePersist
     protected void onPrePersist() {
-        if (email != null && !email.isEmpty()) {
+        if (this.email != null && !this.email.isEmpty()) {
             this.uid = generateUID();
         }
-        addRoles(Arrays.asList(PlayerRoleType.PLAYER), Arrays.asList(PlayerAccessType.BASIC_PROBLEMS_ACCESS));
+        addRoles(List.of(PlayerRoleType.PLAYER), List.of(PlayerAccessType.BASIC_PROBLEMS_ACCESS));
     }
 
     private String generateUID() {
-        LocalDateTime now = LocalDateTime.now();
-        String formattedDate = now.format(DateTimeFormatter.ofPattern("yyMMddHH"));
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("POL").append("-");
-
-        // 년도 변환
-        String year = formattedDate.substring(0, 2);
-        for (char digit : year.toCharArray()) {
-            if (digit == '0') {
-                sb.append('0');
-            } else {
-                sb.append((char) ('A' + digit - '1'));
-            }
-        }
-
-        // 월 변환
-        String month = formattedDate.substring(2, 4);
-        sb.append((char) ('A' + Integer.parseInt(month) - 1));
-
-        // 일 변환
-        String day = formattedDate.substring(4, 6);
-        int dayInt = Integer.parseInt(day);
-        if (dayInt <= 26) {
-            char dayChar = (char) ('A' + dayInt - 1);
-            sb.append(dayChar).append(Character.toLowerCase(dayChar));
-        } else {
-            sb.append("Z").append(dayInt - 26);
-        }
-
-        // 시간 변환
-        String hour = formattedDate.substring(6, 8);
-        sb.append((char) ('a' + Integer.parseInt(hour) - 1));
-
-        // 이메일 변환
-        try {
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update(email.getBytes());
-
-            sb.append("-").append(Base64.getEncoder().withoutPadding().encodeToString(md.digest()), 0, 10);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
-
-        return sb.toString();
+        return UidGenerator.generate(this.email);
     }
 }

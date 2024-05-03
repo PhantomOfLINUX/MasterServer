@@ -13,7 +13,7 @@ public class PlayerConverter {
                 player.getUid(),
                 player.getName(),
                 player.getEmail(),
-                player.getLevel(),
+                player.getExp(),
                 player.getRoles()
         );
     }
@@ -26,7 +26,7 @@ public class PlayerConverter {
                 .oAuthType(OAuthType.POL)
                 .oAuthId("0")
                 .locked(false)
-                .level(0)
+                .exp(0)
                 .build();
     }
 }
