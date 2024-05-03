@@ -1,9 +1,11 @@
 package org.codequistify.master.domain.lab.service;
 
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.StatusDetails;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.lab.factory.PodFactory;
 import org.codequistify.master.domain.lab.factory.ServiceFactory;
@@ -14,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @org.springframework.stereotype.Service
 @RequiredArgsConstructor
@@ -60,9 +63,27 @@ public class KubernetesResourceManager {
         LOGGER.debug("[deleteAsyncService] result {}", result);
     }
 
+    public void deleteAsyncService(String svcName) {
+        List<StatusDetails> result = kubernetesClient.services()
+                .inNamespace("default")
+                .withName(svcName)
+                .delete();
+
+        LOGGER.debug("[deleteAsyncService] result {}", result);
+    }
+
     public void deleteAsyncPod(Stage stage, String uid) {
         String podName = KubernetesResourceNaming.getPodName(stage.getStageImage().name(), uid);
 
+        List<StatusDetails> result = kubernetesClient.pods()
+                .inNamespace("default")
+                .withName(podName)
+                .delete();
+
+        LOGGER.debug("[deleteAsyncPod] result {}", result);
+    }
+
+    public void deleteAsyncPod(String podName) {
         List<StatusDetails> result = kubernetesClient.pods()
                 .inNamespace("default")
                 .withName(podName)
@@ -117,6 +138,14 @@ public class KubernetesResourceManager {
 
         //LOGGER.info("[existsPod] name: {}, exists: {}", podName, exists);
         return exists;
+    }
+
+    public List<Pod> getErrorPods() {
+            PodList podList = kubernetesClient.pods().list();
+            List<Pod> errorPods = podList.getItems().stream()
+                        .filter(pod -> "Error".equals(pod.getStatus().getPhase()))
+                        .toList();
+            return errorPods;
     }
 
 }
