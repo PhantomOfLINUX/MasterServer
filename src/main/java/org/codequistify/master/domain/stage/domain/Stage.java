@@ -59,9 +59,6 @@ public class Stage extends BaseTimeEntity {
     @Column(name = "approved") @ColumnDefault("false")
     private Boolean approved = false;
 
-    @Column(name = "exp")
-    private Integer exp;
-
     @OneToMany(mappedBy = "stage")
     private Set<CompletedStage> completedStages = new HashSet<>();
 

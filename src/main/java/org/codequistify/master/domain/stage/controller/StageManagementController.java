@@ -5,10 +5,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.stage.dto.GradingRequest;
-import org.codequistify.master.domain.stage.dto.GradingResponse;
-import org.codequistify.master.domain.stage.dto.StageCompletionRequest;
-import org.codequistify.master.domain.stage.dto.StageRegistryRequest;
+import org.codequistify.master.domain.stage.dto.*;
 import org.codequistify.master.domain.stage.service.StageManagementService;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
@@ -94,20 +91,18 @@ public class StageManagementController {
     }
 
     // 문제 풀이 완료 요청
-    // TODO 경험치 제공은 미구현
     @Operation(
             summary = "스테이지 풀이 완료 기록",
             description = "`stage_id` 에 대한 stage 완료를 기록합니다."
     )
     @PostMapping("stages/{stage_id}/complete")
     @LogMonitoring
-    public ResponseEntity<BasicResponse> completeStage(@AuthenticationPrincipal Player player,
-                                                       @PathVariable(value = "stage_id") Long stageId,
-                                                       @RequestBody StageCompletionRequest request) {
+    public ResponseEntity<StageCompletionResponse> completeStage(@AuthenticationPrincipal Player player,
+                                                                 @PathVariable(value = "stage_id") Long stageId,
+                                                                 @RequestBody StageCompletionRequest request) {
 
-        stageManagementService.recordStageComplete(player, stageId);
+        StageCompletionResponse response = stageManagementService.recordStageComplete(player, stageId);
 
-        BasicResponse response = BasicResponse.of("SUCCESS");
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

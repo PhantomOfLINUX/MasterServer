@@ -55,4 +55,13 @@ public class PlayerProfileService {
                         player,
                         List.of(PlayerRoleType.ADMIN.getRole(), PlayerRoleType.SUPER_ADMIN.getRole())));
     }
+
+    @Transactional
+    public Integer increaseExp(Player player, int point) {
+        int exp = player.increaseLevelPoint(point);
+        playerRepository.save(player);
+        return exp;
+    }
+
+
 }

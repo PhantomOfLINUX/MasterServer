@@ -101,4 +101,6 @@ public class PlayerProfileController {
         BasicResponse response = BasicResponse.of(isAdmin.toString());
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+
 }

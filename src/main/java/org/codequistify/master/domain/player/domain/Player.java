@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.codequistify.master.domain.player.service.UidGenerator;
 import org.codequistify.master.global.util.BaseTimeEntity;
+import org.hibernate.annotations.ColumnDefault;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -45,7 +46,7 @@ public class Player extends BaseTimeEntity implements UserDetails {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @Column(name = "oauth_type")
+    @Column(name = "oauth_type") @ColumnDefault("pol")
     @Enumerated(EnumType.STRING)
     private OAuthType oAuthType;
 
@@ -56,7 +57,7 @@ public class Player extends BaseTimeEntity implements UserDetails {
     @Builder.Default
     private List<String> roles = new ArrayList<>();
 
-    @Column(name = "locked")
+    @Column(name = "locked") @ColumnDefault("false")
     private Boolean locked;
 
     // 수정 많음 테이블 분할 필요
@@ -67,8 +68,8 @@ public class Player extends BaseTimeEntity implements UserDetails {
     @Column(name = "refresh_token")
     private String refreshToken;
 
-    @Column(name = "level")
-    private Integer level;
+    @Column(name = "exp") @ColumnDefault("0")
+    private Integer exp = 0;
 
     @Override
     public String getUsername() {
@@ -152,8 +153,8 @@ public class Player extends BaseTimeEntity implements UserDetails {
     }
 
     public int increaseLevelPoint(int point) {
-        this.level += point;
-        return this.level;
+        this.exp += point;
+        return this.exp;
     }
 
     public void addRoles(List<PlayerRoleType> roles, List<PlayerAccessType> permissions) {
