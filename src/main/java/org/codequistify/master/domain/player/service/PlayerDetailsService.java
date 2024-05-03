@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +27,8 @@ import java.util.Optional;
 public class PlayerDetailsService implements UserDetailsService {
     private final PlayerRepository playerRepository;
     private final StageManagementService stageManagementService;
+
+    private final PasswordEncoder passwordEncoder;
 
     private final Logger LOGGER = LoggerFactory.getLogger(PlayerDetailsService.class);
 
@@ -40,7 +43,7 @@ public class PlayerDetailsService implements UserDetailsService {
     @Transactional
     @LogMonitoring
     public void resetPassword(Player player, UpdatePasswordRequest request) {
-        player.encodePassword(request.password());
+        player.encodePassword(request.password(), passwordEncoder);
         playerRepository.save(player);
 
         LOGGER.info("[resetPassword] Player: {}, 비밀번호 초기화 성공", player.getUid());
@@ -52,11 +55,11 @@ public class PlayerDetailsService implements UserDetailsService {
         // 비밀번호 데이터는 담기지 않으므로 다시 조회해야함
         player = playerRepository.getReferenceById(player.getId()); // jwt 필터에서 null 아닌 player 객체만 들어옴
 
-        if (!player.decodePassword(request.rawPassword())) {
+        if (!player.decodePassword(request.rawPassword(), passwordEncoder)) {
             throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
         }
 
-        player.encodePassword(request.password());
+        player.encodePassword(request.password(), passwordEncoder);
         playerRepository.save(player);
 
         LOGGER.info("[updatePassword] Player: {}, 비밀번호 재설정 성공", player.getUid());

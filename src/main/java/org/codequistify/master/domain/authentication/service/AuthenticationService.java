@@ -20,6 +20,7 @@ import org.codequistify.master.global.jwt.dto.TokenResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -36,6 +37,7 @@ public class AuthenticationService {
 
     private final PlayerConverter playerConverter;
     private final TokenProvider tokenProvider;
+    private final PasswordEncoder passwordEncoder;
     private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationService.class);
 
     @Transactional
@@ -54,7 +56,7 @@ public class AuthenticationService {
 
         Player player = playerConverter.convert(request);
 
-        player.encodePassword();
+        player.encodePassword(passwordEncoder);
         player = playerDetailsService.save(player);
 
         LOGGER.info("[signUp] Player: {}, 회원가입 완료", player.getUid());
@@ -72,7 +74,7 @@ public class AuthenticationService {
             throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
         }
 
-        if (!player.decodePassword(request.password())) {
+        if (!player.decodePassword(request.password(), passwordEncoder)) {
             throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
         }
 

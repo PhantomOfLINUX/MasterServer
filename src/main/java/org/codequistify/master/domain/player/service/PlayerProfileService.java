@@ -3,6 +3,7 @@ package org.codequistify.master.domain.player.service;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.converter.PlayerConverter;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.domain.PlayerRoleType;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.dto.PlayerStageProgressResponse;
 import org.codequistify.master.domain.player.repository.PlayerRepository;
@@ -46,5 +47,12 @@ public class PlayerProfileService {
     @Transactional
     public List<HeatMapDataPoint> getHeatMapDataPointsByModifiedDate(Player player) {
         return stageSearchService.getHeatMapDataPointsByModifiedDate(player.getId());
+    }
+
+    public boolean isAdmin(Player player) {
+        return (PlayerRolesChecker
+                .checkAnyRole(
+                        player,
+                        List.of(PlayerRoleType.ADMIN.getRole(), PlayerRoleType.SUPER_ADMIN.getRole())));
     }
 }
