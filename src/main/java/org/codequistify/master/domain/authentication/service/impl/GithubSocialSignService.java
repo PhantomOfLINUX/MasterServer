@@ -129,7 +129,7 @@ public class GithubSocialSignService implements SocialSignService {
 
         try {
             Map<String, String> map  = restTemplate.exchange(oAuthKey.getGITHUB_RESOURCE_URI(), HttpMethod.GET, entity, HashMap.class).getBody();
-            OAuthResource response = new OAuthResource(String.valueOf(map.get("id")), map.get("login")+"@github.com", map.get("name"));
+            OAuthResource response = new OAuthResource(String.valueOf(map.get("id")), map.get("login"), map.get("name"));
             LOGGER.info("[getUserResource] 리소스: {}", response);
             return response;
             //return null;
