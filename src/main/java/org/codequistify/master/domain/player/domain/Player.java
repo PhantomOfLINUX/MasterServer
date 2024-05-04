@@ -36,7 +36,7 @@ public class Player extends BaseTimeEntity implements UserDetails {
     @Column(name = "uid", unique = true)
     private String uid; // pol 고유 식별 번호
 
-    @Column(name = "name")
+    @Column(name = "name", unique = true)
     private String name;
 
     @Column(name = "email", unique = true)

@@ -208,7 +208,17 @@ public class AuthenticationController {
 
     @Operation(
             summary = "POL 자체 회원가입",
-            description = "자체 회원가입이다. name, email, password를 필수로 입력받는다."
+            description = """
+                    자체 회원가입이다. name, email, password를 필수로 입력받는다.
+
+                    에러 예시
+                    - 메일 인증 실패 : `"error": "4402_EMAIL_VERIFIED_FAILURE_ERROR"`
+                    - 메일 중복 : `"error": "4201_EMAIL_ALREADY_EXISTS_ERROR"`
+                    - 다른 소셜 로그인 방식으로 가입: `"error": "4202_ EMAIL_ALREADY_EXISTS_OTHER_AUTH_ERROR`
+                    - 비밀번호 조건 미충족: `"error": "4103_PASSWORD_POLICY_VIOLATION_ERROR"`
+                    - 중복된 이름: `"error": "4106_DUPLICATE_NAME_ERROR"`
+                    - 이름에 비속어 포함: `"error": "4105_PROFANITY_IN_NAME_ERROR"`
+                    """
     )
     @LogMonitoring
     @PostMapping("/auth/signup")

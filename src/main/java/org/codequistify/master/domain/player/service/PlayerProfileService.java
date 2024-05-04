@@ -63,5 +63,13 @@ public class PlayerProfileService {
         return exp;
     }
 
+    @Transactional
+    public boolean isDuplicatedName(String name) {
+       if (playerRepository.existsByNameIgnoreCase(name)) {
+           return true;
+       }
+       return false;
+    }
+
 
 }
