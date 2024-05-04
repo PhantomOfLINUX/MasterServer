@@ -46,7 +46,7 @@ public class AuthenticationService {
 
     @Transactional
     @LogMonitoring
-    public PlayerProfile signUp(@Valid SignUpRequest request) {
+    public PlayerProfile signUp(SignUpRequest request) {
         playerDetailsService.checkOAuthType(request.email()) //기존 가입된 계정인지 확인
                 .ifPresent(authType -> {
                     if (authType.equals(OAuthType.POL)) {
@@ -62,11 +62,11 @@ public class AuthenticationService {
             throw new BusinessException(ErrorCode.PASSWORD_POLICY_VIOLATION, HttpStatus.BAD_REQUEST);
         }
         if (!playerValidator.isValidName(request.name())) {
-            LOGGER.info("[signUp] {}", ErrorCode.PROFANITY_IN_NAME.getCode());
+            LOGGER.info("[signUp] {}, Name: {}", ErrorCode.PROFANITY_IN_NAME.getCode(), request.name());
             throw new BusinessException(ErrorCode.PROFANITY_IN_NAME, HttpStatus.BAD_REQUEST);
         }
-        if (!playerProfileService.isDuplicatedName(request.name())) {
-            LOGGER.info("[signUp] {}", ErrorCode.DUPLICATE_NAME.getCode());
+        if (playerProfileService.isDuplicatedName(request.name())) {
+            LOGGER.info("[signUp] {}, Name: {}", ErrorCode.DUPLICATE_NAME.getCode(), request.name());
             throw new BusinessException(ErrorCode.DUPLICATE_NAME, HttpStatus.BAD_REQUEST);
         }
 
