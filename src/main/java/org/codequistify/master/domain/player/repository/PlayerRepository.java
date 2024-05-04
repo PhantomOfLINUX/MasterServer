@@ -28,4 +28,6 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
     Player getPlayerByUid(String uid);
 
     Optional<Player> findByUid(String uid);
+
+    Boolean existsByNameIgnoreCase(String name);
 }
