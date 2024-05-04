@@ -92,7 +92,7 @@ public class LabService {
             if (pod != null && pod.getStatus() != null && pod.getStatus().getConditions() != null) {
                 for (PodCondition condition : pod.getStatus().getConditions()) {
                     if ("Ready".equals(condition.getType()) && "True".equals(condition.getStatus())) {
-                        LOGGER.info("[waitForPodReadiness] 네트워크 구성완료, pod: {}, time: {}ms", pod.getMetadata().getName(), retryCount * 1000);
+                        LOGGER.info("[waitForPodReadiness] 네트워크 구성완료, pod: {}, time: {}ms", pod.getMetadata().getName(), retryCount * 2000);
                         return;
                     }
                 }
@@ -103,7 +103,7 @@ public class LabService {
                 throw new BusinessException(ErrorCode.PSHELL_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             try {
-                Thread.sleep(1000L);
+                Thread.sleep(2000L);
                 retryCount++;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
