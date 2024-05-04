@@ -5,18 +5,16 @@ import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.StatusDetails;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.lab.factory.PodFactory;
 import org.codequistify.master.domain.lab.factory.ServiceFactory;
 import org.codequistify.master.domain.lab.utils.KubernetesResourceNaming;
 import org.codequistify.master.domain.stage.domain.Stage;
-import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Bean;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @org.springframework.stereotype.Service
 @RequiredArgsConstructor
@@ -140,12 +138,28 @@ public class KubernetesResourceManager {
         return exists;
     }
 
-    public List<Pod> getErrorPods() {
-            PodList podList = kubernetesClient.pods().list();
-            List<Pod> errorPods = podList.getItems().stream()
-                        .filter(pod -> "Error".equals(pod.getStatus().getPhase()))
-                        .toList();
-            return errorPods;
+    public List<Pod> getTimeOutPods() {
+        PodList podList = kubernetesClient.pods().inNamespace("default").list();
+
+        return podList.getItems().stream()
+                .filter(this::isPhaseFailed)
+                .filter(this::isReasonDeadlineExceeded)
+                .filter(this::hasErrorStatus)
+                .toList();
+    }
+
+    private boolean isPhaseFailed(Pod pod) {
+        return "Failed".equals(pod.getStatus().getPhase());
+    }
+
+    private boolean isReasonDeadlineExceeded(Pod pod) {
+        return "DeadlineExceeded".equals(pod.getStatus().getReason());
+    }
+
+    private boolean hasErrorStatus(Pod pod) {
+        return pod.getStatus().getContainerStatuses().stream()
+                .anyMatch(status -> status.getState().getTerminated() != null &&
+                        "Error".equals(status.getState().getTerminated().getReason()));
     }
 
 }
