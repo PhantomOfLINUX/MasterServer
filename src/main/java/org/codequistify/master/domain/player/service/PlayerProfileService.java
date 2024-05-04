@@ -65,10 +65,7 @@ public class PlayerProfileService {
 
     @Transactional
     public boolean isDuplicatedName(String name) {
-       if (playerRepository.existsByNameIgnoreCase(name)) {
-           return true;
-       }
-       return false;
+        return playerRepository.existsByNameIgnoreCase(name);
     }
 
 

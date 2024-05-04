@@ -30,7 +30,7 @@ class AuthenticationServiceTest {
 
     @BeforeEach
     void setUp() {
-        SignUpRequest request = new SignUpRequest("name", "email@pol.or.kr", "password");
+        SignUpRequest request = new SignUpRequest("A", "A@pol.or.kr", "password99763892*");
         PlayerProfile result = authenticationService.signUp(request);
     }
 
@@ -38,7 +38,7 @@ class AuthenticationServiceTest {
     @Test
     @Order(1)
     public void 회원가입_성공(){
-        SignUpRequest request = new SignUpRequest("new", "new@pol.or.kr", "password");
+        SignUpRequest request = new SignUpRequest("B", "B@pol.or.kr", "password99763892*");
         PlayerProfile result = authenticationService.signUp(request);
 
         assertNotNull(result);
@@ -48,7 +48,7 @@ class AuthenticationServiceTest {
 
     @Test
     public void 중복_회원가입(){
-        SignUpRequest request = new SignUpRequest("name", "email@pol.or.kr", "password");
+        SignUpRequest request = new SignUpRequest("A", "A@pol.or.kr", "password99763892*");
 
         Throwable ex = assertThrows(BusinessException.class, () -> {
             authenticationService.signUp(request);
@@ -56,14 +56,29 @@ class AuthenticationServiceTest {
         assertEquals(ErrorCode.EMAIL_ALREADY_EXISTS.getMessage(), ex.getMessage());
     }
 
-    // 회원가입 이메일 양식
+    /*@Test
+    public void 이메일_양식_미충족(){
+        SignUpRequest request = new SignUpRequest("C", "", "password99763892*");
 
-    // 회원가입 비밀번호 조건
+        Throwable ex = assertThrows(BusinessException.class, () -> {
+            authenticationService.signUp(request);
+        });
+        assertEquals(ErrorCode.INVALID_EMAIL_FORMAT.getMessage(), ex.getMessage());
+    }*/
 
-    //로그인 성공
     @Test
-    public void 정상적인_로그인() {
-        LogInRequest request = new LogInRequest("email@pol.or.kr", "password");
+    public void 비밀번호_조건_미충족(){
+        SignUpRequest request = new SignUpRequest("D", "D@pol.or.kr", "pass63892");
+
+        Throwable ex = assertThrows(BusinessException.class, () -> {
+            authenticationService.signUp(request);
+        });
+        assertEquals(ErrorCode.PASSWORD_POLICY_VIOLATION.getMessage(), ex.getMessage());
+    }
+
+    @Test
+    public void 정상_로그인() {
+        LogInRequest request = new LogInRequest("A@pol.or.kr", "password99763892*");
 
         PlayerProfile result = authenticationService.logIn(request);
 
@@ -74,7 +89,7 @@ class AuthenticationServiceTest {
     //로그인 비밀번호 오류
     @Test
     public void 로그인_비밀번호_오류() {
-        LogInRequest request = new LogInRequest("email@pol.or.kr", "wrong");
+        LogInRequest request = new LogInRequest("A@pol.or.kr", "wrong");
 
         Throwable ex = assertThrows(BusinessException.class, () -> {
             authenticationService.logIn(request);
@@ -85,7 +100,7 @@ class AuthenticationServiceTest {
     //로그인 이메일 오류
     @Test
     public void 로그인_이메일_오류() {
-        LogInRequest request = new LogInRequest("email123@pol.or.kr", "password");
+        LogInRequest request = new LogInRequest("wrong@pol.or.kr", "password99763892*");
 
         Throwable ex = assertThrows(BusinessException.class, () -> {
             authenticationService.logIn(request);
