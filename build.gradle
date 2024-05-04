@@ -63,6 +63,9 @@ dependencies {
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     //runtimeOnly 'mysql:mysql-connector-java'
 
+    //비속어 필터
+    implementation 'io.github.vaneproject:badwordfiltering:1.0.0'
+
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
