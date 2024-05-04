@@ -1,6 +1,7 @@
 package org.codequistify.master.domain.authentication.service;
 
 import io.jsonwebtoken.Claims;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.authentication.dto.LogInRequest;
 import org.codequistify.master.domain.authentication.dto.SignUpRequest;
@@ -9,6 +10,7 @@ import org.codequistify.master.domain.player.domain.OAuthType;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.dto.PlayerProfile;
 import org.codequistify.master.domain.player.service.PlayerDetailsService;
+import org.codequistify.master.domain.player.service.PlayerProfileService;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
@@ -33,8 +35,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuthenticationService {
     private final PlayerDetailsService playerDetailsService;
+    private final PlayerProfileService playerProfileService;
     private final EmailVerificationService emailVerificationService;
 
+    private final PlayerValidator playerValidator;
     private final PlayerConverter playerConverter;
     private final TokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;
@@ -42,7 +46,7 @@ public class AuthenticationService {
 
     @Transactional
     @LogMonitoring
-    public PlayerProfile signUp(SignUpRequest request) {
+    public PlayerProfile signUp(@Valid SignUpRequest request) {
         playerDetailsService.checkOAuthType(request.email()) //기존 가입된 계정인지 확인
                 .ifPresent(authType -> {
                     if (authType.equals(OAuthType.POL)) {
@@ -53,6 +57,18 @@ public class AuthenticationService {
                     LOGGER.info("[signUp] {} Email: {}", ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH.getMessage(), request.email());
                     throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH, HttpStatus.BAD_REQUEST, authType.name());
                 });
+        if (!playerValidator.isValidPassword(request.password())) {
+            LOGGER.info("[signUp] {}", ErrorCode.PASSWORD_POLICY_VIOLATION.getCode());
+            throw new BusinessException(ErrorCode.PASSWORD_POLICY_VIOLATION, HttpStatus.BAD_REQUEST);
+        }
+        if (!playerValidator.isValidName(request.name())) {
+            LOGGER.info("[signUp] {}", ErrorCode.PROFANITY_IN_NAME.getCode());
+            throw new BusinessException(ErrorCode.PROFANITY_IN_NAME, HttpStatus.BAD_REQUEST);
+        }
+        if (!playerProfileService.isDuplicatedName(request.name())) {
+            LOGGER.info("[signUp] {}", ErrorCode.DUPLICATE_NAME.getCode());
+            throw new BusinessException(ErrorCode.DUPLICATE_NAME, HttpStatus.BAD_REQUEST);
+        }
 
         Player player = playerConverter.convert(request);
 
@@ -66,7 +82,7 @@ public class AuthenticationService {
 
     @Transactional
     @LogMonitoring
-    public PlayerProfile logIn(LogInRequest request) {
+    public PlayerProfile logIn(@Valid LogInRequest request) {
         Player player;
         try {
             player = playerDetailsService.findOnePlayerByEmail(request.email());
