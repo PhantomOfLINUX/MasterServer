@@ -40,6 +40,7 @@ public class StageManagementServiceImpl implements StageManagementService {
     @Transactional
     public void saveStage(StageRegistryRequest request) {
         Stage stage = stageConverter.convert(request);
+        stage.updateStageImage(StageImageType.S0000);
 
         stage = stageRepository.save(stage);
     }
