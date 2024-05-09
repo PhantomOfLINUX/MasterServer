@@ -24,9 +24,9 @@ import java.util.List;
                 @UniqueConstraint(name = "uc_stageid_questionindex", columnNames = {"stage_id", "question_index"})
         })
 public class Question extends BaseTimeEntity {
-    @Id
+    @Id @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "question_id")
-    private String id;
+    private Long id;
 
     @Column(name = "question_index")
     @NotNull
@@ -67,7 +67,7 @@ public class Question extends BaseTimeEntity {
         return this.options;
     }
 
-    public void setQuestionId(String id) {
+    public void setQuestionId(Long id) {
         this.id = id;
     }
 
