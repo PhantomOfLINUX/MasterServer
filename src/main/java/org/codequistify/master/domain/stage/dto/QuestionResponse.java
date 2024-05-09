@@ -5,7 +5,7 @@ import org.codequistify.master.domain.stage.domain.AnswerType;
 import java.util.List;
 
 public record QuestionResponse(
-        String questionId,
+        Long questionId,
         Integer index,
         String title,
         String description,
