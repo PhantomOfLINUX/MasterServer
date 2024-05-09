@@ -66,17 +66,12 @@ public class Stage extends BaseTimeEntity {
         this.stageImage = stageImageType;
     }
 
-//    @PostPersist
-//    protected void onPostPersist() {
-//        // question id 할당
-//        this.questions = questions.stream()
-//                .peek(question -> {
-//                    String id = "Q" +
-//                            (this.getStageImage().name().substring(1)) +
-//                            String.format("%03d", question.getIndex()) +
-//                            question.getAnswerType().getCode();
-//                    question.setQuestionId(id);
-//                    question.addStage(this);
-//                }).collect(Collectors.toList());
-//    }
+    @PostPersist
+    protected void onPostPersist() {
+        // question id 할당
+        this.questions = questions.stream()
+                .peek(question -> {
+                    question.addStage(this);
+                }).collect(Collectors.toList());
+    }
 }
