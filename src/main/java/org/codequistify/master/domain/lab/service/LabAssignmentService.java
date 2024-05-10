@@ -23,7 +23,7 @@ public class LabAssignmentService {
     @LogExecutionTime
     public ResponseEntity<SuccessResponse> sendGradingRequest(String stageCode, String uid, StageActionRequest request) {
         String svcName = KubernetesResourceNaming.getServiceName(stageCode, uid);
-        String url = KubernetesResourceNaming.getServiceDNS(svcName, NAMESPACE) + "/grade";
+        String url = "https://"+KubernetesResourceNaming.getServiceDNS(svcName, NAMESPACE) + "/grade";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -41,7 +41,8 @@ public class LabAssignmentService {
     @LogExecutionTime
     public ResponseEntity<SuccessResponse> sendComposeRequest(String stageCode, String uid, StageActionRequest request) {
         String svcName = KubernetesResourceNaming.getServiceName(stageCode, uid);
-        String url = KubernetesResourceNaming.getServiceDNS(svcName, NAMESPACE) + "/compose";
+        String url = "https://"+KubernetesResourceNaming.getServiceDNS(svcName, NAMESPACE) + "/compose";
+        // 수정!!!!!!!!!!!!!!!!!!!1 쿼리로 명령어 전달
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
