@@ -22,6 +22,7 @@ public class KubernetesServiceFactory implements ServiceFactory{
                     .addToLabels("app", "pol")
                     .addToLabels("tire", "term")
                     .addToLabels("player", uid)
+                    .addToLabels("stage", stageImage.name().toLowerCase())
                 .endMetadata()
                 .withNewSpec()
                     .withType("ClusterIP")
@@ -34,6 +35,7 @@ public class KubernetesServiceFactory implements ServiceFactory{
                     .addToSelector("app", "pol")
                     .addToSelector("tire", "term")
                     .addToSelector("player", uid)
+                    .addToSelector("stage", stageImage.name().toLowerCase())
                 .endSpec().build();
     }
 
