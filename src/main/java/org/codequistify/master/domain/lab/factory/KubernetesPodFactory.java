@@ -26,6 +26,7 @@ public class KubernetesPodFactory implements PodFactory {
                     .addToLabels("app", "pol")
                     .addToLabels("tire", "term")
                     .addToLabels("player", uid)
+                    .addToLabels("stage", stageImage.name().toLowerCase())
                 .endMetadata()
                 .withNewSpec()
                     .addNewContainer()
