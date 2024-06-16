@@ -37,15 +37,15 @@ public class LabAssignmentService {
         String svcName = KubernetesResourceNaming.getServiceName(stageCode, uid);
         String url = "https://lab.pol.or.kr/grade"+KubernetesResourceNaming.getQuery(stageCode, uid);
 
-        String qUrl = KubernetesResourceNaming.getQuery(stageCode, uid);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
         HttpEntity<StageActionRequest> entity = new HttpEntity<>(request, headers);
 
-        ResponseEntity<SuccessResponse> response = restTemplate.postForEntity(qUrl, entity, SuccessResponse.class);
+        LOGGER.info("qurl: {}", url);
+        ResponseEntity<SuccessResponse> response = restTemplate.postForEntity(url, entity, SuccessResponse.class);
         if (response.getStatusCode().is5xxServerError()) {
-            LOGGER.info("[sendGradingRequest] 실습서버가 정상적으로 응답하지 않습니다. url: {}", qUrl);
+            LOGGER.info("[sendGradingRequest] 실습서버가 정상적으로 응답하지 않습니다. url: {}", url);
             throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return response;
@@ -53,12 +53,12 @@ public class LabAssignmentService {
 
     @LogExecutionTime
     public ResponseEntity<SuccessResponse> sendComposeRequest(String stageCode, String uid, StageActionRequest request) {
-        //String svcName = KubernetesResourceNaming.getServiceName(stageCode, uid);
         String url = "https://lab.pol.or.kr/compose"+KubernetesResourceNaming.getQuery(stageCode, uid);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
+        LOGGER.info("qurl: {}", url);
         HttpEntity<StageActionRequest> entity = new HttpEntity<>(request, headers);
 
         ResponseEntity<SuccessResponse> response = restTemplate.postForEntity(url, entity, SuccessResponse.class);

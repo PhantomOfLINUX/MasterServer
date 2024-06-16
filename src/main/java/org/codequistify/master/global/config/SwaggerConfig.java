@@ -17,7 +17,7 @@ public class SwaggerConfig {
     @Value("${host.deploy.api.server}")
     private String DEPLOY_HOST;
 
-    @Value("${host.api.server}")
+    @Value("${host.develop.api.server}")
     private String DEVELOP_HOST;
 
     @Value("${app.version:v0.0.1}")
