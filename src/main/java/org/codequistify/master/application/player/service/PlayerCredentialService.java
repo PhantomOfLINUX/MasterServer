@@ -20,10 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PlayerCredentialService {
 
+    private final Logger logger = LoggerFactory.getLogger(PlayerCredentialService.class);
     private final PlayerJpaRepository playerJpaRepository;
     private final PlayerPasswordManager playerPasswordManager;
-
-    private final Logger logger = LoggerFactory.getLogger(PlayerCredentialService.class);
 
     @Transactional
     @LogExecutionTime
@@ -31,12 +30,15 @@ public class PlayerCredentialService {
         Player updated = playerJpaRepository.findByUid(player.getUid().getValue())
                                             .map(PlayerConverter::toDomain)
                                             .map(current -> {
-                                             if (!playerPasswordManager.matches(current, request.rawPassword())) {
-                                                 throw new ApplicationException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
-                                             }
-                                             return playerPasswordManager.encodePassword(current, request.password());
-                                         })
-                                            .orElseThrow(() -> new ApplicationException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND));
+                                                if (!playerPasswordManager.matches(current, request.rawPassword())) {
+                                                    throw new ApplicationException(ErrorCode.INVALID_EMAIL_OR_PASSWORD,
+                                                                                   HttpStatus.BAD_REQUEST);
+                                                }
+                                                return playerPasswordManager.encodePassword(current,
+                                                                                            request.password());
+                                            })
+                                            .orElseThrow(() -> new ApplicationException(ErrorCode.PLAYER_NOT_FOUND,
+                                                                                        HttpStatus.NOT_FOUND));
 
         playerJpaRepository.save(PlayerConverter.toEntity(updated));
         logger.info("[updatePassword] Player: {}, 비밀번호 변경 성공", updated.getUid());

@@ -15,16 +15,19 @@ import java.io.IOException;
 @Component
 public class BusinessExceptionHandlerFilter extends OncePerRequestFilter {
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
         try {
             filterChain.doFilter(request, response);
-        }
-        catch (BusinessException exception) {
+        } catch (BusinessException exception) {
             writeErrorCode(request, response, exception);
         }
     }
 
-    private void writeErrorCode(HttpServletRequest request, HttpServletResponse response, BusinessException exception) throws IOException {
+    private void writeErrorCode(HttpServletRequest request,
+                                HttpServletResponse response,
+                                BusinessException exception) throws IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

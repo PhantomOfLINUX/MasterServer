@@ -15,15 +15,6 @@ import java.io.IOException;
 public class ServletFilter extends OncePerRequestFilter {
     private final Logger LOGGER = LoggerFactory.getLogger(ServletFilter.class);
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String requestURI = request.getRequestURI();
-        String requestAddr = getOriginRemoteAddr(request);
-
-        LOGGER.info("[LOGGER] RequestURI: {}, RequestHost: {}", requestURI, requestAddr);
-        filterChain.doFilter(request, response);
-    }
-
     private static String getOriginRemoteAddr(HttpServletRequest request) {
         String originAddr = request.getHeader("X-Real-IP");
 
@@ -32,5 +23,16 @@ public class ServletFilter extends OncePerRequestFilter {
         }
 
         return originAddr;
+    }
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+        String requestURI = request.getRequestURI();
+        String requestAddr = getOriginRemoteAddr(request);
+
+        LOGGER.info("[LOGGER] RequestURI: {}, RequestHost: {}", requestURI, requestAddr);
+        filterChain.doFilter(request, response);
     }
 }

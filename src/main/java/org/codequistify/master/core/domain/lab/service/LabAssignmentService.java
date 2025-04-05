@@ -20,22 +20,23 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 @Service
 public class LabAssignmentService {
-    private final RestTemplate restTemplate;
     private final Logger LOGGER = LoggerFactory.getLogger(LabAssignmentService.class);
     private final String NAMESPACE = "default";
-
+    private final RestTemplate restTemplate;
 
     @Bean
     public void testA() {
         String stageCode = StageImageType.S1015.name();
         String uid = "pol-bdbeej-gj5antzprz";
         //String qUrl = KubernetesResourceNaming.getQuery(stageCode, uid);
-        System.out.println("https://lab.pol.or.kr/grade"+KubernetesResourceNaming.getQuery(stageCode, uid));
-        System.out.println("https://lab.pol.or.kr/compose"+KubernetesResourceNaming.getQuery(stageCode, uid));
+        System.out.println("https://lab.pol.or.kr/grade" + KubernetesResourceNaming.getQuery(stageCode, uid));
+        System.out.println("https://lab.pol.or.kr/compose" + KubernetesResourceNaming.getQuery(stageCode, uid));
     }
 
     @LogExecutionTime
-    public ResponseEntity<SuccessResponse> sendGradingRequest(String stageCode, String uid, StageActionRequest request) {
+    public ResponseEntity<SuccessResponse> sendGradingRequest(String stageCode,
+                                                              String uid,
+                                                              StageActionRequest request) {
         //String svcName = KubernetesResourceNaming.getServiceName(stageCode, uid);
         String url = "https://lab.pol.or.kr/grade" + KubernetesResourceNaming.getQuery(stageCode, uid);
 
@@ -69,8 +70,10 @@ public class LabAssignmentService {
     }
 
     @LogExecutionTime
-    public ResponseEntity<SuccessResponse> sendComposeRequest(String stageCode, String uid, StageActionRequest request) {
-        String url = "https://lab.pol.or.kr/compose"+KubernetesResourceNaming.getQuery(stageCode, uid);
+    public ResponseEntity<SuccessResponse> sendComposeRequest(String stageCode,
+                                                              String uid,
+                                                              StageActionRequest request) {
+        String url = "https://lab.pol.or.kr/compose" + KubernetesResourceNaming.getQuery(stageCode, uid);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

@@ -15,13 +15,15 @@ public class RestTemplateConfig {
     @Bean
     public RestTemplate restTemplate() {
         PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
-                .setMaxConnTotal(100)
-                .setMaxConnPerRoute(60)
-                .build();
+                                                                                                        .setMaxConnTotal(
+                                                                                                                100)
+                                                                                                        .setMaxConnPerRoute(
+                                                                                                                60)
+                                                                                                        .build();
 
         CloseableHttpClient closeableHttpClient = HttpClients.custom()
-                .setConnectionManager(connectionManager)
-                .build();
+                                                             .setConnectionManager(connectionManager)
+                                                             .build();
 
         HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory(closeableHttpClient);
         factory.setConnectTimeout(1000);

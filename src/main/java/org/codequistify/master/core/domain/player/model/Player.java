@@ -14,22 +14,25 @@ import java.util.Set;
 @AllArgsConstructor
 public class Player {
 
-    private final PolId uid;
-    private final String name;
     private final String email;
-    private final String password;
-    private final OAuthType oAuthType;
-    private final String oAuthId;
-    private final Set<String> roles;
-    private final Boolean locked;
-    private final String oAuthAccessToken;
-    private final String refreshToken;
     private final Integer exp;
+    private final Boolean locked;
+    private final String name;
+    private final String oAuthAccessToken;
+    private final String oAuthId;
+    private final OAuthType oAuthType;
+    private final String password;
+    private final String refreshToken;
+    private final Set<String> roles;
+    private final PolId uid;
+
+    public static PolId generateUID(String email) {
+        return UidGenerator.generate(email);
+    }
 
     public String getId() {
         return this.uid.getValue();
     }
-
 
     public Player withOAuthAccessToken(String token) {
         return this.toBuilder()
@@ -79,9 +82,5 @@ public class Player {
                    .refreshToken(null)
                    .locked(true)
                    .build();
-    }
-
-    public static PolId generateUID(String email) {
-        return UidGenerator.generate(email);
     }
 }

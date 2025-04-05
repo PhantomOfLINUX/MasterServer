@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class TokenGenerator {
 
-    private final TokenProvider tokenProvider;
     private final AccountService accountService;
+    private final TokenProvider tokenProvider;
 
     public TokenResponse generate(Player player) {
         String refreshToken = tokenProvider.generateRefreshToken(player);
