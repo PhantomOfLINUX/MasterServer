@@ -43,7 +43,7 @@ public class TokenProvider {
 
         logger.info("\n{}", generateAccessToken(Player.builder()
                                                       .name("pol")
-                                                      .email("kr.or.pol@gmail.com")
+                                                      .email(Email.of("kr.or.pol@gmail.com"))
                                                       .roles(Set.of(PlayerRoleType.SUPER_ADMIN.getRole()))
                                                       .uid(PolId.of("POL-BDBEej-Gj5AntZprZ"))
                                                       .build()));
@@ -61,7 +61,7 @@ public class TokenProvider {
                    .setIssuedAt(new Date())
                    .setIssuer(ISS)
                    .setExpiration(new Date(System.currentTimeMillis() + ACCESS_VALIDITY_TIME))
-                   .signWith(SignatureAlgorithm.HS256, KEY)
+                   .signWith(KEY, SignatureAlgorithm.HS256)
                    .compact();
     }
 
