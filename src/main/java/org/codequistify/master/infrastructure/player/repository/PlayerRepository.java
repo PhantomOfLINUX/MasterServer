@@ -1,32 +1,51 @@
 package org.codequistify.master.infrastructure.player.repository;
 
+import lombok.RequiredArgsConstructor;
 import org.codequistify.master.core.domain.player.model.OAuthType;
+import org.codequistify.master.core.domain.player.model.Player;
+import org.codequistify.master.infrastructure.player.converter.PlayerConverter;
 import org.codequistify.master.infrastructure.player.entity.PlayerEntity;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-public interface PlayerRepository extends JpaRepository<PlayerEntity, String> {
+@RequiredArgsConstructor
+@Repository
+public class PlayerRepository {
 
-    Optional<PlayerEntity> findByEmail(String email);
+    private final PlayerJpaRepository jpaRepository;
 
-    Optional<PlayerEntity> findByUid(String uid);
+    public Player save(Player player) {
+        PlayerEntity entity = PlayerConverter.toEntity(player);
+        PlayerEntity saved = jpaRepository.save(entity);
+        return PlayerConverter.toDomain(saved);
+    }
 
-    Boolean existsByNameIgnoreCase(String name);
+    public Optional<Player> findByEmail(String email) {
+        return jpaRepository.findByEmail(email).map(PlayerConverter::toDomain);
+    }
 
-    @Modifying
-    @Transactional
-    @Query("UPDATE PlayerEntity p SET p.refreshToken = :refreshToken WHERE p.uid = :uid")
-    void updateRefreshToken(String uid, String refreshToken);
+    public Optional<Player> findByUid(String uid) {
+        return jpaRepository.findByUid(uid).map(PlayerConverter::toDomain);
+    }
 
-    @Transactional(readOnly = true)
-    @Query("SELECT p.refreshToken FROM PlayerEntity p WHERE p.uid = :uid")
-    String getRefreshToken(String uid);
+    public boolean existsByNameIgnoreCase(String name) {
+        return jpaRepository.existsByNameIgnoreCase(name);
+    }
 
-    @Transactional(readOnly = true)
-    @Query("SELECT p.oAuthType FROM PlayerEntity p WHERE p.email = :email")
-    Optional<OAuthType> getOAuthTypeByEmail(String email);
+    public boolean existsByEmailIgnoreCase(String email) {
+        return jpaRepository.existsByEmailIgnoreCase(email);
+    }
+
+    public void updateRefreshToken(String uid, String refreshToken) {
+        jpaRepository.updateRefreshToken(uid, refreshToken);
+    }
+
+    public String getRefreshToken(String uid) {
+        return jpaRepository.getRefreshToken(uid);
+    }
+
+    public Optional<OAuthType> getOAuthTypeByEmail(String email) {
+        return jpaRepository.getOAuthTypeByEmail(email);
+    }
 }

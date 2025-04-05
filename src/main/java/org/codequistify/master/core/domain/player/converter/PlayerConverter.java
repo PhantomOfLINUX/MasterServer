@@ -1,21 +1,22 @@
 package org.codequistify.master.core.domain.player.converter;
 
-import org.codequistify.master.core.domain.authentication.dto.SignUpRequest;
+import org.codequistify.master.application.account.dto.SignUpRequest;
 import org.codequistify.master.core.domain.player.model.OAuthType;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.application.player.dto.PlayerProfile;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
-public class
-layerConverter {
+public class PlayerConverter {
     public PlayerProfile convert(Player player) {
         return new PlayerProfile(
-                player.getUid(),
+                player.getUid().getValue(),
                 player.getName(),
                 player.getEmail(),
                 player.getExp(),
-                player.getRoles()
+                List.copyOf(player.getRoles())
         );
     }
 

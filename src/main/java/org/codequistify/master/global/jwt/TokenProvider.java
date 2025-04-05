@@ -4,12 +4,14 @@ import io.jsonwebtoken.*;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.application.exception.ApplicationException;
+import org.codequistify.master.application.player.dto.PlayerProfile;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.model.PlayerRoleType;
-import org.codequistify.master.application.player.dto.PlayerProfile;
+import org.codequistify.master.core.domain.player.model.PolId;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.exception.ErrorCode;
-import org.codequistify.master.global.exception.domain.BusinessException;
+import org.codequistify.master.infrastructure.security.TokenPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,28 +23,30 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
 public class TokenProvider {
-    @Value("${jwt.secret}")
-    private String JWT_SECRET = "";
-    private Key KEY;
     private final String ISS = "api.pol.or.kr";
     private final Long ACCESS_VALIDITY_TIME = 60 * 60 * 1000L;
     private final Long REFRESH_VALIDITY_TIME = 7 * 24 * 60 * 60 * 1000L;
-    private final Logger LOGGER = LoggerFactory.getLogger(TokenProvider.class);
+    private final Logger logger = LoggerFactory.getLogger(TokenProvider.class);
+    @Value("${jwt.secret}")
+    private String JWT_SECRET = "";
+    private Key KEY;
 
     @PostConstruct
     protected void init() {
         KEY = new SecretKeySpec(JWT_SECRET.getBytes(StandardCharsets.UTF_8), SignatureAlgorithm.HS256.getJcaName());
 
-        LOGGER.info("\n{}",generateAccessToken(Player.builder()
-                .name("pol")
-                .email("kr.or.pol@gmail.com")
-                .roles(List.of(PlayerRoleType.SUPER_ADMIN.getRole()))
-                .uid("POL-BDBEej-Gj5AntZprZ")
-                .build()));
+        logger.info("\n{}", generateAccessToken(Player.builder()
+                                                      .name("pol")
+                                                      .email("kr.or.pol@gmail.com")
+                                                      .roles(Set.of(PlayerRoleType.SUPER_ADMIN.getRole()))
+                                                      .uid(PolId.of("POL-BDBEej-Gj5AntZprZ"))
+                                                      .build()));
 
     }
 
@@ -52,34 +56,31 @@ public class TokenProvider {
         Date now = new Date();
 
         String token = Jwts.builder()
-                .setClaims(claims)
-                .setAudience(response.uid())
-                .setIssuedAt(now)
-                .setIssuer(ISS)
-                .setExpiration(new Date(now.getTime() + ACCESS_VALIDITY_TIME))
-                .signWith(KEY)
-                .compact();
+                           .setClaims(claims)
+                           .setAudience(response.uid())
+                           .setIssuedAt(now)
+                           .setIssuer(ISS)
+                           .setExpiration(new Date(now.getTime() + ACCESS_VALIDITY_TIME))
+                           .signWith(KEY)
+                           .compact();
 
-        LOGGER.info("[generateAccessToken] {}", token);
+        logger.info("[generateAccessToken] {}", token);
         return token;
     }
 
     public String generateAccessToken(Player player) {
-        Claims claims = Jwts.claims();
-        claims.put("role", player.getRoles());
-        Date now = new Date();
-
-        String token = Jwts.builder()
-                .setClaims(claims)
-                .setAudience(player.getUid())
-                .setIssuedAt(now)
-                .setIssuer(ISS)
-                .setExpiration(new Date(now.getTime() + ACCESS_VALIDITY_TIME))
-                .signWith(KEY)
-                .compact();
-
-        LOGGER.info("[generateAccessToken] {}", token);
-        return token;
+        return Jwts.builder()
+                   .setSubject("access")
+                   .setAudience(player.getUid().getValue())
+                   .claim("uid", player.getUid().getValue())
+                   .claim("name", player.getName())
+                   .claim("email", player.getEmail())
+                   .claim("roles", player.getRoles())
+                   .setIssuedAt(new Date())
+                   .setIssuer(ISS)
+                   .setExpiration(new Date(System.currentTimeMillis() + ACCESS_VALIDITY_TIME))
+                   .signWith(SignatureAlgorithm.HS256, KEY)
+                   .compact();
     }
 
     public String generateTempToken(String email) {
@@ -88,15 +89,15 @@ public class TokenProvider {
         Date now = new Date();
 
         String token = Jwts.builder()
-                .setClaims(claims)
-                .setAudience(email)
-                .setIssuedAt(now)
-                .setIssuer(ISS)
-                .setExpiration(new Date(now.getTime() + ACCESS_VALIDITY_TIME / 6))
-                .signWith(KEY)
-                .compact();
+                           .setClaims(claims)
+                           .setAudience(email)
+                           .setIssuedAt(now)
+                           .setIssuer(ISS)
+                           .setExpiration(new Date(now.getTime() + ACCESS_VALIDITY_TIME / 6))
+                           .signWith(KEY)
+                           .compact();
 
-        LOGGER.info("[generateTempToken] {}", token);
+        logger.info("[generateTempToken] {}", token);
         return token;
     }
 
@@ -105,15 +106,15 @@ public class TokenProvider {
         Date now = new Date();
 
         String token = Jwts.builder()
-                .setClaims(claims)
-                .setAudience(response.uid())
-                .setIssuedAt(now)
-                .setIssuer(ISS)
-                .setExpiration(new Date(now.getTime() + REFRESH_VALIDITY_TIME))
-                .signWith(KEY)
-                .compact();
+                           .setClaims(claims)
+                           .setAudience(response.uid())
+                           .setIssuedAt(now)
+                           .setIssuer(ISS)
+                           .setExpiration(new Date(now.getTime() + REFRESH_VALIDITY_TIME))
+                           .signWith(KEY)
+                           .compact();
 
-        LOGGER.info("[generateRefreshToken] {}", token);
+        logger.info("[generateRefreshToken] {}", token);
         return token;
     }
 
@@ -122,103 +123,88 @@ public class TokenProvider {
         Date now = new Date();
 
         String token = Jwts.builder()
-                .setClaims(claims)
-                .setAudience(player.getUid())
-                .setIssuedAt(now)
-                .setIssuer(ISS)
-                .setExpiration(new Date(now.getTime() + REFRESH_VALIDITY_TIME))
-                .signWith(KEY)
-                .compact();
+                           .setClaims(claims)
+                           .setAudience(player.getUid().getValue())
+                           .setIssuedAt(now)
+                           .setIssuer(ISS)
+                           .setExpiration(new Date(now.getTime() + REFRESH_VALIDITY_TIME))
+                           .signWith(KEY)
+                           .compact();
 
-        LOGGER.info("[generateRefreshToken] {}", token);
+        logger.info("[generateRefreshToken] {}", token);
         return token;
     }
 
     public Claims getClaims(String token) {
-        try {
-            Jws<Claims> claims = Jwts.parserBuilder()
-                    .setSigningKey(KEY)
-                    .build()
-                    .parseClaimsJws(token);
-
-            return claims.getBody();
-        } catch (IllegalArgumentException exception) {
-            LOGGER.info("잘못된 JWT 토큰");
-            return null;
-        } catch (SecurityException | MalformedJwtException exception) {
-            LOGGER.info("잘못된 JWT 서명");
-            return null;
-        } catch (RuntimeException exception) {
-            LOGGER.info("valid token error");
-            return null;
-        }
+        return parseToken(token)
+                .map(Jws::getBody)
+                .orElse(null);
     }
 
     @LogExecutionTime
     public String getAudience(String token) {
-        try {
-            Jws<Claims> claims = Jwts.parserBuilder()
-                    .setSigningKey(KEY)
-                    .build()
-                    .parseClaimsJws(token);
-
-            if (claims.getBody().getExpiration().before(new Date())) {
-                throw new BusinessException(ErrorCode.EXPIRED_ACCESS_TOKEN, HttpStatus.UNAUTHORIZED);
-            }
-            else {
-                return claims.getBody().getAudience();
-            }
-        } catch (ExpiredJwtException exception) {
-            throw new BusinessException(ErrorCode.EXPIRED_ACCESS_TOKEN, HttpStatus.UNAUTHORIZED);
-        } catch (SecurityException | MalformedJwtException e) {
-            throw new BusinessException(ErrorCode.TAMPERED_TOKEN_SIGNATURE, HttpStatus.UNAUTHORIZED);
-        } catch (RuntimeException exception) {
-            throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
-        }
+        return parseToken(token)
+                .map(Jws::getBody)
+                .map(body -> {
+                    if (body.getExpiration().before(new Date())) {
+                        throw new ApplicationException(ErrorCode.EXPIRED_ACCESS_TOKEN, HttpStatus.UNAUTHORIZED);
+                    }
+                    return body.getAudience();
+                })
+                .orElseThrow(() -> new ApplicationException(ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED));
     }
 
     public boolean checkExpire(Claims claims) {
-        try {
-            return !claims.getExpiration().before(new Date());
-        } catch (ExpiredJwtException exception) {
-            LOGGER.info("만료된 JWT 토큰");
-            return false;
-        }
+        return Optional.ofNullable(claims)
+                       .map(c -> !c.getExpiration().before(new Date()))
+                       .orElse(false);
+    }
 
+    private Optional<Jws<Claims>> parseToken(String token) {
+        try {
+            return Optional.of(Jwts.parserBuilder()
+                                   .setSigningKey(KEY)
+                                   .build()
+                                   .parseClaimsJws(token));
+        } catch (ExpiredJwtException e) {
+            logger.info("[TokenProvider] 만료된 JWT 토큰");
+            throw new ApplicationException(ErrorCode.EXPIRED_ACCESS_TOKEN, HttpStatus.UNAUTHORIZED);
+        } catch (SecurityException | MalformedJwtException e) {
+            logger.info("[TokenProvider] 위조된 JWT 서명");
+            throw new ApplicationException(ErrorCode.TAMPERED_TOKEN_SIGNATURE, HttpStatus.UNAUTHORIZED);
+        } catch (Exception e) {
+            logger.warn("[TokenProvider] JWT 파싱 실패: {}", e.getMessage());
+            return Optional.empty();
+        }
     }
 
     public boolean isValidatedToken(String token) {
-        try {
-            Jws<Claims> claims = Jwts.parserBuilder()
-                    .setSigningKey(KEY)
-                    .build()
-                    .parseClaimsJws(token);
-
-            return !claims.getBody().getExpiration().before(new Date());
-        } catch (ExpiredJwtException exception) {
-            LOGGER.info("만료된 JWT 토큰");
-            return false;
-        } catch (IllegalArgumentException exception) {
-            LOGGER.info("잘못된 JWT 토큰");
-            return false;
-        } catch (SecurityException | MalformedJwtException e) {
-            LOGGER.info("잘못된 JWT 서명");
-            return false;
-        } catch (RuntimeException exception) {
-            LOGGER.info("valid token error");
-            return false;
-        }
+        return parseToken(token)
+                .map(Jws::getBody)
+                .map(claims -> !claims.getExpiration().before(new Date()))
+                .orElse(false);
     }
 
-    public String resolveToken(HttpServletRequest httpServletRequest) {
-        String authorization = httpServletRequest.getHeader("Authorization");
-        if (authorization == null) {
-            throw new BusinessException(ErrorCode.EMPTY_TOKEN_PROVIDED, HttpStatus.UNAUTHORIZED);
-        } else if (authorization.startsWith("Bearer ")) {
-            return authorization.substring(7);
-        } else {
-            return authorization;
-        }
+    public String resolveToken(HttpServletRequest request) {
+        return Optional.ofNullable(request.getHeader("Authorization"))
+                       .filter(auth -> auth.startsWith("Bearer "))
+                       .map(auth -> auth.substring(7))
+                       .orElseThrow(() -> new ApplicationException(
+                               ErrorCode.EMPTY_TOKEN_PROVIDED, HttpStatus.UNAUTHORIZED)
+                       );
     }
 
+    public TokenPlayer extractTokenPlayer(String token) {
+        Claims claims = getClaims(token);
+        if (claims == null) {
+            throw new ApplicationException(ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
+        }
+
+        return TokenPlayer.builder()
+                          .uid(PolId.of(claims.get("uid", String.class)))
+                          .name(claims.get("name", String.class))
+                          .email(claims.get("email", String.class))
+                          .roles(Set.copyOf((List<String>) claims.get("roles")))
+                          .build();
+    }
 }

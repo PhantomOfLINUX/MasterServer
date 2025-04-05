@@ -3,7 +3,7 @@ package org.codequistify.master.application.player.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.application.player.dto.PlayerProfile;
+import org.codequistify.master.application.player.dto.PlayerProfileResponse;
 import org.codequistify.master.application.player.dto.PlayerStageProgressResponse;
 import org.codequistify.master.application.player.service.PlayerProfileService;
 import org.codequistify.master.application.player.service.PlayerQueryService;
@@ -14,6 +14,7 @@ import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.util.BasicResponse;
+import org.codequistify.master.infrastructure.security.TokenPlayer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -36,8 +37,10 @@ public class PlayerProfileController {
 
     @LogMonitoring
     @GetMapping("")
-    public ResponseEntity<List<PlayerProfile>> getAllPlayerProfiles() {
-        List<PlayerProfile> response = playerProfileService.findAllPlayerProfiles();
+    public ResponseEntity<List<PlayerProfileResponse>> getAllPlayerProfiles() {
+        List<PlayerProfileResponse> response = playerProfileService.findAllPlayerProfiles()
+                                                                   .stream()
+                                                                   .map(PlayerProfileResponse::from).toList();
         return ResponseEntity.ok(response);
     }
 
@@ -47,9 +50,9 @@ public class PlayerProfileController {
     )
     @LogMonitoring
     @GetMapping("me/profile")
-    public ResponseEntity<PlayerProfile> getMyProfile(@AuthenticationPrincipal Player principal) {
-        Player player = playerQueryService.findOneByUid(principal.getUid());
-        return ResponseEntity.ok(PlayerProfile.from(player));
+    public ResponseEntity<PlayerProfileResponse> getMyProfile(@AuthenticationPrincipal TokenPlayer tokenPlayer) {
+        Player player = playerQueryService.findOneByUid(tokenPlayer.getUid());
+        return ResponseEntity.ok(PlayerProfileResponse.from(player));
     }
 
     @Operation(
@@ -63,14 +66,14 @@ public class PlayerProfileController {
     @LogMonitoring
     @GetMapping("me/stages")
     public ResponseEntity<PlayerStageProgressResponse> getStagesByStatusForPlayer(
-            @AuthenticationPrincipal Player principal,
+            @AuthenticationPrincipal TokenPlayer tokenPlayer,
             @RequestParam CompletedStatus status
     ) {
         if (status == CompletedStatus.NOT_COMPLETED) {
             throw new BusinessException(ErrorCode.INVALID_SEARCH_CRITERIA, HttpStatus.BAD_REQUEST);
         }
 
-        Player player = playerQueryService.findOneByUid(principal.getUid());
+        Player player = playerQueryService.findOneByUid(tokenPlayer.getUid());
         PlayerStageProgressResponse response = switch (status) {
             case COMPLETED -> playerProfileService.getCompletedStagesByPlayerId(player);
             case IN_PROGRESS -> playerProfileService.getInProgressStagesByPlayerId(player);
@@ -87,9 +90,9 @@ public class PlayerProfileController {
     @LogMonitoring
     @GetMapping("me/heat-map")
     public ResponseEntity<List<HeatMapDataPoint>> getHeatMapPointsForPlayer(
-            @AuthenticationPrincipal Player principal
+            @AuthenticationPrincipal TokenPlayer tokenPlayer
     ) {
-        Player player = playerQueryService.findOneByUid(principal.getUid());
+        Player player = playerQueryService.findOneByUid(tokenPlayer.getUid());
         List<HeatMapDataPoint> response = playerProfileService.getHeatMapDataPointsByModifiedDate(player);
         return ResponseEntity.ok(response);
     }
@@ -100,8 +103,8 @@ public class PlayerProfileController {
     )
     @LogMonitoring
     @GetMapping("me/admin")
-    public ResponseEntity<BasicResponse> checkAdminRole(@AuthenticationPrincipal Player principal) {
-        Player player = playerQueryService.findOneByUid(principal.getUid());
+    public ResponseEntity<BasicResponse> checkAdminRole(@AuthenticationPrincipal TokenPlayer tokenPlayer) {
+        Player player = playerQueryService.findOneByUid(tokenPlayer.getUid());
         boolean isAdmin = playerProfileService.isAdmin(player);
         return ResponseEntity.ok(BasicResponse.of(String.valueOf(isAdmin)));
     }
