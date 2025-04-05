@@ -1,6 +1,6 @@
 package org.codequistify.master.infrastructure.player.repository;
 
-import org.codequistify.master.core.domain.player.domain.OAuthType;
+import org.codequistify.master.core.domain.player.model.OAuthType;
 import org.codequistify.master.infrastructure.player.entity.PlayerEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

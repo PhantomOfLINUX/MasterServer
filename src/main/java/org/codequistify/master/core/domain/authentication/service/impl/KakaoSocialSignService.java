@@ -7,7 +7,7 @@ import org.codequistify.master.core.domain.authentication.vo.OAuthResource;
 import org.codequistify.master.core.domain.authentication.vo.OAuthToken;
 import org.codequistify.master.core.domain.authentication.vo.ResourceOfKakao;
 import org.codequistify.master.core.domain.player.converter.PlayerConverter;
-import org.codequistify.master.core.domain.player.domain.OAuthType;
+import org.codequistify.master.core.domain.player.model.OAuthType;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.application.player.dto.PlayerProfile;
 import org.codequistify.master.core.domain.player.service.PlayerDetailsService;

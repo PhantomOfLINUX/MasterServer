@@ -5,7 +5,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.core.domain.player.model.Player;
-import org.codequistify.master.core.domain.player.domain.PlayerRoleType;
+import org.codequistify.master.core.domain.player.model.PlayerRoleType;
 import org.codequistify.master.application.player.dto.PlayerProfile;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.exception.ErrorCode;

@@ -2,7 +2,7 @@ package org.codequistify.master.infrastructure.player.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.codequistify.master.core.domain.player.domain.OAuthType;
+import org.codequistify.master.core.domain.player.model.OAuthType;
 import org.hibernate.annotations.ColumnDefault;
 import org.codequistify.master.global.util.BaseTimeEntity;
 

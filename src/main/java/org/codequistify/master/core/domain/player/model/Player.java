@@ -3,9 +3,6 @@ package org.codequistify.master.core.domain.player.model;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import org.codequistify.master.core.domain.player.domain.OAuthType;
-import org.codequistify.master.core.domain.player.domain.PlayerAccessType;
-import org.codequistify.master.core.domain.player.domain.PlayerRoleType;
 import org.codequistify.master.core.domain.player.service.UidGenerator;
 
 import java.util.Collections;

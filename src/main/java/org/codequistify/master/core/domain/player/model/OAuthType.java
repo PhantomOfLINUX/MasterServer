@@ -1,4 +1,4 @@
-package org.codequistify.master.core.domain.player.domain;
+package org.codequistify.master.core.domain.player.model;
 
 import lombok.Getter;
 

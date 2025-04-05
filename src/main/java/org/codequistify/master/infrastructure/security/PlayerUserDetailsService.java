@@ -2,7 +2,7 @@ package org.codequistify.master.infrastructure.security;
 
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.core.domain.player.model.PolId;
-import org.codequistify.master.core.domain.port.PlayerReader;
+import org.codequistify.master.core.domain.player.port.PlayerReader;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
