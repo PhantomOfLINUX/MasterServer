@@ -22,8 +22,8 @@ import java.util.Map;
 public class EmailMessageFactory {
 
     private final JavaMailSender javaMailSender;
-    private final TemplateEngine templateEngine;
     private final Logger logger = LoggerFactory.getLogger(EmailMessageFactory.class);
+    private final TemplateEngine templateEngine;
 
     public MimeMessage createVerificationMessage(Email email, String code, EmailVerificationType type) throws
                                                                                                         MessagingException {

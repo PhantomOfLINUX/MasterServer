@@ -44,8 +44,8 @@ public enum ErrorCode {
     // 정상
     SUCCESS("SUCCESS", "2000_SUCCESS_OK");
 
-    private final String message;
     private final String code;
+    private final String message;
 
     ErrorCode(String message, String code) {
         this.message = message;

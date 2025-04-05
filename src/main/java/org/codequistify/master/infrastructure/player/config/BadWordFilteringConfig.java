@@ -21,7 +21,7 @@ public class BadWordFilteringConfig {
     @Bean
     public BadWordFiltering badWordFiltering() throws IOException {
         BadWordFiltering badWordFiltering = new BadWordFiltering();
-        List<String > filteringWords = loadWordsAsList();
+        List<String> filteringWords = loadWordsAsList();
         badWordFiltering.addAll(filteringWords);
 
         return badWordFiltering;

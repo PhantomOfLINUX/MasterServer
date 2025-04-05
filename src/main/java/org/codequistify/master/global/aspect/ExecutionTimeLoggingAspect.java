@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ExecutionTimeLoggingAspect {
     private final Logger LOGGER = LoggerFactory.getLogger(MethodInvocationLoggingAspect.class);
+
     @Around("@annotation(LogExecutionTime) || @annotation(LogMonitoring)")
     public Object logMethod(ProceedingJoinPoint joinPoint) throws Throwable {
         MethodSignature signature = (MethodSignature) joinPoint.getSignature();

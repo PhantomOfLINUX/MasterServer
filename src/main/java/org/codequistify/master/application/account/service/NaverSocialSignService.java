@@ -31,10 +31,9 @@ public class NaverSocialSignService implements SocialSignService {
 
     private static final String LOGIN_URL_TEMPLATE =
             "https://nid.naver.com/oauth2.0/authorize?client_id=%s&redirect_uri=%s&response_type=code&state=%s";
-
-    private final RestTemplate restTemplate;
-    private final PlayerRepository playerRepository;
     private final OAuthKey oAuthKey;
+    private final PlayerRepository playerRepository;
+    private final RestTemplate restTemplate;
 
     /**
      * 네이버 소셜 로그인 URL 반환

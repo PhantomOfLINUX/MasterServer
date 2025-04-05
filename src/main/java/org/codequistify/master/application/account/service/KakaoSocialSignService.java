@@ -31,10 +31,9 @@ public class KakaoSocialSignService implements SocialSignService {
 
     private static final String LOGIN_URL_TEMPLATE =
             "https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=%s&redirect_uri=%s";
-
-    private final RestTemplate restTemplate;
     private final OAuthKey oAuthKey;
     private final PlayerRepository playerRepository;
+    private final RestTemplate restTemplate;
 
     /**
      * 카카오 소셜 로그인 주소 반환

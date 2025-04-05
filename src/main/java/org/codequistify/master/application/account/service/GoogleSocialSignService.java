@@ -30,10 +30,9 @@ public class GoogleSocialSignService implements SocialSignService {
 
     private static final String LOGIN_URL_TEMPLATE =
             "https://accounts.google.com/o/oauth2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=email%%20profile";
-
-    private final RestTemplate restTemplate;
     private final OAuthKey oAuthKey;
     private final PlayerRepository playerRepository;
+    private final RestTemplate restTemplate;
 
     @Override
     public String getSocialLogInURL() {

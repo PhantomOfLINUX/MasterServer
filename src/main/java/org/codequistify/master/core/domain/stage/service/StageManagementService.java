@@ -24,13 +24,12 @@ public interface StageManagementService {
     void recordInProgressStageInit(Player player, GradingRequest request);
 
     // 문제 풀이 정보 기록
-    public void updateInProgressStage(Player player, GradingRequest request);
+    void updateInProgressStage(Player player, GradingRequest request);
 
 
     // 스테이지 수정
     // 스테이지 문항 수정
     // 스테이지 옵션 수정
-
 
 
 }

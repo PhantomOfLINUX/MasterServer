@@ -31,10 +31,9 @@ public class GithubSocialSignService implements SocialSignService {
 
     private static final String LOGIN_URL_TEMPLATE =
             "https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s&response_type=code&state=%s";
-
-    private final RestTemplate restTemplate;
     private final OAuthKey oAuthKey;
     private final PlayerRepository playerRepository;
+    private final RestTemplate restTemplate;
 
     @Override
     public String getSocialLogInURL() {

@@ -6,12 +6,10 @@ import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 public class PlayerValidator {
-    private static final Pattern PASSWORD_PATTERN =
-            Pattern.compile("^(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*#?&])[a-z\\d@$!%*#?&]{8,}$");
-
     private static final Pattern NAME_PATTERN =
             Pattern.compile("^[a-zA-Z가-힣0-9]+$");
-
+    private static final Pattern PASSWORD_PATTERN =
+            Pattern.compile("^(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*#?&])[a-z\\d@$!%*#?&]{8,}$");
     private final ProfanityChecker profanityChecker;
 
     public boolean isValidName(String name) {

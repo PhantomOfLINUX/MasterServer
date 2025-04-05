@@ -8,7 +8,9 @@ import java.util.HashSet;
 public class PlayerConverter {
 
     public static Player toDomain(PlayerEntity entity) {
-        if (entity == null) return null;
+        if (entity == null) {
+            return null;
+        }
 
         return Player.builder()
                      .uid(entity.getUid())
@@ -26,7 +28,9 @@ public class PlayerConverter {
     }
 
     public static PlayerEntity toEntity(Player domain) {
-        if (domain == null) return null;
+        if (domain == null) {
+            return null;
+        }
 
         return PlayerEntity.builder()
                            .uid(domain.getUid())
