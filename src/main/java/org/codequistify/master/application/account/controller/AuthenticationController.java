@@ -5,8 +5,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.mail.MessagingException;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -16,6 +14,8 @@ import org.codequistify.master.application.account.service.AccountService;
 import org.codequistify.master.application.account.service.EmailVerificationService;
 import org.codequistify.master.application.account.service.SocialSignService;
 import org.codequistify.master.application.account.support.SocialSignHandlerMap;
+import org.codequistify.master.application.account.support.TokenCookieProvider;
+import org.codequistify.master.application.account.support.TokenGenerator;
 import org.codequistify.master.application.account.vo.OAuthProfile;
 import org.codequistify.master.application.exception.ApplicationException;
 import org.codequistify.master.application.player.service.PlayerQueryService;
@@ -51,7 +51,10 @@ public class AuthenticationController {
     private final AccountService accountService;
     private final EmailVerificationService emailVerificationService;
     private final PlayerQueryService playerQueryService;
+
     private final TokenProvider tokenProvider;
+    private final TokenCookieProvider tokenCookieProvider;
+    private final TokenGenerator tokenGenerator;
 
     @GetMapping("/{provider}/url")
     @Operation(summary = "소셜 로그인 URL 발급", description = "구글/카카오/네이버/깃허브 로그인 URL을 반환")
@@ -91,9 +94,18 @@ public class AuthenticationController {
                 () -> handler.socialLogIn(profile)
         );
 
-        TokenResponse token = generateTokens(player);
-        addTokenToCookie(token, response);
+        TokenResponse token = tokenGenerator.generate(player);
+        tokenCookieProvider.addTokenCookies(response, token);
         return ResponseEntity.ok(new LoginResponse(player, token));
+    }
+
+    private Player trySocialLogin(Supplier<Player> login, Runnable signUp, Supplier<Player> reLogin) {
+        try {
+            return login.get();
+        } catch (BusinessException ex) {
+            signUp.run();
+            return reLogin.get();
+        }
     }
 
     /**
@@ -109,8 +121,8 @@ public class AuthenticationController {
         Player player = accountService.signUp(request.name(), request.email(), request.password());
         emailVerificationService.markEmailVerificationAsUsed(emailVerification);
 
-        TokenResponse token = generateTokens(player);
-        addTokenToCookie(token, response);
+        TokenResponse token = tokenGenerator.generate(player);
+        tokenCookieProvider.addTokenCookies(response, token);
         return ResponseEntity.ok(new LoginResponse(player, token));
     }
 
@@ -123,8 +135,8 @@ public class AuthenticationController {
     public ResponseEntity<LoginResponse> logInPOL(@Valid @RequestBody LogInRequest request,
                                                   HttpServletResponse response) {
         Player player = accountService.logIn(request.email(), request.password());
-        TokenResponse token = generateTokens(player);
-        addTokenToCookie(token, response);
+        TokenResponse token = tokenGenerator.generate(player);
+        tokenCookieProvider.addTokenCookies(response, token);
         return ResponseEntity.ok(new LoginResponse(player, token));
     }
 
@@ -137,7 +149,7 @@ public class AuthenticationController {
     public ResponseEntity<TokenResponse> regenerateAccessToken(@RequestBody TokenRequest request,
                                                                HttpServletResponse response) {
         TokenResponse token = accountService.regenerateAccessToken(request);
-        addTokenToCookie(token, response);
+        tokenCookieProvider.addTokenCookies(response, token);
         return ResponseEntity.ok(token);
     }
 
@@ -170,8 +182,7 @@ public class AuthenticationController {
 
         accountService.logOut(player);
 
-        removeTokenFromCookie(response);
-        removeTokenFromCookie_DEV(response);
+        tokenCookieProvider.removeTokenCookies(response);
         return ResponseEntity.ok(BasicResponse.of("SUCCESS"));
     }
 
@@ -192,22 +203,11 @@ public class AuthenticationController {
     /**
      * 인증메일 발송 요청
      */
-    @Operation(summary = "인증메일 발송 요청", description = "회원가입 or 비밀번호 초기화를 위한 인증 메일 발송")
     @PostMapping("auth/email/verification")
+    @Operation(summary = "인증메일 발송 요청")
     @LogMonitoring
-    public ResponseEntity<BasicResponse> sendAuthMail(@Valid @RequestBody EmailVerificationRequest request) throws
-                                                                                                            MessagingException {
-        if (request.type() == EmailVerificationType.REGISTRATION
-                && accountService.checkEmailDuplication(request.email())) {
-            throw new ApplicationException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
-        }
-
-        if (request.type() == EmailVerificationType.PASSWORD_RESET
-                && !accountService.checkEmailDuplication(request.email())) {
-            throw new ApplicationException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
-        }
-
-        emailVerificationService.sendVerifyMail(request.email(), request.type());
+    public ResponseEntity<BasicResponse> sendAuthMail(@Valid @RequestBody EmailVerificationRequest request) {
+        emailVerificationService.validateAndSend(request.email(), request.type());
         return ResponseEntity.ok(BasicResponse.of("인증 메일 전송 완료"));
     }
 
@@ -238,100 +238,5 @@ public class AuthenticationController {
         return ResponseEntity.ok(new TokenResponse("", tempToken));
     }
 
-    private Player trySocialLogin(Supplier<Player> login, Runnable signUp, Supplier<Player> reLogin) {
-        try {
-            return login.get();
-        } catch (BusinessException ex) {
-            signUp.run();
-            return reLogin.get();
-        }
-    }
 
-    private TokenResponse generateTokens(Player player) {
-        String refreshToken = tokenProvider.generateRefreshToken(player);
-        accountService.updateRefreshToken(player.getUid(), refreshToken);
-        String accessToken = tokenProvider.generateAccessToken(player);
-        return new TokenResponse(refreshToken, accessToken);
-    }
-
-    private void addTokenToCookie(TokenResponse tokenResponse, HttpServletResponse response) {
-        addRefreshTokenToCookie(tokenResponse.refreshToken(), response);
-        addAccessTokenToCookie(tokenResponse.accessToken(), response);
-        addRefreshTokenToCookie_DEV(tokenResponse.refreshToken(), response);
-        addAccessTokenToCookies_DEV(tokenResponse.accessToken(), response);
-    }
-
-    private void addRefreshTokenToCookie(String refreshToken, HttpServletResponse response) {
-        Cookie refreshTokenCookie = new Cookie("POL_REFRESH_TOKEN", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true);
-        refreshTokenCookie.setDomain("pol.or.kr");
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
-        response.addCookie(refreshTokenCookie);
-    }
-
-    private void addAccessTokenToCookie(String accessToken, HttpServletResponse response) {
-        Cookie accessTokenCookie = new Cookie("POL_ACCESS_TOKEN", accessToken);
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(true);
-        accessTokenCookie.setDomain("pol.or.kr");
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(60 * 60);
-        response.addCookie(accessTokenCookie);
-    }
-
-    private void removeTokenFromCookie(HttpServletResponse response) {
-        Cookie rt = new Cookie("POL_REFRESH_TOKEN", null);
-        rt.setHttpOnly(true);
-        rt.setSecure(true);
-        rt.setDomain("pol.or.kr");
-        rt.setPath("/");
-        rt.setMaxAge(0);
-
-        Cookie at = new Cookie("POL_ACCESS_TOKEN", null);
-        at.setHttpOnly(true);
-        at.setSecure(true);
-        at.setDomain("pol.or.kr");
-        at.setPath("/");
-        at.setMaxAge(0);
-
-        response.addCookie(rt);
-        response.addCookie(at);
-    }
-
-    private void removeTokenFromCookie_DEV(HttpServletResponse response) {
-        Cookie rt = new Cookie("POL_REFRESH_TOKEN_DEV", null);
-        rt.setHttpOnly(true);
-        rt.setSecure(true);
-        rt.setDomain("localhost");
-        rt.setPath("/");
-        rt.setMaxAge(0);
-
-        Cookie at = new Cookie("POL_ACCESS_TOKEN_DEV", null);
-        at.setHttpOnly(true);
-        at.setSecure(true);
-        at.setDomain("localhost");
-        at.setPath("/");
-        at.setMaxAge(0);
-
-        response.addCookie(rt);
-        response.addCookie(at);
-    }
-
-    private void addRefreshTokenToCookie_DEV(String refreshToken, HttpServletResponse response) {
-        Cookie rt = new Cookie("POL_REFRESH_TOKEN_DEV", refreshToken);
-        rt.setDomain("localhost");
-        rt.setPath("/");
-        rt.setMaxAge(7 * 24 * 60 * 60);
-        response.addCookie(rt);
-    }
-
-    private void addAccessTokenToCookies_DEV(String accessToken, HttpServletResponse response) {
-        Cookie at = new Cookie("POL_ACCESS_TOKEN_DEV", accessToken);
-        at.setDomain("localhost");
-        at.setPath("/");
-        at.setMaxAge(60 * 60);
-        response.addCookie(at);
-    }
 }

@@ -2,6 +2,7 @@ package org.codequistify.master.application.account.service;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.application.account.strategy.EmailVerificationPolicyHandler;
 import org.codequistify.master.application.exception.ApplicationException;
 import org.codequistify.master.core.domain.account.model.EmailVerification;
 import org.codequistify.master.core.domain.account.model.EmailVerificationType;
@@ -30,6 +31,7 @@ import java.security.NoSuchAlgorithmException;
 public class EmailVerificationService {
 
     private final EmailVerificationRepository emailVerificationRepository;
+    private final EmailVerificationPolicyHandler policyHandler;
     private final EmailMessageFactory emailMessageFactory;
     private final EmailSender emailSender;
     private final EmailVerificationCodeManager codeManager;
@@ -37,6 +39,13 @@ public class EmailVerificationService {
 
     @Value("${mail.secret}")
     private String mailSecret;
+
+    @Async
+    @Transactional
+    public void validateAndSend(String email, EmailVerificationType type) {
+        policyHandler.validate(email, type);
+        sendVerifyMail(email, type);
+    }
 
     @Async
     @Transactional
