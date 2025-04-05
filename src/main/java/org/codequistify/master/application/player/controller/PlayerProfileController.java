@@ -3,6 +3,8 @@ package org.codequistify.master.application.player.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.application.exception.ApplicationException;
+import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.application.player.dto.PlayerProfileResponse;
 import org.codequistify.master.application.player.dto.PlayerStageProgressResponse;
 import org.codequistify.master.application.player.service.PlayerProfileService;
@@ -11,8 +13,6 @@ import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.stage.domain.CompletedStatus;
 import org.codequistify.master.core.domain.stage.dto.HeatMapDataPoint;
 import org.codequistify.master.global.aspect.LogMonitoring;
-import org.codequistify.master.global.exception.ErrorCode;
-import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.util.BasicResponse;
 import org.codequistify.master.infrastructure.security.TokenPlayer;
 import org.springframework.http.HttpStatus;
@@ -70,7 +70,7 @@ public class PlayerProfileController {
             @RequestParam CompletedStatus status
     ) {
         if (status == CompletedStatus.NOT_COMPLETED) {
-            throw new BusinessException(ErrorCode.INVALID_SEARCH_CRITERIA, HttpStatus.BAD_REQUEST);
+            throw new ApplicationException(ErrorCode.INVALID_SEARCH_CRITERIA, HttpStatus.BAD_REQUEST);
         }
 
         Player player = playerQueryService.findOneByUid(tokenPlayer.getUid());

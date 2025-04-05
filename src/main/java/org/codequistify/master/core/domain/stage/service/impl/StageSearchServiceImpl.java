@@ -7,8 +7,10 @@ import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.core.domain.player.model.Player;
+import org.codequistify.master.application.exception.ApplicationException;
+import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.application.player.dto.PlayerStageProgressResponse;
+import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.model.PolId;
 import org.codequistify.master.core.domain.stage.convertoer.QuestionConverter;
 import org.codequistify.master.core.domain.stage.convertoer.StageConverter;
@@ -16,16 +18,14 @@ import org.codequistify.master.core.domain.stage.domain.CompletedStatus;
 import org.codequistify.master.core.domain.stage.domain.Question;
 import org.codequistify.master.core.domain.stage.domain.Stage;
 import org.codequistify.master.core.domain.stage.dto.*;
-import org.codequistify.master.domain.stage.domain.*;
-import org.codequistify.master.domain.stage.dto.*;
 import org.codequistify.master.core.domain.stage.repository.CompletedStageRepository;
 import org.codequistify.master.core.domain.stage.repository.QuestionRepository;
 import org.codequistify.master.core.domain.stage.repository.StageRepository;
 import org.codequistify.master.core.domain.stage.service.StageSearchService;
 import org.codequistify.master.core.domain.stage.utils.HangulExtractor;
+import org.codequistify.master.domain.stage.domain.QCompletedStage;
+import org.codequistify.master.domain.stage.domain.QStage;
 import org.codequistify.master.global.aspect.LogMonitoring;
-import org.codequistify.master.global.exception.ErrorCode;
-import org.codequistify.master.global.exception.domain.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -57,7 +57,7 @@ public class StageSearchServiceImpl implements StageSearchService {
         return stageRepository.findById(stageId)
                 .orElseThrow(() -> {
                     LOGGER.info("[findStageById] 등록되지 않은 스테이지 id: {}", stageId);
-                    return new BusinessException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND);
+                    return new ApplicationException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND);
                 });
     }
 
@@ -67,7 +67,8 @@ public class StageSearchServiceImpl implements StageSearchService {
         Question question = questionRepository.findByStageIdAndIndex(stageId, questionIndex)
                                               .orElseThrow(() -> {
                     LOGGER.info("[findQuestion] {}, id: {}, index: {}", ErrorCode.QUESTION_NOT_FOUND.getMessage(), stageId, questionIndex);
-                    return new BusinessException(ErrorCode.QUESTION_NOT_FOUND, HttpStatus.NOT_FOUND);
+                                                  return new ApplicationException(ErrorCode.QUESTION_NOT_FOUND,
+                                                                                  HttpStatus.NOT_FOUND);
                 });
         QuestionResponse response = questionConverter.convert(question);
 

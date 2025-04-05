@@ -1,12 +1,12 @@
 package org.codequistify.master.core.domain.lab.service;
 
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.application.exception.ApplicationException;
+import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.core.domain.lab.utils.KubernetesResourceNaming;
 import org.codequistify.master.core.domain.stage.domain.StageImageType;
 import org.codequistify.master.core.domain.stage.dto.StageActionRequest;
 import org.codequistify.master.global.aspect.LogExecutionTime;
-import org.codequistify.master.global.exception.ErrorCode;
-import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.util.SuccessResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +54,7 @@ public class LabAssignmentService {
             ResponseEntity<SuccessResponse> response = restTemplate.postForEntity(url, entity, SuccessResponse.class);
             if (response.getStatusCode().is5xxServerError()) {
                 LOGGER.info("[sendGradingRequest] 실습서버가 정상적으로 응답하지 않습니다. url: {}", url);
-                throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new ApplicationException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             return response;
         } catch (HttpServerErrorException e) {
@@ -82,7 +82,7 @@ public class LabAssignmentService {
         ResponseEntity<SuccessResponse> response = restTemplate.postForEntity(url, entity, SuccessResponse.class);
         if (response.getStatusCode().is5xxServerError()) {
             LOGGER.info("[sendComposeRequest] 실습서버가 정상적으로 응답하지 않습니다. url: {}", url);
-            throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApplicationException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return response;
     }

@@ -1,4 +1,4 @@
-package org.codequistify.master.global.exception;
+package org.codequistify.master.application.exception;
 
 import lombok.Getter;
 

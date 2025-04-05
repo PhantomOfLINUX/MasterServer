@@ -1,14 +1,17 @@
 package org.codequistify.master.application.account.service;
 
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.application.account.vo.*;
+import org.codequistify.master.application.account.vo.OAuthProfile;
+import org.codequistify.master.application.account.vo.OAuthResource;
+import org.codequistify.master.application.account.vo.OAuthToken;
+import org.codequistify.master.application.account.vo.ResourceOfGithub;
 import org.codequistify.master.application.exception.ApplicationException;
+import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.core.domain.player.model.OAuthType;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.global.aspect.LogMethodInvocation;
 import org.codequistify.master.global.aspect.LogMonitoring;
-import org.codequistify.master.global.config.OAuthKey;
-import org.codequistify.master.global.exception.ErrorCode;
+import org.codequistify.master.infrastructure.account.config.OAuthKey;
 import org.codequistify.master.infrastructure.player.repository.PlayerRepository;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package org.codequistify.master.global.config;
+package org.codequistify.master.infrastructure.account.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

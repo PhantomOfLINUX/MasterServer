@@ -2,11 +2,11 @@ package org.codequistify.master.application.player.service;
 
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.application.exception.ApplicationException;
+import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.core.domain.player.model.OAuthType;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.model.PolId;
 import org.codequistify.master.core.domain.player.port.PlayerReader;
-import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.infrastructure.player.converter.PlayerConverter;
 import org.codequistify.master.infrastructure.player.repository.PlayerJpaRepository;
 import org.slf4j.Logger;

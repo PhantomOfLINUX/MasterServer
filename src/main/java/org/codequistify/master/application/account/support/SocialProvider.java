@@ -3,7 +3,7 @@ package org.codequistify.master.application.account.support;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.application.exception.ApplicationException;
-import org.codequistify.master.global.exception.ErrorCode;
+import org.codequistify.master.application.exception.ErrorCode;
 import org.springframework.http.HttpStatus;
 
 @Getter

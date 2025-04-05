@@ -1,4 +1,4 @@
-package org.codequistify.master.global.config;
+package org.codequistify.master.application.config;
 
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.global.interceptor.HttpLoggingInterceptor;

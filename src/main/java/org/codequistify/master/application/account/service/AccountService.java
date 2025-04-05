@@ -3,6 +3,7 @@ package org.codequistify.master.application.account.service;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.application.exception.ApplicationException;
+import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.application.player.service.PlayerProfileService;
 import org.codequistify.master.application.player.service.PlayerQueryService;
 import org.codequistify.master.core.domain.player.model.OAuthType;
@@ -12,8 +13,6 @@ import org.codequistify.master.core.domain.player.service.PlayerPasswordManager;
 import org.codequistify.master.core.domain.player.service.PlayerValidator;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
-import org.codequistify.master.global.exception.ErrorCode;
-import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.jwt.TokenProvider;
 import org.codequistify.master.global.jwt.dto.TokenInfo;
 import org.codequistify.master.global.jwt.dto.TokenRequest;
@@ -79,11 +78,12 @@ public class AccountService {
 
         Optional.of(password)
                 .filter(playerValidator::isValidPassword)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PASSWORD_POLICY_VIOLATION, HttpStatus.BAD_REQUEST));
+                .orElseThrow(() -> new ApplicationException(ErrorCode.PASSWORD_POLICY_VIOLATION,
+                                                            HttpStatus.BAD_REQUEST));
 
         Optional.of(name)
                 .filter(playerValidator::isValidName)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PROFANITY_IN_NAME, HttpStatus.BAD_REQUEST));
+                .orElseThrow(() -> new ApplicationException(ErrorCode.PROFANITY_IN_NAME, HttpStatus.BAD_REQUEST));
 
         if (playerProfileService.isDuplicatedName(name)) {
             throw new ApplicationException(ErrorCode.DUPLICATE_NAME, HttpStatus.BAD_REQUEST);
@@ -143,7 +143,7 @@ public class AccountService {
         Player player = Optional.of(uid)
                                 .map(PolId::of)
                                 .map(playerQueryService::findOneByUid)
-                                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN,
+                                .orElseThrow(() -> new ApplicationException(ErrorCode.INVALID_TOKEN,
                                                                          HttpStatus.UNAUTHORIZED));
 
         String accessToken = player.getRefreshToken().equals(request.refreshToken())
@@ -156,7 +156,7 @@ public class AccountService {
     @LogExecutionTime
     public TokenInfo analyzeTokenInfo(String token) {
         Claims claims = Optional.ofNullable(tokenProvider.getClaims(token))
-                                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN,
+                                .orElseThrow(() -> new ApplicationException(ErrorCode.INVALID_TOKEN,
                                                                          HttpStatus.BAD_REQUEST));
 
         SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

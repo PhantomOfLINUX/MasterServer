@@ -2,8 +2,8 @@ package org.codequistify.master.global.config;
 
 
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.global.filter.ApplicationExceptionHandlerFilter;
 import org.codequistify.master.global.filter.AuthenticationTokenFilter;
-import org.codequistify.master.global.filter.BusinessExceptionHandlerFilter;
 import org.codequistify.master.global.filter.CustomCorsFilter;
 import org.codequistify.master.global.filter.ServletFilter;
 import org.springframework.context.annotation.Bean;
@@ -22,7 +22,7 @@ import org.springframework.web.filter.CorsFilter;
 public class SecurityConfig {
     private final CustomCorsFilter customCorsFilter;
     private final AuthenticationTokenFilter authenticationTokenFilter;
-    private final BusinessExceptionHandlerFilter businessExceptionHandlerFilter;
+    private final ApplicationExceptionHandlerFilter applicationExceptionHandlerFilter;
     private final ServletFilter servletFilter;
 
     @Bean
@@ -45,7 +45,7 @@ public class SecurityConfig {
 
                 // jwt 인증 토큰 설정
                 .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(businessExceptionHandlerFilter, AuthenticationTokenFilter.class);
+                .addFilterBefore(applicationExceptionHandlerFilter, AuthenticationTokenFilter.class);
 
 
         return http.build();

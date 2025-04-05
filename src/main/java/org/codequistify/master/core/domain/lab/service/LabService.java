@@ -3,11 +3,11 @@ package org.codequistify.master.core.domain.lab.service;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodCondition;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.application.exception.ApplicationException;
+import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.stage.domain.Stage;
 import org.codequistify.master.global.aspect.LogExecutionTime;
-import org.codequistify.master.global.exception.ErrorCode;
-import org.codequistify.master.global.exception.domain.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -61,7 +61,7 @@ public class LabService {
             }
             if (retryCount > THRESHOLD) {
                 LOGGER.error("[deleteSyncStageOnKubernetes] {}",ErrorCode.PSHELL_CREATE_FAILED.getMessage());
-                throw new BusinessException(ErrorCode.PSHELL_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new ApplicationException(ErrorCode.PSHELL_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             try {
                 Thread.sleep(SLEEP_PERIOD);
@@ -69,7 +69,7 @@ public class LabService {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 LOGGER.info("[deleteSyncStageOnKubernetes] 인터럽트 오류 발생");
-                throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new ApplicationException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
     }
@@ -100,7 +100,7 @@ public class LabService {
 
             if (retryCount > THRESHOLD) {
                 LOGGER.error("[checkPodReady] {}",ErrorCode.PSHELL_CREATE_FAILED.getMessage());
-                throw new BusinessException(ErrorCode.PSHELL_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new ApplicationException(ErrorCode.PSHELL_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             try {
                 Thread.sleep(2000L);
@@ -108,7 +108,7 @@ public class LabService {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 LOGGER.info("[checkPodReady] 인터럽트 오류 발생");
-                throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new ApplicationException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
     }

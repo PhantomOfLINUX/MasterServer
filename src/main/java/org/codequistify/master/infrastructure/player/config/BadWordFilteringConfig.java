@@ -1,4 +1,4 @@
-package org.codequistify.master.global.config;
+package org.codequistify.master.infrastructure.player.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

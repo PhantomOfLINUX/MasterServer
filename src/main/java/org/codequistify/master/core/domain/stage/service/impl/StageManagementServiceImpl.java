@@ -1,20 +1,19 @@
 package org.codequistify.master.core.domain.stage.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.application.exception.ApplicationException;
+import org.codequistify.master.application.exception.ErrorCode;
+import org.codequistify.master.application.player.service.PlayerProfileService;
 import org.codequistify.master.core.domain.lab.service.LabAssignmentService;
 import org.codequistify.master.core.domain.player.model.Player;
-import org.codequistify.master.application.player.service.PlayerProfileService;
 import org.codequistify.master.core.domain.stage.convertoer.QuestionConverter;
 import org.codequistify.master.core.domain.stage.convertoer.StageConverter;
 import org.codequistify.master.core.domain.stage.domain.*;
 import org.codequistify.master.core.domain.stage.dto.*;
-import org.codequistify.master.domain.stage.dto.*;
 import org.codequistify.master.core.domain.stage.repository.CompletedStageRepository;
 import org.codequistify.master.core.domain.stage.repository.QuestionRepository;
 import org.codequistify.master.core.domain.stage.repository.StageRepository;
 import org.codequistify.master.core.domain.stage.service.StageManagementService;
-import org.codequistify.master.global.exception.ErrorCode;
-import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.util.SuccessResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +52,8 @@ public class StageManagementServiceImpl implements StageManagementService {
                                               .orElseThrow(() -> {
                     LOGGER.info("[checkAnswerCorrectness] {}, id: {}, index: {}",
                             ErrorCode.QUESTION_NOT_FOUND.getMessage(), request.stageId(), request.questionIndex());
-                    return new BusinessException(ErrorCode.QUESTION_NOT_FOUND, HttpStatus.NOT_FOUND);
+                                                  return new ApplicationException(ErrorCode.QUESTION_NOT_FOUND,
+                                                                                  HttpStatus.NOT_FOUND);
                 });
 
         boolean isCorrect;
@@ -107,7 +107,7 @@ public class StageManagementServiceImpl implements StageManagementService {
                 .orElseThrow(() -> {
                     LOGGER.info("[checkAnswerCorrectness] {}, id: {}, index: {}",
                             ErrorCode.QUESTION_NOT_FOUND.getMessage(), request.stageId(), request.questionIndex());
-                    return new BusinessException(ErrorCode.QUESTION_NOT_FOUND, HttpStatus.NOT_FOUND);
+                    return new ApplicationException(ErrorCode.QUESTION_NOT_FOUND, HttpStatus.NOT_FOUND);
                 });
         Stage stage = question.getStage();
 
@@ -131,7 +131,7 @@ public class StageManagementServiceImpl implements StageManagementService {
                 .orElseThrow(() -> {
                     LOGGER.info("[recordStageComplete] {}}, stage: {}",
                             ErrorCode.STAGE_NOT_FOUND.getMessage(), stageId);
-                    return new BusinessException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND);
+                    return new ApplicationException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND);
                 });
 
         CompletedStage completedStage;
@@ -147,7 +147,7 @@ public class StageManagementServiceImpl implements StageManagementService {
                     .orElseThrow(() -> {
                         LOGGER.info("[updateInProgressStage] {}, stage: {}",
                                 ErrorCode.STAGE_PROGRESS_NOT_FOUND.getMessage(), stageId);
-                        return new BusinessException(ErrorCode.STAGE_PROGRESS_NOT_FOUND, HttpStatus.NOT_FOUND);
+                        return new ApplicationException(ErrorCode.STAGE_PROGRESS_NOT_FOUND, HttpStatus.NOT_FOUND);
                     });
             completedStage.updateCompleted();
         }
@@ -179,7 +179,7 @@ public class StageManagementServiceImpl implements StageManagementService {
                 .orElseThrow(() -> {
                     LOGGER.info("[recordStageComplete] {}, stage: {}",
                             ErrorCode.STAGE_NOT_FOUND.getMessage(), request.stageId());
-                    return new BusinessException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND);
+                    return new ApplicationException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND);
                 });
 
         CompletedStage completedStage = CompletedStage.builder()
@@ -199,7 +199,7 @@ public class StageManagementServiceImpl implements StageManagementService {
                 .orElseThrow(()->{
                     LOGGER.info("[updateInProgressStage] {}, stage: {}",
                             ErrorCode.STAGE_PROGRESS_NOT_FOUND.getMessage(), request.stageId());
-                    return new BusinessException(ErrorCode.STAGE_PROGRESS_NOT_FOUND, HttpStatus.NOT_FOUND);
+                    return new ApplicationException(ErrorCode.STAGE_PROGRESS_NOT_FOUND, HttpStatus.NOT_FOUND);
                 });
 
         completedStage.updateQuestionIndex(request.questionIndex());

@@ -18,14 +18,13 @@ import org.codequistify.master.application.account.support.TokenCookieProvider;
 import org.codequistify.master.application.account.support.TokenGenerator;
 import org.codequistify.master.application.account.vo.OAuthProfile;
 import org.codequistify.master.application.exception.ApplicationException;
+import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.application.player.service.PlayerQueryService;
 import org.codequistify.master.core.domain.account.model.EmailVerification;
 import org.codequistify.master.core.domain.account.model.EmailVerificationType;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.model.PolId;
 import org.codequistify.master.global.aspect.LogMonitoring;
-import org.codequistify.master.global.exception.ErrorCode;
-import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.jwt.TokenProvider;
 import org.codequistify.master.global.jwt.dto.TokenInfo;
 import org.codequistify.master.global.jwt.dto.TokenRequest;
@@ -102,7 +101,7 @@ public class AuthenticationController {
     private Player trySocialLogin(Supplier<Player> login, Runnable signUp, Supplier<Player> reLogin) {
         try {
             return login.get();
-        } catch (BusinessException ex) {
+        } catch (ApplicationException ex) {
             signUp.run();
             return reLogin.get();
         }
