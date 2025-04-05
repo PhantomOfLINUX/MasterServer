@@ -2,7 +2,7 @@ package org.codequistify.master.domain.player.service;
 
 import org.codequistify.master.application.account.dto.LogInRequest;
 import org.codequistify.master.application.account.dto.SignUpRequest;
-import org.codequistify.master.application.account.service.AuthenticationService;
+import org.codequistify.master.application.account.service.AccountService;
 import org.codequistify.master.application.player.dto.PlayerProfile;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
@@ -20,18 +20,18 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Transactional
-class AuthenticationServiceTest {
-    private final AuthenticationService authenticationService;
+class AccountServiceTest {
+    private final AccountService accountService;
 
     @Autowired
-    public AuthenticationServiceTest(AuthenticationService authenticationService) {
-        this.authenticationService = authenticationService;
+    public AccountServiceTest(AccountService accountService) {
+        this.accountService = accountService;
     }
 
     @BeforeEach
     void setUp() {
         SignUpRequest request = new SignUpRequest("A", "A@pol.or.kr", "password99763892*");
-        PlayerProfile result = authenticationService.signUp(request);
+        PlayerProfile result = accountService.signUp(request);
     }
 
 
@@ -39,7 +39,7 @@ class AuthenticationServiceTest {
     @Order(1)
     public void 회원가입_성공(){
         SignUpRequest request = new SignUpRequest("B", "B@pol.or.kr", "password99763892*");
-        PlayerProfile result = authenticationService.signUp(request);
+        PlayerProfile result = accountService.signUp(request);
 
         assertNotNull(result);
         assertEquals(request.name(), result.name());
@@ -51,7 +51,7 @@ class AuthenticationServiceTest {
         SignUpRequest request = new SignUpRequest("A", "A@pol.or.kr", "password99763892*");
 
         Throwable ex = assertThrows(BusinessException.class, () -> {
-            authenticationService.signUp(request);
+            accountService.signUp(request);
         });
         assertEquals(ErrorCode.EMAIL_ALREADY_EXISTS.getMessage(), ex.getMessage());
     }
@@ -71,7 +71,7 @@ class AuthenticationServiceTest {
         SignUpRequest request = new SignUpRequest("D", "D@pol.or.kr", "pass63892");
 
         Throwable ex = assertThrows(BusinessException.class, () -> {
-            authenticationService.signUp(request);
+            accountService.signUp(request);
         });
         assertEquals(ErrorCode.PASSWORD_POLICY_VIOLATION.getMessage(), ex.getMessage());
     }
@@ -80,7 +80,7 @@ class AuthenticationServiceTest {
     public void 정상_로그인() {
         LogInRequest request = new LogInRequest("A@pol.or.kr", "password99763892*");
 
-        PlayerProfile result = authenticationService.logIn(request);
+        PlayerProfile result = accountService.logIn(request);
 
         assertNotNull(result);
         assertEquals(request.email(), result.email());
@@ -92,7 +92,7 @@ class AuthenticationServiceTest {
         LogInRequest request = new LogInRequest("A@pol.or.kr", "wrong");
 
         Throwable ex = assertThrows(BusinessException.class, () -> {
-            authenticationService.logIn(request);
+            accountService.logIn(request);
         });
         assertEquals(ErrorCode.INVALID_EMAIL_OR_PASSWORD.getMessage(), ex.getMessage());
     }
@@ -103,7 +103,7 @@ class AuthenticationServiceTest {
         LogInRequest request = new LogInRequest("wrong@pol.or.kr", "password99763892*");
 
         Throwable ex = assertThrows(BusinessException.class, () -> {
-            authenticationService.logIn(request);
+            accountService.logIn(request);
         });
         assertEquals(ErrorCode.INVALID_EMAIL_OR_PASSWORD.getMessage(), ex.getMessage());
     }

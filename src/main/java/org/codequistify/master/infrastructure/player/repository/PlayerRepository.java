@@ -15,7 +15,9 @@ public interface PlayerRepository extends JpaRepository<PlayerEntity, String> {
 
     Optional<PlayerEntity> findByUid(String uid);
 
-    Boolean existsByNameIgnoreCase(String name);
+    boolean existsByNameIgnoreCase(String name);
+
+    boolean existsByEmailIgnoreCase(String email);
 
     @Modifying
     @Transactional

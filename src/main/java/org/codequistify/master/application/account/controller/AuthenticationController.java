@@ -11,11 +11,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.application.account.service.AccountService;
 import org.codequistify.master.application.player.service.PlayerQueryService;
 import org.codequistify.master.core.domain.account.model.EmailVerification;
 import org.codequistify.master.core.domain.account.model.EmailVerificationType;
 import org.codequistify.master.application.account.dto.*;
-import org.codequistify.master.application.account.service.AuthenticationService;
 import org.codequistify.master.application.account.service.EmailVerificationService;
 import org.codequistify.master.application.account.service.impl.GithubSocialSignService;
 import org.codequistify.master.application.account.service.impl.GoogleSocialSignService;
@@ -51,7 +51,7 @@ public class AuthenticationController {
     private final NaverSocialSignService naverSocialSignService;
     private final GithubSocialSignService githubSocialSignService;
 
-    private final AuthenticationService authenticationService;
+    private final AccountService accountService;
     private final EmailVerificationService emailVerificationService;
     private final PlayerQueryService playerQueryService;
 
@@ -228,7 +228,7 @@ public class AuthenticationController {
         EmailVerification emailVerification = emailVerificationService
                 .verifyEmailAndRetrieve(request.email(), EmailVerificationType.REGISTRATION);
 
-        PlayerProfile playerProfile = authenticationService.signUp(request);
+        PlayerProfile playerProfile = accountService.signUp(request);
 
         // 인증메일 사용처리
         emailVerificationService.markEmailVerificationAsUsed(emailVerification);
@@ -249,7 +249,7 @@ public class AuthenticationController {
     @LogMonitoring
     @PostMapping("auth/login")
     public ResponseEntity<LoginResponse> logInPOL(@Valid @RequestBody LogInRequest request, HttpServletResponse response) {
-        PlayerProfile playerProfile = authenticationService.logIn(request);
+        PlayerProfile playerProfile = accountService.logIn(request);
 
         TokenResponse tokenResponse = generateTokens(playerProfile);
         this.addTokenToCookie(tokenResponse, response);
@@ -274,7 +274,7 @@ public class AuthenticationController {
     @LogMonitoring
     @PostMapping("auth/refresh")
     public ResponseEntity<TokenResponse> regenerateAccessToken(@RequestBody TokenRequest request, HttpServletResponse response) {
-        TokenResponse tokenResponse = authenticationService.regenerateAccessToken(request);
+        TokenResponse tokenResponse = accountService.regenerateAccessToken(request);
         this.addTokenToCookie(tokenResponse, response);
 
         LOGGER.info("[regenerateAccessToken] AccessToken 재발급");
@@ -293,7 +293,7 @@ public class AuthenticationController {
     @GetMapping("auth/validate")
     public ResponseEntity<TokenInfo> analyzeToken(@RequestParam String token) {
         try {
-            TokenInfo tokenInfo = authenticationService.analyzeTokenInfo(token);
+            TokenInfo tokenInfo = accountService.analyzeTokenInfo(token);
             return ResponseEntity.status(HttpStatus.OK).body(tokenInfo);
         } catch (NullPointerException exception) {
             throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.BAD_REQUEST);
@@ -317,7 +317,7 @@ public class AuthenticationController {
         if (player == null) {
             throw new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.UNAUTHORIZED);
         }
-        authenticationService.logOut(player);
+        accountService.logOut(player);
         LOGGER.info("[LogOut] Player: {}, 로그아웃 완료", player.getUid());
 
         this.removeTokenFromCookie(servletResponse);
@@ -341,7 +341,7 @@ public class AuthenticationController {
     @LogMonitoring
     @GetMapping("auth/email/{email}")
     public ResponseEntity<BasicResponse> checkEmailDuplication(@PathVariable String email) {
-        if (authenticationService.checkEmailDuplication(email)) {
+        if (accountService.checkEmailDuplication(email)) {
             throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
         } else {
             return ResponseEntity
@@ -363,12 +363,12 @@ public class AuthenticationController {
     public ResponseEntity<BasicResponse> sendAuthMail(@Valid @RequestBody EmailVerificationRequest request) throws MessagingException {
         LOGGER.info(request.type().toString());
         if (request.type() == EmailVerificationType.REGISTRATION){
-            if (authenticationService.checkEmailDuplication(request.email())) {
+            if (accountService.checkEmailDuplication(request.email())) {
                 throw new BusinessException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
             }
         }
         if (request.type() == EmailVerificationType.PASSWORD_RESET) {
-            if (!authenticationService.checkEmailDuplication(request.email())) {
+            if (!accountService.checkEmailDuplication(request.email())) {
                 throw new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
             }
         }
@@ -430,7 +430,7 @@ public class AuthenticationController {
 
     private TokenResponse generateTokens(PlayerProfile playerProfile) {
         String refreshToken = tokenProvider.generateRefreshToken(playerProfile);
-        authenticationService.updateRefreshToken(playerProfile.uid(), refreshToken); // refresh token db에 저장
+        accountService.updateRefreshToken(playerProfile.uid(), refreshToken); // refresh token db에 저장
 
         String accessToken = tokenProvider.generateAccessToken(playerProfile);
 
