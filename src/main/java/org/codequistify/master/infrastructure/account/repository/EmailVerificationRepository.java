@@ -22,5 +22,7 @@ public interface EmailVerificationRepository extends JpaRepository<EmailVerifica
                 ORDER BY e.createdDate DESC
                 LIMIT 1
             """)
-    Optional<EmailVerificationEntity> findLatestUnusedVerification(String email, Boolean used, EmailVerificationType type);
+    Optional<EmailVerificationEntity> findLatestUnusedVerification(String email,
+                                                                   Boolean used,
+                                                                   EmailVerificationType type);
 }

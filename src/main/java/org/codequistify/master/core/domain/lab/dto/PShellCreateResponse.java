@@ -4,16 +4,17 @@ public record PShellCreateResponse(
         String url,
         String query
 ) {
-    public static PShellCreateResponse of (String url, String uid, String stageImageName) {
+    public static PShellCreateResponse of(String url, String uid, String stageImageName) {
         String query = "?uid=" + uid.toLowerCase() + "&stage=" + stageImageName;
         return new PShellCreateResponse(
-                url+query,
+                url + query,
                 query
         );
     }
 
-    public static record XHeader (
+    public record XHeader(
             String key,
             String value
-    ){}
+    ) {
+    }
 }

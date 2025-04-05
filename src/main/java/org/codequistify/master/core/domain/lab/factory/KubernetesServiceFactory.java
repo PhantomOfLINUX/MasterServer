@@ -9,8 +9,9 @@ import org.codequistify.master.core.domain.stage.domain.StageImageType;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesServiceFactory implements ServiceFactory{
+public class KubernetesServiceFactory implements ServiceFactory {
     private final static Long ACTIVE_DEADLINE = 10_800L;
+
     @Override
     public Service create(Stage stage, int port, String uid) {
         StageImageType stageImage = stage.getStageImage();
@@ -18,24 +19,24 @@ public class KubernetesServiceFactory implements ServiceFactory{
 
         return new ServiceBuilder()
                 .withNewMetadata()
-                    .withName(serviceName)
-                    .addToLabels("app", "pol")
-                    .addToLabels("tire", "term")
-                    .addToLabels("player", uid)
-                    .addToLabels("stage", stageImage.name().toLowerCase())
+                .withName(serviceName)
+                .addToLabels("app", "pol")
+                .addToLabels("tire", "term")
+                .addToLabels("player", uid)
+                .addToLabels("stage", stageImage.name().toLowerCase())
                 .endMetadata()
                 .withNewSpec()
-                    .withType("ClusterIP")
-                    .addNewPort()
-                        .withName("http")
-                        .withProtocol("TCP")
-                        .withPort(port)
-                    .withTargetPort(new IntOrString(port))
-                    .endPort()
-                    .addToSelector("app", "pol")
-                    .addToSelector("tire", "term")
-                    .addToSelector("player", uid)
-                    .addToSelector("stage", stageImage.name().toLowerCase())
+                .withType("ClusterIP")
+                .addNewPort()
+                .withName("http")
+                .withProtocol("TCP")
+                .withPort(port)
+                .withTargetPort(new IntOrString(port))
+                .endPort()
+                .addToSelector("app", "pol")
+                .addToSelector("tire", "term")
+                .addToSelector("player", uid)
+                .addToSelector("stage", stageImage.name().toLowerCase())
                 .endSpec().build();
     }
 

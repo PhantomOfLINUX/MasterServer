@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class RestExceptionHandler {
     private final Logger LOGGER = LoggerFactory.getLogger(RestExceptionHandler.class);
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<BasicResponse> handleBusinessException(BusinessException exception) {
         LOGGER.info("[ExceptionHandler] Message: {}, Detail: {}", exception.getMessage(), exception.getDetail());
@@ -23,13 +24,15 @@ public class RestExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<BasicResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
         ErrorCode errorCode = exception.getBindingResult().getAllErrors().stream()
-                .findAny()
-                .map(error -> ErrorCode.findByCode(
-                        error.getDefaultMessage()))
-                .orElse(ErrorCode.UNKNOWN);
+                                       .findAny()
+                                       .map(error -> ErrorCode.findByCode(
+                                               error.getDefaultMessage()))
+                                       .orElse(ErrorCode.UNKNOWN);
 
         BusinessException businessException = new BusinessException(errorCode, HttpStatus.BAD_REQUEST);
-        LOGGER.info("[ExceptionHandler] Message: {}, Detail: {}", businessException.getMessage(), businessException.getDetail());
+        LOGGER.info("[ExceptionHandler] Message: {}, Detail: {}",
+                    businessException.getMessage(),
+                    businessException.getDetail());
 
         return ResponseEntity
                 .status(businessException.getHttpStatus())
@@ -44,7 +47,9 @@ public class RestExceptionHandler {
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 
         BusinessException businessException = new BusinessException(errorCode, status, "서버 내부 오류가 발생했습니다.");
-        LOGGER.error("[ExceptionHandler] Message: {}, Detail: {}", businessException.getMessage(), exception.getMessage());
+        LOGGER.error("[ExceptionHandler] Message: {}, Detail: {}",
+                     businessException.getMessage(),
+                     exception.getMessage());
 
         return ResponseEntity
                 .status(status)

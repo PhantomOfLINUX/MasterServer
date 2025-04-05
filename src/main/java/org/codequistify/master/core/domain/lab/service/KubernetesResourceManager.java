@@ -19,19 +19,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class KubernetesResourceManager {
     private final Logger LOGGER = LoggerFactory.getLogger(KubernetesResourceManager.class);
-
+    private final KubernetesClient kubernetesClient;
     private final PodFactory podFactory;
     private final ServiceFactory serviceFactory;
-
-    private final KubernetesClient kubernetesClient;
 
     public Service createServiceOnKubernetes(Stage stage, String uid) {
         Service service = serviceFactory.create(stage, 8080, uid);
 
         service = kubernetesClient.services()
-                .inNamespace("default")
-                .resource(service)
-                .create();
+                                  .inNamespace("default")
+                                  .resource(service)
+                                  .create();
 
         LOGGER.debug("[createServiceOnKubernetes] service: {}", service.getMetadata().getName());
         return service;
@@ -41,9 +39,9 @@ public class KubernetesResourceManager {
         Pod pod = podFactory.create(stage, 8080, uid);
 
         pod = kubernetesClient.pods()
-                .inNamespace("default")
-                .resource(pod)
-                .create();
+                              .inNamespace("default")
+                              .resource(pod)
+                              .create();
 
         LOGGER.debug("[createPodOnKubernetes] pod: {}", pod.getMetadata().getName());
         return pod;
@@ -53,18 +51,18 @@ public class KubernetesResourceManager {
         String svcName = KubernetesResourceNaming.getServiceName(stage.getStageImage().name(), uid);
 
         List<StatusDetails> result = kubernetesClient.services()
-                .inNamespace("default")
-                .withName(svcName)
-                .delete();
+                                                     .inNamespace("default")
+                                                     .withName(svcName)
+                                                     .delete();
 
         LOGGER.debug("[deleteAsyncService] result {}", result);
     }
 
     public void deleteAsyncService(String svcName) {
         List<StatusDetails> result = kubernetesClient.services()
-                .inNamespace("default")
-                .withName(svcName)
-                .delete();
+                                                     .inNamespace("default")
+                                                     .withName(svcName)
+                                                     .delete();
 
         LOGGER.debug("[deleteAsyncService] result {}", result);
     }
@@ -73,18 +71,18 @@ public class KubernetesResourceManager {
         String podName = KubernetesResourceNaming.getPodName(stage.getStageImage().name(), uid);
 
         List<StatusDetails> result = kubernetesClient.pods()
-                .inNamespace("default")
-                .withName(podName)
-                .delete();
+                                                     .inNamespace("default")
+                                                     .withName(podName)
+                                                     .delete();
 
         LOGGER.debug("[deleteAsyncPod] result {}", result);
     }
 
     public void deleteAsyncPod(String podName) {
         List<StatusDetails> result = kubernetesClient.pods()
-                .inNamespace("default")
-                .withName(podName)
-                .delete();
+                                                     .inNamespace("default")
+                                                     .withName(podName)
+                                                     .delete();
 
         LOGGER.debug("[deleteAsyncPod] result {}", result);
     }
@@ -93,9 +91,9 @@ public class KubernetesResourceManager {
         String svcName = KubernetesResourceNaming.getServiceName(stage.getStageImage().name(), uid);
 
         Service service = kubernetesClient.services()
-                .inNamespace("default")
-                .withName(svcName)
-                .get();
+                                          .inNamespace("default")
+                                          .withName(svcName)
+                                          .get();
 
         LOGGER.debug("[getService] name : {}", service.getMetadata().getName());
         return service;
@@ -105,9 +103,9 @@ public class KubernetesResourceManager {
         String podName = KubernetesResourceNaming.getPodName(stage.getStageImage().name(), uid);
 
         Pod pod = kubernetesClient.pods()
-                .inNamespace("default")
-                .withName(podName)
-                .get();
+                                  .inNamespace("default")
+                                  .withName(podName)
+                                  .get();
 
         LOGGER.debug("[getPod] name : {}", pod.getMetadata().getName());
         return pod;
@@ -117,9 +115,9 @@ public class KubernetesResourceManager {
         String svcName = KubernetesResourceNaming.getServiceName(stage.getStageImage().name(), uid);
 
         boolean exists = kubernetesClient.services()
-                .inNamespace("default")
-                .withName(svcName)
-                .get() != null;
+                                         .inNamespace("default")
+                                         .withName(svcName)
+                                         .get() != null;
 
         //LOGGER.info("[existsService] name: {}, exists: {}", svcName, exists);
         return exists;
@@ -129,9 +127,9 @@ public class KubernetesResourceManager {
         String podName = KubernetesResourceNaming.getPodName(stage.getStageImage().name(), uid);
 
         boolean exists = kubernetesClient.pods()
-                .inNamespace("default")
-                .withName(podName)
-                .get() != null;
+                                         .inNamespace("default")
+                                         .withName(podName)
+                                         .get() != null;
 
         //LOGGER.info("[existsPod] name: {}, exists: {}", podName, exists);
         return exists;
@@ -141,10 +139,10 @@ public class KubernetesResourceManager {
         PodList podList = kubernetesClient.pods().inNamespace("default").list();
 
         return podList.getItems().stream()
-                .filter(this::isPhaseFailed)
-                .filter(this::isReasonDeadlineExceeded)
-                .filter(this::hasErrorStatus)
-                .toList();
+                      .filter(this::isPhaseFailed)
+                      .filter(this::isReasonDeadlineExceeded)
+                      .filter(this::hasErrorStatus)
+                      .toList();
     }
 
     private boolean isPhaseFailed(Pod pod) {
@@ -157,8 +155,8 @@ public class KubernetesResourceManager {
 
     private boolean hasErrorStatus(Pod pod) {
         return pod.getStatus().getContainerStatuses().stream()
-                .anyMatch(status -> status.getState().getTerminated() != null &&
-                        "Error".equals(status.getState().getTerminated().getReason()));
+                  .anyMatch(status -> status.getState().getTerminated() != null &&
+                          "Error".equals(status.getState().getTerminated().getReason()));
     }
 
 }

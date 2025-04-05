@@ -25,9 +25,8 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class AuthenticationTokenFilter extends OncePerRequestFilter {
-    private final TokenProvider tokenProvider;
     private final Logger logger = LoggerFactory.getLogger(AuthenticationTokenFilter.class);
-
+    private final TokenProvider tokenProvider;
     @Value("${host.develop.api.ant-match.uri}")
     private List<String> antMatchURIs = new ArrayList<>();
 

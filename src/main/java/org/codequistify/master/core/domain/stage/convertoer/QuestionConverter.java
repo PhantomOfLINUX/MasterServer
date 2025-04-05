@@ -9,12 +9,12 @@ import org.springframework.stereotype.Component;
 public class QuestionConverter {
     public Question convert(QuestionRequest questionRequest) {
         return Question.builder()
-                .title(questionRequest.title())
-                .description(questionRequest.description())
-                .answerType(questionRequest.answerType())
-                .correctAnswer(questionRequest.correctAnswer())
-                .options(questionRequest.options())
-                .build();
+                       .title(questionRequest.title())
+                       .description(questionRequest.description())
+                       .answerType(questionRequest.answerType())
+                       .correctAnswer(questionRequest.correctAnswer())
+                       .options(questionRequest.options())
+                       .build();
     }
 
     public QuestionResponse convert(Question question) {

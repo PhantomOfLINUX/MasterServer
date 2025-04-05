@@ -47,14 +47,13 @@ import java.util.function.Supplier;
 public class AuthenticationController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
-    private final SocialSignHandlerMap handlerMap;
     private final AccountService accountService;
     private final EmailVerificationService emailVerificationService;
+    private final SocialSignHandlerMap handlerMap;
     private final PlayerQueryService playerQueryService;
-
-    private final TokenProvider tokenProvider;
     private final TokenCookieProvider tokenCookieProvider;
     private final TokenGenerator tokenGenerator;
+    private final TokenProvider tokenProvider;
 
     @GetMapping("/{provider}/url")
     @Operation(summary = "소셜 로그인 URL 발급", description = "구글/카카오/네이버/깃허브 로그인 URL을 반환")

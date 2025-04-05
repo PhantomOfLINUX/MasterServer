@@ -29,8 +29,8 @@ import java.util.Set;
 @Component
 @RequiredArgsConstructor
 public class TokenProvider {
-    private final String ISS = "api.pol.or.kr";
     private final Long ACCESS_VALIDITY_TIME = 60 * 60 * 1000L;
+    private final String ISS = "api.pol.or.kr";
     private final Long REFRESH_VALIDITY_TIME = 7 * 24 * 60 * 60 * 1000L;
     private final Logger logger = LoggerFactory.getLogger(TokenProvider.class);
     @Value("${jwt.secret}")

@@ -30,13 +30,12 @@ import java.security.NoSuchAlgorithmException;
 @RequiredArgsConstructor
 public class EmailVerificationService {
 
-    private final EmailVerificationRepository emailVerificationRepository;
-    private final EmailVerificationPolicyHandler policyHandler;
+    private final EmailVerificationCodeManager codeManager;
     private final EmailMessageFactory emailMessageFactory;
     private final EmailSender emailSender;
-    private final EmailVerificationCodeManager codeManager;
+    private final EmailVerificationRepository emailVerificationRepository;
     private final Logger logger = LoggerFactory.getLogger(EmailVerificationService.class);
-
+    private final EmailVerificationPolicyHandler policyHandler;
     @Value("${mail.secret}")
     private String mailSecret;
 

@@ -20,9 +20,9 @@ import org.springframework.web.filter.CorsFilter;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final CustomCorsFilter customCorsFilter;
     private final AuthenticationTokenFilter authenticationTokenFilter;
     private final BusinessExceptionHandlerFilter businessExceptionHandlerFilter;
+    private final CustomCorsFilter customCorsFilter;
     private final ServletFilter servletFilter;
 
     @Bean
@@ -39,7 +39,13 @@ public class SecurityConfig {
                 // 폼 로그인 비활성화
                 .formLogin(form -> form.disable())
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/home/**", "/index/**", "/index.js", "/favicon.ico", "/swagger-ui/**", "/v3/**", "/api/todo-list/**").permitAll()
+                        .requestMatchers("/home/**",
+                                         "/index/**",
+                                         "/index.js",
+                                         "/favicon.ico",
+                                         "/swagger-ui/**",
+                                         "/v3/**",
+                                         "/api/todo-list/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated())
 

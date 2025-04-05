@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class EmailSender {
 
-    private final JavaMailSender javaMailSender;
     private static final Logger logger = LoggerFactory.getLogger(EmailSender.class);
+    private final JavaMailSender javaMailSender;
 
     public void send(MimeMessage message) throws MessagingException {
         try {
