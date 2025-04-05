@@ -93,12 +93,10 @@ public class AccountService {
     @Transactional
     @LogMonitoring
     public Player logIn(String email, String password) {
-        Player player = Optional.ofNullable(playerQueryService.findOneByEmail(email))
+        return Optional.ofNullable(playerQueryService.findOneByEmail(email))
                                 .filter(p -> playerPasswordManager.matches(p, password))
                                 .orElseThrow(() -> new ApplicationException(ErrorCode.INVALID_EMAIL_OR_PASSWORD,
                                                                             HttpStatus.BAD_REQUEST));
-
-        return player;
     }
 
     @Transactional
@@ -132,7 +130,7 @@ public class AccountService {
     }
 
     @LogMonitoring
-    public void updateRefreshToken(String uid, String refreshToken) {
+    public void updateRefreshToken(PolId uid, String refreshToken) {
         logger.info("[updateRefreshToken] {}", uid);
         playerJpaRepository.updateRefreshToken(uid, refreshToken);
     }

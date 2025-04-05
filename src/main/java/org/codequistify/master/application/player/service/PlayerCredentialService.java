@@ -28,7 +28,7 @@ public class PlayerCredentialService {
     @Transactional
     @LogExecutionTime
     public void updatePassword(Player player, UpdatePasswordRequest request) {
-        Player updated = playerJpaRepository.findByUid(player.getUid().getValue())
+        Player updated = playerJpaRepository.findByUid(player.getUid())
                                             .map(PlayerConverter::toDomain)
                                             .map(current -> {
                                              if (!playerPasswordManager.matches(current, request.rawPassword())) {

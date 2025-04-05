@@ -28,7 +28,7 @@ public class PlayerQueryService implements PlayerReader {
      */
     @Transactional(readOnly = true)
     public Player findOneByUid(PolId uid) {
-        return playerJpaRepository.findByUid(uid.getValue())
+        return playerJpaRepository.findByUid(uid)
                                   .map(PlayerConverter::toDomain)
                                   .orElseThrow(() -> {
                                    logger.warn("[findOneByUid] 존재하지 않는 player. uid={}", uid);

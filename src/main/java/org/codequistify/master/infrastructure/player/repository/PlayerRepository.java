@@ -3,6 +3,7 @@ package org.codequistify.master.infrastructure.player.repository;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.core.domain.player.model.OAuthType;
 import org.codequistify.master.core.domain.player.model.Player;
+import org.codequistify.master.core.domain.player.model.PolId;
 import org.codequistify.master.infrastructure.player.converter.PlayerConverter;
 import org.codequistify.master.infrastructure.player.entity.PlayerEntity;
 import org.springframework.stereotype.Repository;
@@ -25,7 +26,7 @@ public class PlayerRepository {
         return jpaRepository.findByEmail(email).map(PlayerConverter::toDomain);
     }
 
-    public Optional<Player> findByUid(String uid) {
+    public Optional<Player> findByUid(PolId uid) {
         return jpaRepository.findByUid(uid).map(PlayerConverter::toDomain);
     }
 
@@ -37,11 +38,11 @@ public class PlayerRepository {
         return jpaRepository.existsByEmailIgnoreCase(email);
     }
 
-    public void updateRefreshToken(String uid, String refreshToken) {
+    public void updateRefreshToken(PolId uid, String refreshToken) {
         jpaRepository.updateRefreshToken(uid, refreshToken);
     }
 
-    public String getRefreshToken(String uid) {
+    public String getRefreshToken(PolId uid) {
         return jpaRepository.getRefreshToken(uid);
     }
 

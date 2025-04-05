@@ -1,7 +1,6 @@
 package org.codequistify.master.infrastructure.player.converter;
 
 import org.codequistify.master.core.domain.player.model.Player;
-import org.codequistify.master.core.domain.player.model.PolId;
 import org.codequistify.master.infrastructure.player.entity.PlayerEntity;
 
 import java.util.HashSet;
@@ -12,7 +11,7 @@ public class PlayerConverter {
         if (entity == null) return null;
 
         return Player.builder()
-                     .uid(PolId.of(entity.getUid()))
+                     .uid(entity.getUid())
                      .name(entity.getName())
                      .email(entity.getEmail())
                      .password(entity.getPassword())
@@ -30,7 +29,7 @@ public class PlayerConverter {
         if (domain == null) return null;
 
         return PlayerEntity.builder()
-                           .uid(domain.getUid().getValue())
+                           .uid(domain.getUid())
                            .name(domain.getName())
                            .email(domain.getEmail())
                            .password(domain.getPassword())

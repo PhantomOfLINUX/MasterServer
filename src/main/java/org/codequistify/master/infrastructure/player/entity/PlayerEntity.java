@@ -3,8 +3,10 @@ package org.codequistify.master.infrastructure.player.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.codequistify.master.core.domain.player.model.OAuthType;
-import org.hibernate.annotations.ColumnDefault;
+import org.codequistify.master.core.domain.player.model.PolId;
 import org.codequistify.master.global.util.BaseTimeEntity;
+import org.codequistify.master.infrastructure.player.converter.PolIdConverter;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +26,8 @@ public class PlayerEntity extends BaseTimeEntity {
     private Long id;
 
     @Column(name = "uid", unique = true)
-    private String uid;
+    @Convert(converter = PolIdConverter.class)
+    private PolId uid;
 
     @Column(name = "name", unique = true)
     private String name;

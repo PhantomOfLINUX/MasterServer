@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.application.exception.ApplicationException;
 import org.codequistify.master.application.exception.ErrorCode;
-import org.codequistify.master.application.player.dto.PlayerProfile;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.model.PlayerRoleType;
 import org.codequistify.master.core.domain.player.model.PolId;
@@ -50,24 +49,6 @@ public class TokenProvider {
 
     }
 
-    public String generateAccessToken(PlayerProfile response) {
-        Claims claims = Jwts.claims();
-        claims.put("role", response.roles());
-        Date now = new Date();
-
-        String token = Jwts.builder()
-                           .setClaims(claims)
-                           .setAudience(response.uid())
-                           .setIssuedAt(now)
-                           .setIssuer(ISS)
-                           .setExpiration(new Date(now.getTime() + ACCESS_VALIDITY_TIME))
-                           .signWith(KEY)
-                           .compact();
-
-        logger.info("[generateAccessToken] {}", token);
-        return token;
-    }
-
     public String generateAccessToken(Player player) {
         return Jwts.builder()
                    .setSubject("access")
@@ -101,22 +82,6 @@ public class TokenProvider {
         return token;
     }
 
-    public String generateRefreshToken(PlayerProfile response) {
-        Claims claims = Jwts.claims();
-        Date now = new Date();
-
-        String token = Jwts.builder()
-                           .setClaims(claims)
-                           .setAudience(response.uid())
-                           .setIssuedAt(now)
-                           .setIssuer(ISS)
-                           .setExpiration(new Date(now.getTime() + REFRESH_VALIDITY_TIME))
-                           .signWith(KEY)
-                           .compact();
-
-        logger.info("[generateRefreshToken] {}", token);
-        return token;
-    }
 
     public String generateRefreshToken(Player player) {
         Claims claims = Jwts.claims();
