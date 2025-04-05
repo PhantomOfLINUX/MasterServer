@@ -1,6 +1,6 @@
 package org.codequistify.master.global.util;
 
-import org.codequistify.master.global.exception.domain.BusinessException;
+import org.codequistify.master.application.exception.ApplicationException;
 import org.springframework.http.ResponseEntity;
 
 public record BasicResponse(
@@ -8,7 +8,7 @@ public record BasicResponse(
         String error,
         String detail
 ) {
-    public static BasicResponse of(BusinessException exception) {
+    public static BasicResponse of(ApplicationException exception) {
         return new BasicResponse(
                 exception.getErrorCode().getMessage(),
                 exception.getErrorCode().getCode(),
@@ -24,7 +24,7 @@ public record BasicResponse(
         );
     }
 
-    public static ResponseEntity<BasicResponse> to(BusinessException exception) {
+    public static ResponseEntity<BasicResponse> to(ApplicationException exception) {
         return ResponseEntity
                 .status(exception.getHttpStatus())
                 .body(BasicResponse.of(exception));

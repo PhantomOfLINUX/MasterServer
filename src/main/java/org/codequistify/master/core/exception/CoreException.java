@@ -1,4 +1,4 @@
-package org.codequistify.master.core.domain.exception;
+package org.codequistify.master.core.exception;
 
 public class CoreException extends RuntimeException {
     public CoreException(String message) {

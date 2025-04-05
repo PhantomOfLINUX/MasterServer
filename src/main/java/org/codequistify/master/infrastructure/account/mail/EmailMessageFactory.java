@@ -5,6 +5,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.core.domain.account.model.EmailVerificationType;
+import org.codequistify.master.core.domain.vo.Email;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -24,11 +25,11 @@ public class EmailMessageFactory {
     private final Logger logger = LoggerFactory.getLogger(EmailMessageFactory.class);
     private final TemplateEngine templateEngine;
 
-    public MimeMessage createVerificationMessage(String email, String code, EmailVerificationType type) throws
+    public MimeMessage createVerificationMessage(Email email, String code, EmailVerificationType type) throws
                                                                                                         MessagingException {
         Map<String, Object> variables = Map.of(
                 "authCode", code,
-                "email", URLEncoder.encode(email, StandardCharsets.UTF_8),
+                "email", URLEncoder.encode(email.getValue(), StandardCharsets.UTF_8),
                 "type", type.name()
         );
 
@@ -38,7 +39,7 @@ public class EmailMessageFactory {
 
         MimeMessage message = javaMailSender.createMimeMessage();
         message.setFrom("kkwjdfo@gmail.com");
-        message.addRecipients(Message.RecipientType.TO, email);
+        message.addRecipients(Message.RecipientType.TO, email.getValue());
         message.setSubject(getSubject(type));
         message.setText(html, "utf-8", "html");
 

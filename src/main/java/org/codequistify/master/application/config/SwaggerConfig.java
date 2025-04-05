@@ -1,4 +1,4 @@
-package org.codequistify.master.global.config;
+package org.codequistify.master.application.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;

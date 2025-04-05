@@ -1,9 +1,9 @@
 package org.codequistify.master.application.exception;
 
-import org.codequistify.master.global.exception.ErrorCode;
-import org.codequistify.master.global.exception.domain.BusinessException;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+@Getter
 public class ApplicationException extends RuntimeException {
     private final String detail;
     private final ErrorCode errorCode;
@@ -37,10 +37,10 @@ public class ApplicationException extends RuntimeException {
         this.detail = cause.getMessage();
     }
 
-    public ApplicationException(BusinessException businessException, HttpStatus httpStatus) {
+    public ApplicationException(ApplicationException applicationException, HttpStatus httpStatus) {
         this.httpStatus = httpStatus;
-        this.errorCode = businessException.getErrorCode();
-        this.detail = businessException.getDetail();
+        this.errorCode = applicationException.getErrorCode();
+        this.detail = applicationException.getDetail();
     }
 
     public ApplicationException(ErrorCode errorCode,
@@ -55,11 +55,11 @@ public class ApplicationException extends RuntimeException {
     }
 
     public ApplicationException(RuntimeException exception) {
-        if (exception.getClass() == BusinessException.class) {
-            BusinessException businessException = (BusinessException) exception;
-            this.httpStatus = businessException.getHttpStatus();
-            this.errorCode = businessException.getErrorCode();
-            this.detail = businessException.getMessage();
+        if (exception.getClass() == ApplicationException.class) {
+            ApplicationException applicationException = (ApplicationException) exception;
+            this.httpStatus = applicationException.getHttpStatus();
+            this.errorCode = applicationException.getErrorCode();
+            this.detail = applicationException.getMessage();
         } else {
             this.httpStatus = HttpStatus.BAD_REQUEST;
             this.errorCode = ErrorCode.UNKNOWN;

@@ -2,8 +2,9 @@ package org.codequistify.master.application.account.strategy;
 
 import org.codequistify.master.application.account.service.AccountService;
 import org.codequistify.master.application.exception.ApplicationException;
+import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.core.domain.account.model.EmailVerificationType;
-import org.codequistify.master.global.exception.ErrorCode;
+import org.codequistify.master.core.domain.vo.Email;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +23,7 @@ public class PasswordResetEmailPolicy implements EmailVerificationPolicy {
     }
 
     @Override
-    public void validate(String email) {
+    public void validate(Email email) {
         if (!accountService.checkEmailDuplication(email)) {
             throw new ApplicationException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
         }

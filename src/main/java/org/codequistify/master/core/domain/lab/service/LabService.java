@@ -3,11 +3,11 @@ package org.codequistify.master.core.domain.lab.service;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodCondition;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.application.exception.ApplicationException;
+import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.stage.domain.Stage;
 import org.codequistify.master.global.aspect.LogExecutionTime;
-import org.codequistify.master.global.exception.ErrorCode;
-import org.codequistify.master.global.exception.domain.BusinessException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -15,13 +15,13 @@ import org.springframework.http.HttpStatus;
 @org.springframework.stereotype.Service
 @RequiredArgsConstructor
 public class LabService {
-    private final static int SLEEP_PERIOD = 5000;
-    private final static int THRESHOLD = 20;
-    private final Logger LOGGER = LoggerFactory.getLogger(LabService.class);
     private final KubernetesResourceManager kubernetesResourceManager;
+    private final Logger LOGGER = LoggerFactory.getLogger(LabService.class);
+    private final static int THRESHOLD = 20;
+    private final static int SLEEP_PERIOD = 5000;
 
     @LogExecutionTime
-    public void createStageOnKubernetes(Player player, Stage stage) {
+    public void createStageOnKubernetes(Player player, Stage stage){
         String uid = player.getUid().toLowerCase();
 
         kubernetesResourceManager.createServiceOnKubernetes(stage, uid);
@@ -60,8 +60,8 @@ public class LabService {
                 LOGGER.info("[deleteSyncStageOnKubernetes] Service 삭제 확인 {}번 시도", retryCount);
             }
             if (retryCount > THRESHOLD) {
-                LOGGER.error("[deleteSyncStageOnKubernetes] {}", ErrorCode.PSHELL_CREATE_FAILED.getMessage());
-                throw new BusinessException(ErrorCode.PSHELL_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
+                LOGGER.error("[deleteSyncStageOnKubernetes] {}",ErrorCode.PSHELL_CREATE_FAILED.getMessage());
+                throw new ApplicationException(ErrorCode.PSHELL_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             try {
                 Thread.sleep(SLEEP_PERIOD);
@@ -69,7 +69,7 @@ public class LabService {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 LOGGER.info("[deleteSyncStageOnKubernetes] 인터럽트 오류 발생");
-                throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new ApplicationException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
     }
@@ -92,17 +92,15 @@ public class LabService {
             if (pod != null && pod.getStatus() != null && pod.getStatus().getConditions() != null) {
                 for (PodCondition condition : pod.getStatus().getConditions()) {
                     if ("Ready".equals(condition.getType()) && "True".equals(condition.getStatus())) {
-                        LOGGER.info("[waitForPodReadiness] 네트워크 구성완료, pod: {}, time: {}ms",
-                                    pod.getMetadata().getName(),
-                                    retryCount * 2000);
+                        LOGGER.info("[waitForPodReadiness] 네트워크 구성완료, pod: {}, time: {}ms", pod.getMetadata().getName(), retryCount * 2000);
                         return;
                     }
                 }
             }
 
             if (retryCount > THRESHOLD) {
-                LOGGER.error("[checkPodReady] {}", ErrorCode.PSHELL_CREATE_FAILED.getMessage());
-                throw new BusinessException(ErrorCode.PSHELL_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
+                LOGGER.error("[checkPodReady] {}",ErrorCode.PSHELL_CREATE_FAILED.getMessage());
+                throw new ApplicationException(ErrorCode.PSHELL_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             try {
                 Thread.sleep(2000L);
@@ -110,7 +108,7 @@ public class LabService {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 LOGGER.info("[checkPodReady] 인터럽트 오류 발생");
-                throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new ApplicationException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
     }

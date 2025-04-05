@@ -4,12 +4,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.application.exception.ApplicationException;
+import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.stage.dto.*;
 import org.codequistify.master.core.domain.stage.service.StageManagementService;
 import org.codequistify.master.global.aspect.LogMonitoring;
-import org.codequistify.master.global.exception.ErrorCode;
-import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.util.BasicResponse;
 import org.codequistify.master.global.util.SuccessResponse;
 import org.slf4j.Logger;
@@ -80,7 +80,7 @@ public class StageManagementController {
         SuccessResponse successResponse = stageManagementService.composePShell(player, request);
 
         if (successResponse.success().equals(false)) {
-            throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApplicationException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         BasicResponse response = BasicResponse.of("SUCCESS");

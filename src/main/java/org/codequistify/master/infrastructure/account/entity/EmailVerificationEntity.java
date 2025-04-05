@@ -3,7 +3,9 @@ package org.codequistify.master.infrastructure.account.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.codequistify.master.core.domain.account.model.EmailVerificationType;
+import org.codequistify.master.core.domain.vo.Email;
 import org.codequistify.master.global.util.BaseTimeEntity;
+import org.codequistify.master.infrastructure.converter.EmailConverter;
 import org.hibernate.annotations.ColumnDefault;
 
 @Getter
@@ -20,7 +22,8 @@ public class EmailVerificationEntity extends BaseTimeEntity {
     private Long id;
 
     @Column(nullable = false)
-    private String email;
+    @Convert(converter = EmailConverter.class)
+    private Email email;
 
     @Column(nullable = false)
     private String code;
@@ -38,7 +41,7 @@ public class EmailVerificationEntity extends BaseTimeEntity {
     private EmailVerificationType emailVerificationType;
 
     @Builder
-    public EmailVerificationEntity(String email, String code, EmailVerificationType emailVerificationType) {
+    public EmailVerificationEntity(Email email, String code, EmailVerificationType emailVerificationType) {
         this.email = email;
         this.code = code;
         this.emailVerificationType = emailVerificationType;

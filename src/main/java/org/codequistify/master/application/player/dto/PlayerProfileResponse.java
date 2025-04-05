@@ -2,13 +2,14 @@ package org.codequistify.master.application.player.dto;
 
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.model.PolId;
+import org.codequistify.master.core.domain.vo.Email;
 
 import java.util.Set;
 
 public record PlayerProfileResponse(
         PolId uid,
         String name,
-        String email,
+        Email email,
         Integer level,
         Set<String> roles
 ) {
@@ -16,7 +17,7 @@ public record PlayerProfileResponse(
     public static PlayerProfileResponse of(
             PolId uid,
             String name,
-            String email,
+            Email email,
             Integer level,
             Set<String> roles
     ) {

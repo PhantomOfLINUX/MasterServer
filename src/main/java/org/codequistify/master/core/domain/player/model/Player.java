@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import org.codequistify.master.core.domain.player.service.UidGenerator;
+import org.codequistify.master.core.domain.vo.Email;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -14,25 +15,22 @@ import java.util.Set;
 @AllArgsConstructor
 public class Player {
 
-    private final String email;
-    private final Integer exp;
-    private final Boolean locked;
-    private final String name;
-    private final String oAuthAccessToken;
-    private final String oAuthId;
-    private final OAuthType oAuthType;
-    private final String password;
-    private final String refreshToken;
-    private final Set<String> roles;
     private final PolId uid;
-
-    public static PolId generateUID(String email) {
-        return UidGenerator.generate(email);
-    }
+    private final String name;
+    private final Email email;
+    private final String password;
+    private final OAuthType oAuthType;
+    private final String oAuthId;
+    private final Set<String> roles;
+    private final Boolean locked;
+    private final String oAuthAccessToken;
+    private final String refreshToken;
+    private final Integer exp;
 
     public String getId() {
         return this.uid.getValue();
     }
+
 
     public Player withOAuthAccessToken(String token) {
         return this.toBuilder()
@@ -82,5 +80,9 @@ public class Player {
                    .refreshToken(null)
                    .locked(true)
                    .build();
+    }
+
+    public static PolId generateUID(Email email) {
+        return UidGenerator.generate(email);
     }
 }

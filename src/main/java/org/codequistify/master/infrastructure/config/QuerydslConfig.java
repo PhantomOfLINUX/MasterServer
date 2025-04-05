@@ -1,4 +1,4 @@
-package org.codequistify.master.global.config;
+package org.codequistify.master.infrastructure.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;

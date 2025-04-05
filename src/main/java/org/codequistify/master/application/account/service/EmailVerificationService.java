@@ -4,11 +4,12 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.application.account.strategy.EmailVerificationPolicyHandler;
 import org.codequistify.master.application.exception.ApplicationException;
+import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.core.domain.account.model.EmailVerification;
 import org.codequistify.master.core.domain.account.model.EmailVerificationType;
 import org.codequistify.master.core.domain.account.service.EmailVerificationCodeManager;
+import org.codequistify.master.core.domain.vo.Email;
 import org.codequistify.master.global.aspect.LogMonitoring;
-import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.infrastructure.account.converter.EmailVerificationConverter;
 import org.codequistify.master.infrastructure.account.mail.EmailMessageFactory;
 import org.codequistify.master.infrastructure.account.mail.EmailSender;
@@ -41,14 +42,14 @@ public class EmailVerificationService {
 
     @Async
     @Transactional
-    public void validateAndSend(String email, EmailVerificationType type) {
+    public void validateAndSend(Email email, EmailVerificationType type) {
         policyHandler.validate(email, type);
         sendVerifyMail(email, type);
     }
 
     @Async
     @Transactional
-    public void sendVerifyMail(String email, EmailVerificationType type) {
+    public void sendVerifyMail(Email email, EmailVerificationType type) {
         try {
             String code = codeManager.generate(email);
             MimeMessage message = emailMessageFactory.createVerificationMessage(email, code, type);
@@ -65,12 +66,12 @@ public class EmailVerificationService {
 
 
     @LogMonitoring
-    public boolean verifyCode(String email, String code) {
+    public boolean verifyCode(Email email, String code) {
         return codeManager.matches(email, code);
     }
 
     @Transactional
-    public void updateVerification(String email, EmailVerificationType type) {
+    public void updateVerification(Email email, EmailVerificationType type) {
         emailVerificationRepository.findLatestUnusedVerification(email, false, type)
                                    .map(EmailVerificationConverter::toDomain)
                                    .map(EmailVerification::markAsVerified)
@@ -90,7 +91,7 @@ public class EmailVerificationService {
     }
 
     @Transactional
-    public EmailVerification verifyEmailAndRetrieve(String email, EmailVerificationType type) {
+    public EmailVerification verifyEmailAndRetrieve(Email email, EmailVerificationType type) {
         EmailVerification verification = getEmailVerificationByEmail(email, false, type);
 
         if (!verification.isVerified()) {
@@ -102,7 +103,7 @@ public class EmailVerificationService {
     }
 
     @Transactional
-    public EmailVerification getEmailVerificationByEmail(String email,
+    public EmailVerification getEmailVerificationByEmail(Email email,
                                                          Boolean used,
                                                          EmailVerificationType type) {
         return emailVerificationRepository.findLatestUnusedVerification(email, used, type)
@@ -124,9 +125,9 @@ public class EmailVerificationService {
         logger.info("[markEmailVerificationAsUsed] 사용 처리 완료 - {}", verification.getEmail());
     }
 
-    private String generateCode(String email) throws NoSuchAlgorithmException {
+    private String generateCode(Email email) throws NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
-        md.update((email + mailSecret).getBytes(StandardCharsets.UTF_8));
+        md.update((email.getValue() + mailSecret).getBytes(StandardCharsets.UTF_8));
         return String.format("%064x", new BigInteger(1, md.digest()));
     }
 }

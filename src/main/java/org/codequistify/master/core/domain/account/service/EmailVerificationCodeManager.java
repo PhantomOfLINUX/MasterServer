@@ -1,6 +1,7 @@
 package org.codequistify.master.core.domain.account.service;
 
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.core.domain.vo.Email;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +18,7 @@ public class EmailVerificationCodeManager {
     @Value("${mail.secret}")
     private String mailSecret;
 
-    public String generate(String email) {
+    public String generate(Email email) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             md.update((email + mailSecret).getBytes(StandardCharsets.UTF_8));
@@ -27,7 +28,7 @@ public class EmailVerificationCodeManager {
         }
     }
 
-    public boolean matches(String email, String code) {
+    public boolean matches(Email email, String code) {
         return generate(email).equals(code);
     }
 }

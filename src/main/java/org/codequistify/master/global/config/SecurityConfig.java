@@ -2,8 +2,8 @@ package org.codequistify.master.global.config;
 
 
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.global.filter.ApplicationExceptionHandlerFilter;
 import org.codequistify.master.global.filter.AuthenticationTokenFilter;
-import org.codequistify.master.global.filter.BusinessExceptionHandlerFilter;
 import org.codequistify.master.global.filter.CustomCorsFilter;
 import org.codequistify.master.global.filter.ServletFilter;
 import org.springframework.context.annotation.Bean;
@@ -20,9 +20,9 @@ import org.springframework.web.filter.CorsFilter;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final AuthenticationTokenFilter authenticationTokenFilter;
-    private final BusinessExceptionHandlerFilter businessExceptionHandlerFilter;
     private final CustomCorsFilter customCorsFilter;
+    private final AuthenticationTokenFilter authenticationTokenFilter;
+    private final ApplicationExceptionHandlerFilter applicationExceptionHandlerFilter;
     private final ServletFilter servletFilter;
 
     @Bean
@@ -39,19 +39,13 @@ public class SecurityConfig {
                 // 폼 로그인 비활성화
                 .formLogin(form -> form.disable())
                 .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/home/**",
-                                         "/index/**",
-                                         "/index.js",
-                                         "/favicon.ico",
-                                         "/swagger-ui/**",
-                                         "/v3/**",
-                                         "/api/todo-list/**").permitAll()
+                        .requestMatchers("/home/**", "/index/**", "/index.js", "/favicon.ico", "/swagger-ui/**", "/v3/**", "/api/todo-list/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated())
 
                 // jwt 인증 토큰 설정
                 .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(businessExceptionHandlerFilter, AuthenticationTokenFilter.class);
+                .addFilterBefore(applicationExceptionHandlerFilter, AuthenticationTokenFilter.class);
 
 
         return http.build();

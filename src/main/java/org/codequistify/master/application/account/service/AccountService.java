@@ -3,6 +3,7 @@ package org.codequistify.master.application.account.service;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.application.exception.ApplicationException;
+import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.application.player.service.PlayerProfileService;
 import org.codequistify.master.application.player.service.PlayerQueryService;
 import org.codequistify.master.core.domain.player.model.OAuthType;
@@ -10,17 +11,14 @@ import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.model.PolId;
 import org.codequistify.master.core.domain.player.service.PlayerPasswordManager;
 import org.codequistify.master.core.domain.player.service.PlayerValidator;
+import org.codequistify.master.core.domain.vo.Email;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
-import org.codequistify.master.global.exception.ErrorCode;
-import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.jwt.TokenProvider;
 import org.codequistify.master.global.jwt.dto.TokenInfo;
 import org.codequistify.master.global.jwt.dto.TokenRequest;
 import org.codequistify.master.global.jwt.dto.TokenResponse;
-import org.codequistify.master.infrastructure.player.converter.PlayerConverter;
-import org.codequistify.master.infrastructure.player.entity.PlayerEntity;
-import org.codequistify.master.infrastructure.player.repository.PlayerJpaRepository;
+import org.codequistify.master.infrastructure.player.repository.PlayerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -38,17 +36,18 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class AccountService {
-    private final Logger logger = LoggerFactory.getLogger(AccountService.class);
-    private final PlayerJpaRepository playerJpaRepository;
-    private final PlayerPasswordManager playerPasswordManager;
-    private final PlayerProfileService playerProfileService;
     private final PlayerQueryService playerQueryService;
+    private final PlayerProfileService playerProfileService;
+    private final PlayerPasswordManager playerPasswordManager;
     private final PlayerValidator playerValidator;
     private final TokenProvider tokenProvider;
+    private final PlayerRepository playerRepository;
+
+    private final Logger logger = LoggerFactory.getLogger(AccountService.class);
 
     @Transactional
     @LogMonitoring
-    public Player signUp(String name, String email, String password) {
+    public Player signUp(String name, Email email, String password) {
         validateSignUp(name, email, password);
 
         Player newPlayer = Player.builder()
@@ -62,14 +61,14 @@ public class AccountService {
                                  .build();
 
         Player encoded = playerPasswordManager.encodePassword(newPlayer);
-        PlayerEntity saved = playerJpaRepository.save(PlayerConverter.toEntity(encoded));
+        Player saved = playerRepository.save(encoded);
         logger.info("[signUp] Player: {}, 회원가입 완료", encoded.getUid());
 
-        return PlayerConverter.toDomain(saved);
+        return saved;
     }
 
-    private void validateSignUp(String name, String email, String password) {
-        playerJpaRepository.getOAuthTypeByEmail(email).ifPresent(authType -> {
+    private void validateSignUp(String name, Email email, String password) {
+        playerRepository.getOAuthTypeByEmail(email).ifPresent(authType -> {
             ErrorCode code = authType.equals(OAuthType.POL)
                     ? ErrorCode.EMAIL_ALREADY_EXISTS
                     : ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH;
@@ -78,11 +77,12 @@ public class AccountService {
 
         Optional.of(password)
                 .filter(playerValidator::isValidPassword)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PASSWORD_POLICY_VIOLATION, HttpStatus.BAD_REQUEST));
+                .orElseThrow(() -> new ApplicationException(ErrorCode.PASSWORD_POLICY_VIOLATION,
+                                                            HttpStatus.BAD_REQUEST));
 
         Optional.of(name)
                 .filter(playerValidator::isValidName)
-                .orElseThrow(() -> new BusinessException(ErrorCode.PROFANITY_IN_NAME, HttpStatus.BAD_REQUEST));
+                .orElseThrow(() -> new ApplicationException(ErrorCode.PROFANITY_IN_NAME, HttpStatus.BAD_REQUEST));
 
         if (playerProfileService.isDuplicatedName(name)) {
             throw new ApplicationException(ErrorCode.DUPLICATE_NAME, HttpStatus.BAD_REQUEST);
@@ -91,13 +91,11 @@ public class AccountService {
 
     @Transactional
     @LogMonitoring
-    public Player logIn(String email, String password) {
-        Player player = Optional.ofNullable(playerQueryService.findOneByEmail(email))
+    public Player logIn(Email email, String password) {
+        return Optional.ofNullable(playerQueryService.findOneByEmail(email))
                                 .filter(p -> playerPasswordManager.matches(p, password))
                                 .orElseThrow(() -> new ApplicationException(ErrorCode.INVALID_EMAIL_OR_PASSWORD,
                                                                             HttpStatus.BAD_REQUEST));
-
-        return player;
     }
 
     @Transactional
@@ -109,7 +107,7 @@ public class AccountService {
         }
 
         player = player.clearRefreshToken();
-        playerJpaRepository.save(PlayerConverter.toEntity(player));
+        playerRepository.save(player);
     }
 
     private void revokeTokenForGoogle(String token) {
@@ -126,14 +124,14 @@ public class AccountService {
     }
 
     @LogMonitoring
-    public boolean checkEmailDuplication(String email) {
-        return playerJpaRepository.existsByEmailIgnoreCase(email);
+    public boolean checkEmailDuplication(Email email) {
+        return playerRepository.existsByEmailIgnoreCase(email);
     }
 
     @LogMonitoring
-    public void updateRefreshToken(String uid, String refreshToken) {
+    public void updateRefreshToken(PolId uid, String refreshToken) {
         logger.info("[updateRefreshToken] {}", uid);
-        playerJpaRepository.updateRefreshToken(uid, refreshToken);
+        playerRepository.updateRefreshToken(uid, refreshToken);
     }
 
     @LogMonitoring
@@ -142,7 +140,7 @@ public class AccountService {
         Player player = Optional.of(uid)
                                 .map(PolId::of)
                                 .map(playerQueryService::findOneByUid)
-                                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN,
+                                .orElseThrow(() -> new ApplicationException(ErrorCode.INVALID_TOKEN,
                                                                          HttpStatus.UNAUTHORIZED));
 
         String accessToken = player.getRefreshToken().equals(request.refreshToken())
@@ -155,7 +153,7 @@ public class AccountService {
     @LogExecutionTime
     public TokenInfo analyzeTokenInfo(String token) {
         Claims claims = Optional.ofNullable(tokenProvider.getClaims(token))
-                                .orElseThrow(() -> new BusinessException(ErrorCode.INVALID_TOKEN,
+                                .orElseThrow(() -> new ApplicationException(ErrorCode.INVALID_TOKEN,
                                                                          HttpStatus.BAD_REQUEST));
 
         SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

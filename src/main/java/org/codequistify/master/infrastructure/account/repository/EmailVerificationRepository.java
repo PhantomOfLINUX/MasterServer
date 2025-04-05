@@ -2,6 +2,7 @@ package org.codequistify.master.infrastructure.account.repository;
 
 import org.codequistify.master.core.domain.account.model.EmailVerification;
 import org.codequistify.master.core.domain.account.model.EmailVerificationType;
+import org.codequistify.master.core.domain.vo.Email;
 import org.codequistify.master.infrastructure.account.entity.EmailVerificationEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,7 +23,7 @@ public interface EmailVerificationRepository extends JpaRepository<EmailVerifica
                 ORDER BY e.createdDate DESC
                 LIMIT 1
             """)
-    Optional<EmailVerificationEntity> findLatestUnusedVerification(String email,
+    Optional<EmailVerificationEntity> findLatestUnusedVerification(Email email,
                                                                    Boolean used,
                                                                    EmailVerificationType type);
 }
