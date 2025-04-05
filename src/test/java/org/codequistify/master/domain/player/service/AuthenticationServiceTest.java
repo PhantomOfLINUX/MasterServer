@@ -1,8 +1,8 @@
 package org.codequistify.master.domain.player.service;
 
-import org.codequistify.master.application.authentication.dto.LogInRequest;
-import org.codequistify.master.application.authentication.dto.SignUpRequest;
-import org.codequistify.master.application.authentication.service.AuthenticationService;
+import org.codequistify.master.application.account.dto.LogInRequest;
+import org.codequistify.master.application.account.dto.SignUpRequest;
+import org.codequistify.master.application.account.service.AuthenticationService;
 import org.codequistify.master.application.player.dto.PlayerProfile;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
