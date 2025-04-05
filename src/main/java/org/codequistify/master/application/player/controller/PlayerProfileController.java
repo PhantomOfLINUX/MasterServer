@@ -3,7 +3,7 @@ package org.codequistify.master.application.player.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.application.player.dto.PlayerProfile;
+import org.codequistify.master.application.player.dto.PlayerProfileResponse;
 import org.codequistify.master.application.player.dto.PlayerStageProgressResponse;
 import org.codequistify.master.application.player.service.PlayerProfileService;
 import org.codequistify.master.application.player.service.PlayerQueryService;
@@ -37,8 +37,10 @@ public class PlayerProfileController {
 
     @LogMonitoring
     @GetMapping("")
-    public ResponseEntity<List<PlayerProfile>> getAllPlayerProfiles() {
-        List<PlayerProfile> response = playerProfileService.findAllPlayerProfiles();
+    public ResponseEntity<List<PlayerProfileResponse>> getAllPlayerProfiles() {
+        List<PlayerProfileResponse> response = playerProfileService.findAllPlayerProfiles()
+                                                                   .stream()
+                                                                   .map(PlayerProfileResponse::from).toList();
         return ResponseEntity.ok(response);
     }
 
@@ -48,9 +50,9 @@ public class PlayerProfileController {
     )
     @LogMonitoring
     @GetMapping("me/profile")
-    public ResponseEntity<PlayerProfile> getMyProfile(@AuthenticationPrincipal TokenPlayer tokenPlayer) {
+    public ResponseEntity<PlayerProfileResponse> getMyProfile(@AuthenticationPrincipal TokenPlayer tokenPlayer) {
         Player player = playerQueryService.findOneByUid(tokenPlayer.getUid());
-        return ResponseEntity.ok(PlayerProfile.from(player));
+        return ResponseEntity.ok(PlayerProfileResponse.from(player));
     }
 
     @Operation(

@@ -1,10 +1,9 @@
 package org.codequistify.master.application.player.service;
 
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.application.player.dto.PlayerProfile;
 import org.codequistify.master.application.player.dto.PlayerStageProgressResponse;
-import org.codequistify.master.core.domain.player.model.PlayerRoleType;
 import org.codequistify.master.core.domain.player.model.Player;
+import org.codequistify.master.core.domain.player.model.PlayerRoleType;
 import org.codequistify.master.core.domain.player.service.PlayerRolesChecker;
 import org.codequistify.master.core.domain.stage.dto.HeatMapDataPoint;
 import org.codequistify.master.core.domain.stage.service.StageSearchService;
@@ -24,10 +23,9 @@ public class PlayerProfileService {
 
     @LogExecutionTime
     @Transactional(readOnly = true)
-    public List<PlayerProfile> findAllPlayerProfiles() {
+    public List<Player> findAllPlayerProfiles() {
         return playerRepository.findAll().stream()
                                .map(PlayerConverter::toDomain)
-                               .map(PlayerProfile::from)
                                .toList();
     }
 
