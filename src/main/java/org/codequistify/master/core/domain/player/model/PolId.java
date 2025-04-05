@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.codequistify.master.core.domain.exception.CoreException;
+import org.codequistify.master.core.exception.CoreException;
 
 @ToString
 @EqualsAndHashCode
