@@ -1,6 +1,6 @@
 package org.codequistify.master.core.domain.player.converter;
 
-import org.codequistify.master.core.domain.authentication.dto.SignUpRequest;
+import org.codequistify.master.application.authentication.dto.SignUpRequest;
 import org.codequistify.master.core.domain.player.model.OAuthType;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.application.player.dto.PlayerProfile;
