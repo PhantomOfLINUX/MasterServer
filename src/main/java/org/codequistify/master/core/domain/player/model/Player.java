@@ -63,6 +63,23 @@ public class Player {
                    .build();
     }
 
+    /**
+     * 계정 삭제 처리용 메서드.
+     * 개인정보 및 인증정보 초기화, 잠금 처리
+     */
+    public Player dataClear() {
+        return this.toBuilder()
+                   .name(null)
+                   .email(null)
+                   .password(null)
+                   .oAuthId(null)
+                   .roles(Collections.emptySet())
+                   .oAuthAccessToken(null)
+                   .refreshToken(null)
+                   .locked(true)
+                   .build();
+    }
+
     public static PolId generateUID(String email) {
         return UidGenerator.generate(email);
     }

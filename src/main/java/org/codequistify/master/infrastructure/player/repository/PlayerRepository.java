@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-public interface PlayerRepository extends JpaRepository<PlayerEntity, Long> {
+public interface PlayerRepository extends JpaRepository<PlayerEntity, String> {
 
     Optional<PlayerEntity> findByEmail(String email);
 

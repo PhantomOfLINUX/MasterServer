@@ -3,7 +3,7 @@ package org.codequistify.master.domain.player.service;
 import org.codequistify.master.core.domain.authentication.dto.LogInRequest;
 import org.codequistify.master.core.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.core.domain.authentication.service.AuthenticationService;
-import org.codequistify.master.core.domain.player.dto.PlayerProfile;
+import org.codequistify.master.application.player.dto.PlayerProfile;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
 import org.junit.jupiter.api.*;

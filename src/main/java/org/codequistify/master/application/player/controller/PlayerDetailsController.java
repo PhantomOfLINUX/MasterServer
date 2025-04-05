@@ -1,14 +1,14 @@
-package org.codequistify.master.core.domain.player.controller;
+package org.codequistify.master.application.player.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.core.domain.player.model.Player;
+import org.codequistify.master.application.exception.ApplicationException;
+import org.codequistify.master.application.player.service.PlayerDetailsService;
 import org.codequistify.master.application.player.dto.UpdatePasswordRequest;
-import org.codequistify.master.core.domain.player.service.PlayerDetailsService;
+import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
-import org.codequistify.master.global.exception.domain.BusinessException;
 import org.codequistify.master.global.util.BasicResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +22,9 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Player")
 @RequestMapping("api/players")
 public class PlayerDetailsController {
-    private final PlayerDetailsService playerDetailsService;
 
-    private final Logger LOGGER = LoggerFactory.getLogger(PlayerDetailsController.class);
+    private final PlayerDetailsService playerDetailsService;
+    private final Logger logger = LoggerFactory.getLogger(PlayerDetailsController.class);
 
     @Operation(
             summary = "비밀번호 재설정",
@@ -34,12 +34,9 @@ public class PlayerDetailsController {
     public ResponseEntity<BasicResponse> updatePassword(@AuthenticationPrincipal Player player,
                                                         @RequestBody UpdatePasswordRequest request) {
         playerDetailsService.updatePassword(player, request);
-
-        LOGGER.info("[updatePassword] 비밀번호 재설정 완료, Player: {}", player.getUid());
-        BasicResponse response = BasicResponse.of("SUCCESS");
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        logger.info("[updatePassword] 비밀번호 재설정 완료, Player: {}", player.getUid());
+        return ResponseEntity.ok(BasicResponse.of("SUCCESS"));
     }
-
 
     @Operation(
             summary = "비밀번호 초기화",
@@ -49,10 +46,8 @@ public class PlayerDetailsController {
     public ResponseEntity<BasicResponse> resetPassword(@AuthenticationPrincipal Player player,
                                                        @RequestBody UpdatePasswordRequest request) {
         playerDetailsService.resetPassword(player, request);
-
-        LOGGER.info("[resetPassword] 비밀번호 초기화 완료, Player: {}", player.getUid());
-        BasicResponse response = BasicResponse.of("SUCCESS");
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        logger.info("[resetPassword] 비밀번호 초기화 완료, Player: {}", player.getUid());
+        return ResponseEntity.ok(BasicResponse.of("SUCCESS"));
     }
 
     @Operation(
@@ -62,18 +57,11 @@ public class PlayerDetailsController {
     @DeleteMapping("{uid}")
     public ResponseEntity<BasicResponse> deletePlayer(@AuthenticationPrincipal Player player,
                                                       @PathVariable String uid) {
-        if (!uid.equals(player.getUid())) {
-            throw new BusinessException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
+        if (!player.getUid().getValue().equals(uid)) {
+            throw new ApplicationException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
         }
-
         playerDetailsService.deletePlayer(player);
-
-        LOGGER.info("[deletePlayer] 계정 삭제 완료, Player: {}", player.getUid());
-        BasicResponse response = BasicResponse.of("SUCCESS");
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        logger.info("[deletePlayer] 계정 삭제 완료, Player: {}", player.getUid());
+        return ResponseEntity.ok(BasicResponse.of("SUCCESS"));
     }
-
-    //전화번호 인증
-
-
 }

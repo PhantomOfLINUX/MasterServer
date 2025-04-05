@@ -8,7 +8,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.core.domain.player.model.Player;
-import org.codequistify.master.core.domain.player.dto.PlayerStageProgressResponse;
+import org.codequistify.master.application.player.dto.PlayerStageProgressResponse;
 import org.codequistify.master.core.domain.stage.convertoer.QuestionConverter;
 import org.codequistify.master.core.domain.stage.convertoer.StageConverter;
 import org.codequistify.master.core.domain.stage.domain.CompletedStatus;

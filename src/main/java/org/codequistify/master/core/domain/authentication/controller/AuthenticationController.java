@@ -23,7 +23,7 @@ import org.codequistify.master.core.domain.authentication.service.impl.KakaoSoci
 import org.codequistify.master.core.domain.authentication.service.impl.NaverSocialSignService;
 import org.codequistify.master.core.domain.authentication.vo.OAuthData;
 import org.codequistify.master.core.domain.player.model.Player;
-import org.codequistify.master.core.domain.player.dto.PlayerProfile;
+import org.codequistify.master.application.player.dto.PlayerProfile;
 import org.codequistify.master.core.domain.player.service.PlayerDetailsService;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMethodInvocation;

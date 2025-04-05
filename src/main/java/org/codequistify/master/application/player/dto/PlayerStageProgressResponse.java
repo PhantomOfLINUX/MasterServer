@@ -1,4 +1,4 @@
-package org.codequistify.master.core.domain.player.dto;
+package org.codequistify.master.application.player.dto;
 
 import org.codequistify.master.core.domain.stage.dto.StageCodeDTO;
 

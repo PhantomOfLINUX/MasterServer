@@ -1,7 +1,7 @@
 package org.codequistify.master.core.domain.stage.service;
 
 import org.codequistify.master.core.domain.player.model.Player;
-import org.codequistify.master.core.domain.player.dto.PlayerStageProgressResponse;
+import org.codequistify.master.application.player.dto.PlayerStageProgressResponse;
 import org.codequistify.master.core.domain.stage.domain.Stage;
 import org.codequistify.master.core.domain.stage.dto.*;
 import org.codequistify.master.domain.stage.dto.*;

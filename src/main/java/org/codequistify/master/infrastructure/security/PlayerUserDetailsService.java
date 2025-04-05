@@ -1,6 +1,8 @@
 package org.codequistify.master.infrastructure.security;
 
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.core.domain.player.model.PolId;
+import org.codequistify.master.core.domain.port.PlayerReader;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -11,13 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PlayerUserDetailsService implements UserDetailsService {
 
-    private final PlayerQueryService playerQueryService;
+    private final PlayerReader playerReader;
 
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String uid) throws UsernameNotFoundException {
         return new PlayerUserDetails(
-                playerQueryService.findOneByUid(uid)
+                playerReader.findOneByUid(PolId.of(uid))
         );
     }
 }
