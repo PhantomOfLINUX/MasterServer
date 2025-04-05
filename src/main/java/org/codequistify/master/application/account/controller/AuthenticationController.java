@@ -228,17 +228,17 @@ public class AuthenticationController {
         EmailVerification emailVerification = emailVerificationService
                 .verifyEmailAndRetrieve(request.email(), EmailVerificationType.REGISTRATION);
 
-        PlayerProfile playerProfile = accountService.signUp(request);
+        Player player = accountService.signUp(request.name(), request.email(), request.password());
 
         // 인증메일 사용처리
         emailVerificationService.markEmailVerificationAsUsed(emailVerification);
 
-        TokenResponse tokenResponse = generateTokens(playerProfile);
+        TokenResponse tokenResponse = generateTokens(player);
         this.addTokenToCookie(tokenResponse, response);
 
-        LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
+        LoginResponse loginResponse = new LoginResponse(player, tokenResponse);
 
-        LOGGER.info("[SignUpPOL] pol 회원가입, Player: {}", playerProfile.uid());
+        LOGGER.info("[SignUpPOL] pol 회원가입, Player: {}", player.getUid());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
 
@@ -249,14 +249,14 @@ public class AuthenticationController {
     @LogMonitoring
     @PostMapping("auth/login")
     public ResponseEntity<LoginResponse> logInPOL(@Valid @RequestBody LogInRequest request, HttpServletResponse response) {
-        PlayerProfile playerProfile = accountService.logIn(request);
+        Player player = accountService.logIn(request.email(), request.password());
 
-        TokenResponse tokenResponse = generateTokens(playerProfile);
+        TokenResponse tokenResponse = generateTokens(player);
         this.addTokenToCookie(tokenResponse, response);
 
-        LoginResponse loginResponse = new LoginResponse(playerProfile, tokenResponse);
+        LoginResponse loginResponse = new LoginResponse(player, tokenResponse);
 
-        LOGGER.info("[LogInPOL] pol 로그인, Player: {}", playerProfile.uid());
+        LOGGER.info("[LogInPOL] pol 로그인, Player: {}", player.getUid());
         return ResponseEntity.status(HttpStatus.OK).body(loginResponse);
     }
 
@@ -428,7 +428,7 @@ public class AuthenticationController {
     }
 
 
-    private TokenResponse generateTokens(PlayerProfile playerProfile) {
+    private TokenResponse generateTokens(Player playerProfile) {
         String refreshToken = tokenProvider.generateRefreshToken(playerProfile);
         accountService.updateRefreshToken(playerProfile.uid(), refreshToken); // refresh token db에 저장
 
