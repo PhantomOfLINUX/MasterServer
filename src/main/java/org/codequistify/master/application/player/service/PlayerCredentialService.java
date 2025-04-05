@@ -8,8 +8,7 @@ import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.service.PlayerPasswordManager;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
-import org.codequistify.master.infrastructure.player.converter.PlayerConverter;
-import org.codequistify.master.infrastructure.player.repository.PlayerJpaRepository;
+import org.codequistify.master.infrastructure.player.repository.PlayerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -20,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PlayerCredentialService {
 
-    private final PlayerJpaRepository playerJpaRepository;
+    private final PlayerRepository playerRepository;
     private final PlayerPasswordManager playerPasswordManager;
 
     private final Logger logger = LoggerFactory.getLogger(PlayerCredentialService.class);
@@ -28,17 +27,17 @@ public class PlayerCredentialService {
     @Transactional
     @LogExecutionTime
     public void updatePassword(Player player, UpdatePasswordRequest request) {
-        Player updated = playerJpaRepository.findByUid(player.getUid())
-                                            .map(PlayerConverter::toDomain)
-                                            .map(current -> {
+        Player updated = playerRepository.findByUid(player.getUid())
+                                         .map(current -> {
                                              if (!playerPasswordManager.matches(current, request.rawPassword())) {
                                                  throw new ApplicationException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
                                              }
                                              return playerPasswordManager.encodePassword(current, request.password());
                                          })
-                                            .orElseThrow(() -> new ApplicationException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND));
+                                         .orElseThrow(() -> new ApplicationException(ErrorCode.PLAYER_NOT_FOUND,
+                                                                                     HttpStatus.NOT_FOUND));
 
-        playerJpaRepository.save(PlayerConverter.toEntity(updated));
+        playerRepository.save(updated);
         logger.info("[updatePassword] Player: {}, 비밀번호 변경 성공", updated.getUid());
     }
 
@@ -46,7 +45,7 @@ public class PlayerCredentialService {
     @LogMonitoring
     public void resetPassword(Player player, UpdatePasswordRequest request) {
         Player updated = playerPasswordManager.encodePassword(player, request.password());
-        playerJpaRepository.save(PlayerConverter.toEntity(updated));
+        playerRepository.save(updated);
 
         logger.info("[resetPassword] Player: {}, 비밀번호 초기화 성공", updated.getUid());
     }
@@ -54,7 +53,7 @@ public class PlayerCredentialService {
     @Transactional
     public void deletePlayer(Player player) {
         Player deleted = player.dataClear();
-        playerJpaRepository.save(PlayerConverter.toEntity(deleted));
+        playerRepository.save(deleted);
 
         logger.info("[deletePlayer] Player: {}, 계정 삭제 처리 완료", deleted.getUid());
     }

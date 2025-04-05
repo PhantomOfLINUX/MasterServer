@@ -17,9 +17,7 @@ import org.codequistify.master.global.jwt.TokenProvider;
 import org.codequistify.master.global.jwt.dto.TokenInfo;
 import org.codequistify.master.global.jwt.dto.TokenRequest;
 import org.codequistify.master.global.jwt.dto.TokenResponse;
-import org.codequistify.master.infrastructure.player.converter.PlayerConverter;
-import org.codequistify.master.infrastructure.player.entity.PlayerEntity;
-import org.codequistify.master.infrastructure.player.repository.PlayerJpaRepository;
+import org.codequistify.master.infrastructure.player.repository.PlayerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -42,7 +40,7 @@ public class AccountService {
     private final PlayerPasswordManager playerPasswordManager;
     private final PlayerValidator playerValidator;
     private final TokenProvider tokenProvider;
-    private final PlayerJpaRepository playerJpaRepository;
+    private final PlayerRepository playerRepository;
 
     private final Logger logger = LoggerFactory.getLogger(AccountService.class);
 
@@ -62,14 +60,14 @@ public class AccountService {
                                  .build();
 
         Player encoded = playerPasswordManager.encodePassword(newPlayer);
-        PlayerEntity saved = playerJpaRepository.save(PlayerConverter.toEntity(encoded));
+        Player saved = playerRepository.save(encoded);
         logger.info("[signUp] Player: {}, 회원가입 완료", encoded.getUid());
 
-        return PlayerConverter.toDomain(saved);
+        return saved;
     }
 
     private void validateSignUp(String name, String email, String password) {
-        playerJpaRepository.getOAuthTypeByEmail(email).ifPresent(authType -> {
+        playerRepository.getOAuthTypeByEmail(email).ifPresent(authType -> {
             ErrorCode code = authType.equals(OAuthType.POL)
                     ? ErrorCode.EMAIL_ALREADY_EXISTS
                     : ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH;
@@ -108,7 +106,7 @@ public class AccountService {
         }
 
         player = player.clearRefreshToken();
-        playerJpaRepository.save(PlayerConverter.toEntity(player));
+        playerRepository.save(player);
     }
 
     private void revokeTokenForGoogle(String token) {
@@ -126,13 +124,13 @@ public class AccountService {
 
     @LogMonitoring
     public boolean checkEmailDuplication(String email) {
-        return playerJpaRepository.existsByEmailIgnoreCase(email);
+        return playerRepository.existsByEmailIgnoreCase(email);
     }
 
     @LogMonitoring
     public void updateRefreshToken(PolId uid, String refreshToken) {
         logger.info("[updateRefreshToken] {}", uid);
-        playerJpaRepository.updateRefreshToken(uid, refreshToken);
+        playerRepository.updateRefreshToken(uid, refreshToken);
     }
 
     @LogMonitoring

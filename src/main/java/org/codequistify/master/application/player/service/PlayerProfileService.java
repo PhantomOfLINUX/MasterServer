@@ -8,8 +8,7 @@ import org.codequistify.master.core.domain.player.service.PlayerRolesChecker;
 import org.codequistify.master.core.domain.stage.dto.HeatMapDataPoint;
 import org.codequistify.master.core.domain.stage.service.StageSearchService;
 import org.codequistify.master.global.aspect.LogExecutionTime;
-import org.codequistify.master.infrastructure.player.converter.PlayerConverter;
-import org.codequistify.master.infrastructure.player.repository.PlayerJpaRepository;
+import org.codequistify.master.infrastructure.player.repository.PlayerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,15 +17,13 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PlayerProfileService {
-    private final PlayerJpaRepository playerJpaRepository;
+    private final PlayerRepository playerRepository;
     private final StageSearchService stageSearchService;
 
     @LogExecutionTime
     @Transactional(readOnly = true)
     public List<Player> findAllPlayerProfiles() {
-        return playerJpaRepository.findAll().stream()
-                                  .map(PlayerConverter::toDomain)
-                                  .toList();
+        return playerRepository.findAll();
     }
 
     @LogExecutionTime
@@ -56,14 +53,14 @@ public class PlayerProfileService {
 
     @Transactional
     public Integer increaseExp(Player player, int point) {
-        int exp = player.increaseLevelPoint(point).getExp();
-        playerJpaRepository.save(PlayerConverter.toEntity(player));
-        return exp;
+        Player updated = player.increaseLevelPoint(point);
+        updated = playerRepository.save(updated);
+        return updated.getExp();
     }
 
     @Transactional
     public boolean isDuplicatedName(String name) {
-        return playerJpaRepository.existsByNameIgnoreCase(name);
+        return playerRepository.existsByNameIgnoreCase(name);
     }
 
 

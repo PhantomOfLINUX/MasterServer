@@ -7,8 +7,7 @@ import org.codequistify.master.core.domain.player.model.OAuthType;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.model.PolId;
 import org.codequistify.master.core.domain.player.port.PlayerReader;
-import org.codequistify.master.infrastructure.player.converter.PlayerConverter;
-import org.codequistify.master.infrastructure.player.repository.PlayerJpaRepository;
+import org.codequistify.master.infrastructure.player.repository.PlayerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -21,16 +20,15 @@ public class PlayerQueryService implements PlayerReader {
 
     private static final Logger logger = LoggerFactory.getLogger(PlayerQueryService.class);
 
-    private final PlayerJpaRepository playerJpaRepository;
+    private final PlayerRepository playerRepository;
 
     /**
      * uid 기반 단일 조회
      */
     @Transactional(readOnly = true)
     public Player findOneByUid(PolId uid) {
-        return playerJpaRepository.findByUid(uid)
-                                  .map(PlayerConverter::toDomain)
-                                  .orElseThrow(() -> {
+        return playerRepository.findByUid(uid)
+                               .orElseThrow(() -> {
                                    logger.warn("[findOneByUid] 존재하지 않는 player. uid={}", uid);
                                    return new ApplicationException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
                                });
@@ -41,9 +39,8 @@ public class PlayerQueryService implements PlayerReader {
      */
     @Transactional(readOnly = true)
     public Player findOneByEmail(String email) {
-        return playerJpaRepository.findByEmail(email)
-                                  .map(PlayerConverter::toDomain)
-                                  .orElseThrow(() -> {
+        return playerRepository.findByEmail(email)
+                               .orElseThrow(() -> {
                                    logger.warn("[findOneByEmail] 존재하지 않는 email. email={}", email);
                                    return new ApplicationException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
                                });
@@ -54,11 +51,11 @@ public class PlayerQueryService implements PlayerReader {
      */
     @Transactional(readOnly = true)
     public OAuthType findOAuthTypeByEmail(String email) {
-        return playerJpaRepository.getOAuthTypeByEmail(email)
-                                  .orElseThrow(() -> {
-                    logger.warn("[findOAtuhTypebyEmail] 존재하지 않는 email, email={}", email);
-                    return new ApplicationException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
-                });
+        return playerRepository.getOAuthTypeByEmail(email)
+                               .orElseThrow(() -> {
+                                   logger.warn("[findOAtuhTypebyEmail] 존재하지 않는 email, email={}", email);
+                                   return new ApplicationException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
+                               });
     }
 
     /**
@@ -66,7 +63,7 @@ public class PlayerQueryService implements PlayerReader {
      */
     @Transactional(readOnly = true)
     public boolean isDuplicatedName(String name) {
-        return playerJpaRepository.existsByNameIgnoreCase(name);
+        return playerRepository.existsByNameIgnoreCase(name);
     }
 
     /**
@@ -74,6 +71,6 @@ public class PlayerQueryService implements PlayerReader {
      */
     @Transactional(readOnly = true)
     public boolean existsByEmail(String email) {
-        return playerJpaRepository.findByEmail(email).isPresent();
+        return playerRepository.findByEmail(email).isPresent();
     }
 }

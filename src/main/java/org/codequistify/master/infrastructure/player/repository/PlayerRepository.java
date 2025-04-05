@@ -8,6 +8,7 @@ import org.codequistify.master.infrastructure.player.converter.PlayerConverter;
 import org.codequistify.master.infrastructure.player.entity.PlayerEntity;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -48,5 +49,9 @@ public class PlayerRepository {
 
     public Optional<OAuthType> getOAuthTypeByEmail(String email) {
         return jpaRepository.getOAuthTypeByEmail(email);
+    }
+
+    public List<Player> findAll() {
+        return jpaRepository.findAll().stream().map(PlayerConverter::toDomain).toList();
     }
 }
