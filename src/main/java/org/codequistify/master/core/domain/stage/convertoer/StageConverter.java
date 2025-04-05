@@ -19,26 +19,6 @@ import java.util.stream.IntStream;
 public class StageConverter {
     private final QuestionConverter questionConverter;
 
-    public Stage convert(StageRegistryRequest request) {
-        return Stage.builder()
-                .title(request.title())
-                .description(request.description())
-                .stageGroup(request.groupType())
-                .difficultyLevel(request.difficultyLevel())
-                .questionCount(request.questions().size())
-                .questions(
-                        IntStream.range(0, request.questions().size())
-                                .mapToObj(index -> {
-                                    Question question = questionConverter.convert(
-                                            request.questions().get(index));
-                                    question.setIndex(index+1);
-                                    return question;
-                                })
-                                .collect(Collectors.toList())
-                )
-                .build();
-    }
-
     public static StageResponse convert(Stage stage) {
         return new StageResponse(
                 stage.getId(),
@@ -53,14 +33,14 @@ public class StageConverter {
 
     public static List<StageResponse> convert(List<Stage> stages) {
         return stages.stream()
-                .map(StageConverter::convert).collect(Collectors.toList());
+                     .map(StageConverter::convert).collect(Collectors.toList());
     }
 
     public static StagePageResponse convert(Page<Stage> stages) {
         PageParameters pageParameters = new PageParameters(
                 stages.getTotalPages(),
                 stages.getSize(),
-                stages.getNumber()+1,
+                stages.getNumber() + 1,
                 stages.getNumberOfElements(),
                 (int) stages.getTotalElements()
         );
@@ -68,5 +48,25 @@ public class StageConverter {
         List<StageResponse> response = convert(stages.getContent());
 
         return new StagePageResponse(response, pageParameters);
+    }
+
+    public Stage convert(StageRegistryRequest request) {
+        return Stage.builder()
+                    .title(request.title())
+                    .description(request.description())
+                    .stageGroup(request.groupType())
+                    .difficultyLevel(request.difficultyLevel())
+                    .questionCount(request.questions().size())
+                    .questions(
+                            IntStream.range(0, request.questions().size())
+                                     .mapToObj(index -> {
+                                         Question question = questionConverter.convert(
+                                                 request.questions().get(index));
+                                         question.setIndex(index + 1);
+                                         return question;
+                                     })
+                                     .collect(Collectors.toList())
+                    )
+                    .build();
     }
 }

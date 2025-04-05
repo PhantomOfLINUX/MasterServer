@@ -28,15 +28,16 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Stage")
 @RequestMapping("api")
 public class StageSearchController {
+    private final Logger LOGGER = LoggerFactory.getLogger(StageSearchController.class);
     private final StageManagementService stageManagementService;
     private final StageSearchService stageSearchService;
-    private final Logger LOGGER = LoggerFactory.getLogger(StageSearchController.class);
+
     // 스테이지 목록 조회
     @Operation(
             summary = "스테이지 목록 조회",
             description = """
                     - 스테이지 목록을 페이지 단위로 조회합니다.
-
+                    
                     - 검색가능 조건은 다음과 같습니다. *'스테이지 분류', '세부 난이도', '풀이 여부', '검색 텍스트 포함'*
                     
                     *풀이여부*
@@ -50,14 +51,14 @@ public class StageSearchController {
                         - "BASIC_PROBLEMS" : 기본문제
                         - "ADVANCED_PROBLEMS" : 심화문제
                         - "MOCK_TESTS" : 모의고사
-                        
+                    
                     *세부난이도*
                     - difficultLevels 배열안에 있는 난이도를 가지는 문제를 필터링합니다.
                         - "L1", "L2", "L3", "L4", "L5"
                     
                     *텍스트 검색*
                     - searchText 가 'title', 'description', 'stageCode' 중 일치하는 문제를 필터링합니다
-
+                    
                     """
     )
     @LogExecutionTime
@@ -75,7 +76,7 @@ public class StageSearchController {
     )
     @LogExecutionTime
     @GetMapping("stages/{stage_id}")
-    public ResponseEntity<StageResponse> getStageInfoById(@PathVariable(value = "stage_id")Long stageId) {
+    public ResponseEntity<StageResponse> getStageInfoById(@PathVariable(value = "stage_id") Long stageId) {
         StageResponse response = StageConverter.convert(stageSearchService.getStageById(stageId));
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
@@ -102,7 +103,7 @@ public class StageSearchController {
         HangulExtractor hangulExtractor = new HangulExtractor();
         HangulExtractor.ChoCho response = new HangulExtractor
                 .ChoCho(hangulExtractor
-                .extractChoseongs(src));
+                                .extractChoseongs(src));
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -126,8 +127,7 @@ public class StageSearchController {
             }
             response = stageSearchService.getStageBySearchText(query);
             return ResponseEntity.status(HttpStatus.OK).body(response);
-        }
-        catch (EntityNotFoundException exception) {
+        } catch (EntityNotFoundException exception) {
             LOGGER.info("[searchStagePreview] 조회된 stage가 존재하지 않습니다.");
             return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
         }

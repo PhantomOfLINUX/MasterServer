@@ -27,7 +27,6 @@ public enum StageImageType {
     S1021("polhub/s1021", "latest"),
 
 
-
     Q1001("polhub/q1001", "latest"),
     S0000("polhub/s1001", "latest");
 

@@ -28,13 +28,11 @@ import java.util.concurrent.locks.ReentrantLock;
 @RequiredArgsConstructor
 @Tag(name = "Lab")
 public class LabController {
-    private final LabService labService;
-    private final StageSearchServiceImpl stageSearchService;
-    private final LockManager lockManager;
-
     private final String LAB_HOST = "wss://lab.pol.or.kr";
-
     private final Logger LOGGER = LoggerFactory.getLogger(LabController.class);
+    private final LabService labService;
+    private final LockManager lockManager;
+    private final StageSearchServiceImpl stageSearchService;
 
     @Operation(
             summary = "가상 터미널 (PShell) 생성요청",

@@ -1,7 +1,10 @@
 package org.codequistify.master.application.account.service;
 
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.application.account.vo.*;
+import org.codequistify.master.application.account.vo.OAuthProfile;
+import org.codequistify.master.application.account.vo.OAuthResource;
+import org.codequistify.master.application.account.vo.OAuthToken;
+import org.codequistify.master.application.account.vo.ResourceOfNaver;
 import org.codequistify.master.application.exception.ApplicationException;
 import org.codequistify.master.core.domain.player.model.OAuthType;
 import org.codequistify.master.core.domain.player.model.Player;
@@ -28,10 +31,9 @@ public class NaverSocialSignService implements SocialSignService {
 
     private static final String LOGIN_URL_TEMPLATE =
             "https://nid.naver.com/oauth2.0/authorize?client_id=%s&redirect_uri=%s&response_type=code&state=%s";
-
-    private final RestTemplate restTemplate;
-    private final PlayerRepository playerRepository;
     private final OAuthKey oAuthKey;
+    private final PlayerRepository playerRepository;
+    private final RestTemplate restTemplate;
 
     /**
      * 네이버 소셜 로그인 URL 반환

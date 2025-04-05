@@ -9,8 +9,8 @@ import java.util.Set;
 @Getter
 @Builder
 public class TokenPlayer {
-    private final PolId uid;
-    private final String name;
     private final String email;
+    private final String name;
     private final Set<String> roles;
+    private final PolId uid;
 }

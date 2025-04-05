@@ -8,16 +8,20 @@ import org.springframework.stereotype.Component;
 @Component
 public class TokenCookieProvider {
 
-    private static final String PROD_DOMAIN = "pol.or.kr";
-    private static final String DEV_DOMAIN = "localhost";
     private static final int ACCESS_TOKEN_EXPIRATION_SECONDS = 60 * 60; // 1 hour
+    private static final String DEV_DOMAIN = "localhost";
+    private static final String PROD_DOMAIN = "pol.or.kr";
     private static final int REFRESH_TOKEN_EXPIRATION_SECONDS = 7 * 24 * 60 * 60; // 7 days
 
     public void addTokenCookies(HttpServletResponse response, TokenResponse token) {
         addCookie(response, "POL_ACCESS_TOKEN", token.accessToken(), PROD_DOMAIN, ACCESS_TOKEN_EXPIRATION_SECONDS);
         addCookie(response, "POL_REFRESH_TOKEN", token.refreshToken(), PROD_DOMAIN, REFRESH_TOKEN_EXPIRATION_SECONDS);
         addCookie(response, "POL_ACCESS_TOKEN_DEV", token.accessToken(), DEV_DOMAIN, ACCESS_TOKEN_EXPIRATION_SECONDS);
-        addCookie(response, "POL_REFRESH_TOKEN_DEV", token.refreshToken(), DEV_DOMAIN, REFRESH_TOKEN_EXPIRATION_SECONDS);
+        addCookie(response,
+                  "POL_REFRESH_TOKEN_DEV",
+                  token.refreshToken(),
+                  DEV_DOMAIN,
+                  REFRESH_TOKEN_EXPIRATION_SECONDS);
     }
 
     public void removeTokenCookies(HttpServletResponse response) {

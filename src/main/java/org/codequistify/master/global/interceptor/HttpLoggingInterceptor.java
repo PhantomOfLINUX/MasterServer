@@ -14,34 +14,6 @@ import java.util.UUID;
 public class HttpLoggingInterceptor implements HandlerInterceptor {
     private final Logger LOGGER = LoggerFactory.getLogger(HttpLoggingInterceptor.class);
 
-    @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        String requestURI = request.getRequestURI();
-        String requestAddr = getOriginRemoteAddr(request);
-        String requestID = UUID.randomUUID().toString();
-
-        request.setAttribute("RequestID", requestID);
-
-        if (handler instanceof HandlerMethod) {
-            HandlerMethod handlerMethod = (HandlerMethod) handler;
-        }
-
-        LOGGER.info("[API Request]  RequestID: {}, RequestURI: {}, RequestHost: {} Handler: {}", requestID, requestURI, requestAddr, handler);
-        return true;
-    }
-
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        String requestURI = request.getRequestURI();
-        String requestID = request.getAttribute("RequestID").toString();
-
-        LOGGER.info("[API Response] RequestID: {}, RequestURI: {}, Handler: {}", requestID, requestURI, handler);
-
-        if (ex != null) {
-            LOGGER.error("[API Response] Error: ", ex);
-        }
-    }
-
     private static String getOriginRemoteAddr(HttpServletRequest request) {
         String originAddr = request.getHeader("X-Real-IP");
 
@@ -50,5 +22,40 @@ public class HttpLoggingInterceptor implements HandlerInterceptor {
         }
 
         return originAddr;
+    }
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws
+                                                                                                       Exception {
+        String requestURI = request.getRequestURI();
+        String requestAddr = getOriginRemoteAddr(request);
+        String requestID = UUID.randomUUID().toString();
+
+        request.setAttribute("RequestID", requestID);
+
+        if (handler instanceof HandlerMethod handlerMethod) {
+        }
+
+        LOGGER.info("[API Request]  RequestID: {}, RequestURI: {}, RequestHost: {} Handler: {}",
+                    requestID,
+                    requestURI,
+                    requestAddr,
+                    handler);
+        return true;
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request,
+                                HttpServletResponse response,
+                                Object handler,
+                                Exception ex) throws Exception {
+        String requestURI = request.getRequestURI();
+        String requestID = request.getAttribute("RequestID").toString();
+
+        LOGGER.info("[API Response] RequestID: {}, RequestURI: {}, Handler: {}", requestID, requestURI, handler);
+
+        if (ex != null) {
+            LOGGER.error("[API Response] Error: ", ex);
+        }
     }
 }

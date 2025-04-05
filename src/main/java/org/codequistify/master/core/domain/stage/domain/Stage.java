@@ -14,7 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Getter
-@ToString(exclude = {"questions", "completedStages" })
+@ToString(exclude = {"questions", "completedStages"})
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -44,7 +44,8 @@ public class Stage extends BaseTimeEntity {
     @NotNull
     private DifficultyLevelType difficultyLevel;
 
-    @Column(name = "count") @ColumnDefault("0")
+    @Column(name = "count")
+    @ColumnDefault("0")
     private Integer questionCount = 0;
 
     @OneToMany(mappedBy = "stage", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -56,7 +57,8 @@ public class Stage extends BaseTimeEntity {
     @NotNull
     private StageImageType stageImage;
 
-    @Column(name = "approved") @ColumnDefault("false")
+    @Column(name = "approved")
+    @ColumnDefault("false")
     private Boolean approved = false;
 
     @OneToMany(mappedBy = "stage")
@@ -70,8 +72,8 @@ public class Stage extends BaseTimeEntity {
     protected void onPostPersist() {
         // question id 할당
         this.questions = questions.stream()
-                .peek(question -> {
-                    question.addStage(this);
-                }).collect(Collectors.toList());
+                                  .peek(question -> {
+                                      question.addStage(this);
+                                  }).collect(Collectors.toList());
     }
 }

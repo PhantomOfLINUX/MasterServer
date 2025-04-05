@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.application.exception.ApplicationException;
-import org.codequistify.master.application.player.service.PlayerCredentialService;
 import org.codequistify.master.application.player.dto.UpdatePasswordRequest;
+import org.codequistify.master.application.player.service.PlayerCredentialService;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;
@@ -23,8 +23,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/players")
 public class PlayerCredentialController {
 
-    private final PlayerCredentialService playerCredentialService;
     private final Logger logger = LoggerFactory.getLogger(PlayerCredentialController.class);
+    private final PlayerCredentialService playerCredentialService;
 
     @Operation(
             summary = "비밀번호 재설정",

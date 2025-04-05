@@ -24,7 +24,8 @@ import java.util.List;
                 @UniqueConstraint(name = "uc_stageid_questionindex", columnNames = {"stage_id", "question_index"})
         })
 public class Question extends BaseTimeEntity {
-    @Id @GeneratedValue(strategy = GenerationType.AUTO)
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "question_id")
     private Long id;
 
@@ -40,7 +41,8 @@ public class Question extends BaseTimeEntity {
     @NotNull
     private String description;
 
-    @Column(name = "answer_type") @ColumnDefault("SHORT_ANSWER")
+    @Column(name = "answer_type")
+    @ColumnDefault("SHORT_ANSWER")
     @Enumerated(EnumType.STRING)
     @NotNull
     private AnswerType answerType = AnswerType.SHORT_ANSWER;
@@ -49,7 +51,8 @@ public class Question extends BaseTimeEntity {
     @NotNull
     private String correctAnswer = "";
 
-    @Column(name = "is_composable") @ColumnDefault("false")
+    @Column(name = "is_composable")
+    @ColumnDefault("false")
     @NotNull
     private boolean isComposable = false;
 
@@ -74,6 +77,7 @@ public class Question extends BaseTimeEntity {
     public void addStage(Stage stage) {
         this.stage = stage;
     }
+
     public void setIndex(int index) {
         this.index = index;
     }

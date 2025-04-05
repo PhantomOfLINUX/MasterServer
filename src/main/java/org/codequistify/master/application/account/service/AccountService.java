@@ -38,14 +38,13 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class AccountService {
-    private final PlayerQueryService playerQueryService;
-    private final PlayerProfileService playerProfileService;
+    private final Logger logger = LoggerFactory.getLogger(AccountService.class);
+    private final PlayerJpaRepository playerJpaRepository;
     private final PlayerPasswordManager playerPasswordManager;
+    private final PlayerProfileService playerProfileService;
+    private final PlayerQueryService playerQueryService;
     private final PlayerValidator playerValidator;
     private final TokenProvider tokenProvider;
-    private final PlayerJpaRepository playerJpaRepository;
-
-    private final Logger logger = LoggerFactory.getLogger(AccountService.class);
 
     @Transactional
     @LogMonitoring

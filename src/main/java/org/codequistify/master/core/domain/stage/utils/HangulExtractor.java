@@ -5,8 +5,9 @@ import java.util.List;
 public class HangulExtractor {
     public final static List<Character> choseongs = List
             .of('ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ');
-    private final static int JUNGSEONGS_COUNT = 21;
     private final static int JONGSEONGS_COUNT = 28;
+    private final static int JUNGSEONGS_COUNT = 21;
+
     public String extractChoseongs(String src) {
         StringBuilder sb = new StringBuilder();
 
@@ -21,7 +22,7 @@ public class HangulExtractor {
             sb.append(choseongs.get(idx));
         }
 
-        System.out.println(sb.toString());
+        System.out.println(sb);
         return sb.toString();
     }
 
@@ -45,7 +46,7 @@ public class HangulExtractor {
         return 0xAC00 <= unicode && unicode <= 0xD7A3; // 한글이면
     }
 
-    public static record ChoCho (
+    public record ChoCho(
             String choseongs
     ) {
 

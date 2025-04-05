@@ -1,11 +1,7 @@
 package org.codequistify.master.infrastructure.account.entity;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 import org.codequistify.master.core.domain.account.model.EmailVerificationType;
 import org.codequistify.master.global.util.BaseTimeEntity;
 import org.hibernate.annotations.ColumnDefault;

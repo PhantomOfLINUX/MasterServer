@@ -19,5 +19,4 @@ public interface StageRepository extends JpaRepository<Stage, Long> {
     List<StageResponseTEMP> findAllByPlayerIdWithCompleted(@Param("playerId") Long playerId);*/
 
 
-
 }

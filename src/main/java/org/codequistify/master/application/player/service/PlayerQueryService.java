@@ -31,9 +31,9 @@ public class PlayerQueryService implements PlayerReader {
         return playerJpaRepository.findByUid(uid.getValue())
                                   .map(PlayerConverter::toDomain)
                                   .orElseThrow(() -> {
-                                   logger.warn("[findOneByUid] 존재하지 않는 player. uid={}", uid);
-                                   return new ApplicationException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
-                               });
+                                      logger.warn("[findOneByUid] 존재하지 않는 player. uid={}", uid);
+                                      return new ApplicationException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
+                                  });
     }
 
     /**
@@ -44,9 +44,9 @@ public class PlayerQueryService implements PlayerReader {
         return playerJpaRepository.findByEmail(email)
                                   .map(PlayerConverter::toDomain)
                                   .orElseThrow(() -> {
-                                   logger.warn("[findOneByEmail] 존재하지 않는 email. email={}", email);
-                                   return new ApplicationException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
-                               });
+                                      logger.warn("[findOneByEmail] 존재하지 않는 email. email={}", email);
+                                      return new ApplicationException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
+                                  });
     }
 
     /**
@@ -56,9 +56,9 @@ public class PlayerQueryService implements PlayerReader {
     public OAuthType findOAuthTypeByEmail(String email) {
         return playerJpaRepository.getOAuthTypeByEmail(email)
                                   .orElseThrow(() -> {
-                    logger.warn("[findOAtuhTypebyEmail] 존재하지 않는 email, email={}", email);
-                    return new ApplicationException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
-                });
+                                      logger.warn("[findOAtuhTypebyEmail] 존재하지 않는 email, email={}", email);
+                                      return new ApplicationException(ErrorCode.PLAYER_NOT_FOUND, HttpStatus.NOT_FOUND);
+                                  });
     }
 
     /**

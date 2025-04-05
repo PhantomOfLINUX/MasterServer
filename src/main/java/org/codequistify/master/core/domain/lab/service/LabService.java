@@ -15,13 +15,13 @@ import org.springframework.http.HttpStatus;
 @org.springframework.stereotype.Service
 @RequiredArgsConstructor
 public class LabService {
-    private final KubernetesResourceManager kubernetesResourceManager;
-    private final Logger LOGGER = LoggerFactory.getLogger(LabService.class);
-    private final static int THRESHOLD = 20;
     private final static int SLEEP_PERIOD = 5000;
+    private final static int THRESHOLD = 20;
+    private final Logger LOGGER = LoggerFactory.getLogger(LabService.class);
+    private final KubernetesResourceManager kubernetesResourceManager;
 
     @LogExecutionTime
-    public void createStageOnKubernetes(Player player, Stage stage){
+    public void createStageOnKubernetes(Player player, Stage stage) {
         String uid = player.getUid().toLowerCase();
 
         kubernetesResourceManager.createServiceOnKubernetes(stage, uid);
@@ -60,7 +60,7 @@ public class LabService {
                 LOGGER.info("[deleteSyncStageOnKubernetes] Service 삭제 확인 {}번 시도", retryCount);
             }
             if (retryCount > THRESHOLD) {
-                LOGGER.error("[deleteSyncStageOnKubernetes] {}",ErrorCode.PSHELL_CREATE_FAILED.getMessage());
+                LOGGER.error("[deleteSyncStageOnKubernetes] {}", ErrorCode.PSHELL_CREATE_FAILED.getMessage());
                 throw new BusinessException(ErrorCode.PSHELL_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             try {
@@ -92,14 +92,16 @@ public class LabService {
             if (pod != null && pod.getStatus() != null && pod.getStatus().getConditions() != null) {
                 for (PodCondition condition : pod.getStatus().getConditions()) {
                     if ("Ready".equals(condition.getType()) && "True".equals(condition.getStatus())) {
-                        LOGGER.info("[waitForPodReadiness] 네트워크 구성완료, pod: {}, time: {}ms", pod.getMetadata().getName(), retryCount * 2000);
+                        LOGGER.info("[waitForPodReadiness] 네트워크 구성완료, pod: {}, time: {}ms",
+                                    pod.getMetadata().getName(),
+                                    retryCount * 2000);
                         return;
                     }
                 }
             }
 
             if (retryCount > THRESHOLD) {
-                LOGGER.error("[checkPodReady] {}",ErrorCode.PSHELL_CREATE_FAILED.getMessage());
+                LOGGER.error("[checkPodReady] {}", ErrorCode.PSHELL_CREATE_FAILED.getMessage());
                 throw new BusinessException(ErrorCode.PSHELL_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             try {

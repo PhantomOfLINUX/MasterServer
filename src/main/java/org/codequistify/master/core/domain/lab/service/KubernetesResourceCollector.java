@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class KubernetesResourceCollector {
-    private final KubernetesResourceManager kubernetesResourceManager;
     private final Logger LOGGER = LoggerFactory.getLogger(KubernetesResourceCollector.class);
+    private final KubernetesResourceManager kubernetesResourceManager;
 
     @Scheduled(cron = "0 0 * * * ?")
     public void resourceCollection() {
@@ -24,7 +24,7 @@ public class KubernetesResourceCollector {
             kubernetesResourceManager.deleteAsyncService(timeoutPod);
         });
 
-        LOGGER.info("[resourceCollection] PShell {}개 제거, List: {}", timeoutPods.size(), timeoutPods.toString());
+        LOGGER.info("[resourceCollection] PShell {}개 제거, List: {}", timeoutPods.size(), timeoutPods);
     }
 
     private String getResourceName(Pod pod) {
@@ -33,8 +33,8 @@ public class KubernetesResourceCollector {
 
     private List<String> extractPodNames(List<Pod> pods) {
         return pods.stream()
-                .map(this::getResourceName)
-                .collect(Collectors.toList());
+                   .map(this::getResourceName)
+                   .collect(Collectors.toList());
     }
 
 }
