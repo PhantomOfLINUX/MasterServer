@@ -10,7 +10,7 @@ import org.codequistify.master.core.domain.player.domain.OAuthType;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.application.player.dto.PlayerProfile;
 import org.codequistify.master.core.domain.player.service.PlayerDetailsService;
-import org.codequistify.master.core.domain.player.service.PlayerProfileService;
+import org.codequistify.master.application.player.service.PlayerProfileService;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.exception.ErrorCode;

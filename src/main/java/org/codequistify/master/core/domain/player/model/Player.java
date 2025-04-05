@@ -29,6 +29,10 @@ public class Player {
     private final String refreshToken;
     private final Integer exp;
 
+    public String getId() {
+        return this.uid.getValue();
+    }
+
 
     public Player withOAuthAccessToken(String token) {
         return this.toBuilder()

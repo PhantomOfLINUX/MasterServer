@@ -9,6 +9,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.application.player.dto.PlayerStageProgressResponse;
+import org.codequistify.master.core.domain.player.model.PolId;
 import org.codequistify.master.core.domain.stage.convertoer.QuestionConverter;
 import org.codequistify.master.core.domain.stage.convertoer.StageConverter;
 import org.codequistify.master.core.domain.stage.domain.CompletedStatus;
@@ -132,7 +133,7 @@ public class StageSearchServiceImpl implements StageSearchService {
 
     @Override // 수정일 기준 데이터 조회
     @Transactional
-    public List<HeatMapDataPoint> getHeatMapDataPointsByModifiedDate(Long playerId) {
+    public List<HeatMapDataPoint> getHeatMapDataPointsByModifiedDate(PolId playerId) {
         return completedStageRepository.countDataByModifiedDate(playerId);
     }
 
