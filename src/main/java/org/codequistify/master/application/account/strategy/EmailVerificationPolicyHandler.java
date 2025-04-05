@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.application.exception.ApplicationException;
 import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.core.domain.account.model.EmailVerificationType;
+import org.codequistify.master.core.domain.vo.Email;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,7 @@ public class EmailVerificationPolicyHandler {
 
     private final List<EmailVerificationPolicy> policies;
 
-    public void validate(String email, EmailVerificationType type) {
+    public void validate(Email email, EmailVerificationType type) {
         policies.stream()
                 .filter(p -> p.supports(type))
                 .findFirst()

@@ -3,6 +3,7 @@ package org.codequistify.master.core.domain.account.model;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
+import org.codequistify.master.core.domain.vo.Email;
 
 @Getter
 @ToString
@@ -10,7 +11,7 @@ import lombok.ToString;
 public class EmailVerification {
     private final Long id;
 
-    private final String email;
+    private final Email email;
     private final String code;
     private final boolean verified;
     private final boolean used;
@@ -28,7 +29,7 @@ public class EmailVerification {
                    .build();
     }
 
-    public static EmailVerification of(String email, String code, EmailVerificationType type) {
+    public static EmailVerification of(Email email, String code, EmailVerificationType type) {
         return EmailVerification.builder()
                                 .email(email)
                                 .code(code)

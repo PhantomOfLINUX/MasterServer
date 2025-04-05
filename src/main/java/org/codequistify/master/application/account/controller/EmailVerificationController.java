@@ -1,8 +1,9 @@
 package org.codequistify.master.application.account.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.core.domain.account.model.EmailVerificationType;
 import org.codequistify.master.application.account.service.EmailVerificationService;
+import org.codequistify.master.core.domain.account.model.EmailVerificationType;
+import org.codequistify.master.core.domain.vo.Email;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,12 +19,15 @@ public class EmailVerificationController {
     private final EmailVerificationService emailVerificationService;
     @GetMapping("home/auth/email/verify")
     @LogMonitoring
-    public String verifyMail(@RequestParam String email, @RequestParam String code, @RequestParam EmailVerificationType type, Model model) {
-        if (email.isBlank() || code.isBlank() || type == null) {
+    public String verifyMail(@RequestParam Email email,
+                             @RequestParam String code,
+                             @RequestParam EmailVerificationType type,
+                             Model model) {
+        if (email.getValue().isBlank() || code.isBlank() || type == null) {
             return "redirect:/home/failure";
         }
 
-        email = URLDecoder.decode(email, StandardCharsets.UTF_8);
+        email = Email.of(URLDecoder.decode(email.getValue(), StandardCharsets.UTF_8));
         if (!emailVerificationService.verifyCode(email, code)) {
             return "redirect:/home/failure";
         }

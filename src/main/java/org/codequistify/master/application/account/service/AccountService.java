@@ -11,6 +11,7 @@ import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.model.PolId;
 import org.codequistify.master.core.domain.player.service.PlayerPasswordManager;
 import org.codequistify.master.core.domain.player.service.PlayerValidator;
+import org.codequistify.master.core.domain.vo.Email;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.jwt.TokenProvider;
@@ -46,7 +47,7 @@ public class AccountService {
 
     @Transactional
     @LogMonitoring
-    public Player signUp(String name, String email, String password) {
+    public Player signUp(String name, Email email, String password) {
         validateSignUp(name, email, password);
 
         Player newPlayer = Player.builder()
@@ -66,7 +67,7 @@ public class AccountService {
         return saved;
     }
 
-    private void validateSignUp(String name, String email, String password) {
+    private void validateSignUp(String name, Email email, String password) {
         playerRepository.getOAuthTypeByEmail(email).ifPresent(authType -> {
             ErrorCode code = authType.equals(OAuthType.POL)
                     ? ErrorCode.EMAIL_ALREADY_EXISTS
@@ -90,7 +91,7 @@ public class AccountService {
 
     @Transactional
     @LogMonitoring
-    public Player logIn(String email, String password) {
+    public Player logIn(Email email, String password) {
         return Optional.ofNullable(playerQueryService.findOneByEmail(email))
                                 .filter(p -> playerPasswordManager.matches(p, password))
                                 .orElseThrow(() -> new ApplicationException(ErrorCode.INVALID_EMAIL_OR_PASSWORD,
@@ -123,7 +124,7 @@ public class AccountService {
     }
 
     @LogMonitoring
-    public boolean checkEmailDuplication(String email) {
+    public boolean checkEmailDuplication(Email email) {
         return playerRepository.existsByEmailIgnoreCase(email);
     }
 

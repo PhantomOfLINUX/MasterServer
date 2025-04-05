@@ -7,6 +7,7 @@ import org.codequistify.master.core.domain.player.model.OAuthType;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.model.PolId;
 import org.codequistify.master.core.domain.player.port.PlayerReader;
+import org.codequistify.master.core.domain.vo.Email;
 import org.codequistify.master.infrastructure.player.repository.PlayerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +39,7 @@ public class PlayerQueryService implements PlayerReader {
      * email 기반 단일 조회
      */
     @Transactional(readOnly = true)
-    public Player findOneByEmail(String email) {
+    public Player findOneByEmail(Email email) {
         return playerRepository.findByEmail(email)
                                .orElseThrow(() -> {
                                    logger.warn("[findOneByEmail] 존재하지 않는 email. email={}", email);
@@ -50,7 +51,7 @@ public class PlayerQueryService implements PlayerReader {
      * OAuthType 조회
      */
     @Transactional(readOnly = true)
-    public OAuthType findOAuthTypeByEmail(String email) {
+    public OAuthType findOAuthTypeByEmail(Email email) {
         return playerRepository.getOAuthTypeByEmail(email)
                                .orElseThrow(() -> {
                                    logger.warn("[findOAtuhTypebyEmail] 존재하지 않는 email, email={}", email);
@@ -70,7 +71,7 @@ public class PlayerQueryService implements PlayerReader {
      * 이메일 존재 여부 조회
      */
     @Transactional(readOnly = true)
-    public boolean existsByEmail(String email) {
+    public boolean existsByEmail(Email email) {
         return playerRepository.findByEmail(email).isPresent();
     }
 }

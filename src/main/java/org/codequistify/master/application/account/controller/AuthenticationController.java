@@ -24,6 +24,7 @@ import org.codequistify.master.core.domain.account.model.EmailVerification;
 import org.codequistify.master.core.domain.account.model.EmailVerificationType;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.model.PolId;
+import org.codequistify.master.core.domain.vo.Email;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.jwt.TokenProvider;
 import org.codequistify.master.global.jwt.dto.TokenInfo;
@@ -46,14 +47,13 @@ import java.util.function.Supplier;
 public class AuthenticationController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
-    private final SocialSignHandlerMap handlerMap;
     private final AccountService accountService;
     private final EmailVerificationService emailVerificationService;
+    private final SocialSignHandlerMap handlerMap;
     private final PlayerQueryService playerQueryService;
-
-    private final TokenProvider tokenProvider;
     private final TokenCookieProvider tokenCookieProvider;
     private final TokenGenerator tokenGenerator;
+    private final TokenProvider tokenProvider;
 
     @GetMapping("/{provider}/url")
     @Operation(summary = "소셜 로그인 URL 발급", description = "구글/카카오/네이버/깃허브 로그인 URL을 반환")
@@ -191,7 +191,7 @@ public class AuthenticationController {
     @Operation(summary = "이메일 중복 검사", description = "이메일이 사용가능한지 체크")
     @LogMonitoring
     @GetMapping("auth/email/{email}")
-    public ResponseEntity<BasicResponse> checkEmailDuplication(@PathVariable String email) {
+    public ResponseEntity<BasicResponse> checkEmailDuplication(@PathVariable Email email) {
         boolean duplicated = accountService.checkEmailDuplication(email);
         if (duplicated) {
             throw new ApplicationException(ErrorCode.EMAIL_ALREADY_EXISTS, HttpStatus.BAD_REQUEST);
@@ -216,7 +216,7 @@ public class AuthenticationController {
     @Operation(hidden = true)
     @LogMonitoring
     @GetMapping("auth/email/{email}/code/{code}")
-    public ResponseEntity<BasicResponse> verifyCode(@PathVariable String email, @PathVariable String code) {
+    public ResponseEntity<BasicResponse> verifyCode(@PathVariable Email email, @PathVariable String code) {
         boolean verified = emailVerificationService.verifyCode(email, code.trim());
         return ResponseEntity.ok(BasicResponse.of(String.valueOf(verified)));
     }
@@ -227,7 +227,7 @@ public class AuthenticationController {
     @Operation(summary = "임시 엑세스 토큰 발급", description = "비밀번호 찾기용 임시 AccessToken 발급")
     @LogMonitoring
     @GetMapping("/auth/access/{email}/temp")
-    public ResponseEntity<TokenResponse> generateTempToken(@PathVariable String email) {
+    public ResponseEntity<TokenResponse> generateTempToken(@PathVariable Email email) {
         EmailVerification verification = emailVerificationService.getEmailVerificationByEmail(
                 email, false, EmailVerificationType.PASSWORD_RESET
         );

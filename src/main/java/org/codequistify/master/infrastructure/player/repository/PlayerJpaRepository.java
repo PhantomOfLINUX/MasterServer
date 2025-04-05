@@ -2,6 +2,7 @@ package org.codequistify.master.infrastructure.player.repository;
 
 import org.codequistify.master.core.domain.player.model.OAuthType;
 import org.codequistify.master.core.domain.player.model.PolId;
+import org.codequistify.master.core.domain.vo.Email;
 import org.codequistify.master.infrastructure.player.entity.PlayerEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -11,13 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 public interface PlayerJpaRepository extends JpaRepository<PlayerEntity, PolId> {
-    Optional<PlayerEntity> findByEmail(String email);
+    Optional<PlayerEntity> findByEmail(Email email);
 
     Optional<PlayerEntity> findByUid(PolId uid);
 
     boolean existsByNameIgnoreCase(String name);
 
-    boolean existsByEmailIgnoreCase(String email);
+    boolean existsByEmailIgnoreCase(Email email);
 
     @Modifying
     @Transactional
@@ -30,5 +31,5 @@ public interface PlayerJpaRepository extends JpaRepository<PlayerEntity, PolId> 
 
     @Transactional(readOnly = true)
     @Query("SELECT p.oAuthType FROM PlayerEntity p WHERE p.email = :email")
-    Optional<OAuthType> getOAuthTypeByEmail(String email);
+    Optional<OAuthType> getOAuthTypeByEmail(Email email);
 }

@@ -9,6 +9,7 @@ import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.model.PlayerRoleType;
 import org.codequistify.master.core.domain.player.model.PolId;
+import org.codequistify.master.core.domain.vo.Email;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.infrastructure.security.TokenPlayer;
 import org.slf4j.Logger;
@@ -64,14 +65,14 @@ public class TokenProvider {
                    .compact();
     }
 
-    public String generateTempToken(String email) {
+    public String generateTempToken(Email email) {
         Claims claims = Jwts.claims();
         claims.put("role", List.of(PlayerRoleType.TEMPORARY));
         Date now = new Date();
 
         String token = Jwts.builder()
                            .setClaims(claims)
-                           .setAudience(email)
+                           .setAudience(email.getValue())
                            .setIssuedAt(now)
                            .setIssuer(ISS)
                            .setExpiration(new Date(now.getTime() + ACCESS_VALIDITY_TIME / 6))

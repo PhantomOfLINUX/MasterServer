@@ -1,6 +1,7 @@
 package org.codequistify.master.core.domain.player.service;
 
 import org.codequistify.master.core.domain.player.model.PolId;
+import org.codequistify.master.core.domain.vo.Email;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -14,7 +15,7 @@ public class UidGenerator {
         return PolId.of(UUID.randomUUID().toString());
     }
 
-    public static PolId generate(String email) {
+    public static PolId generate(Email email) {
         LocalDateTime now = LocalDateTime.now();
         String formattedDate = now.format(DateTimeFormatter.ofPattern("yyMMddHH"));
         StringBuilder sb = new StringBuilder();
@@ -52,7 +53,7 @@ public class UidGenerator {
         // 이메일 변환
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update(email.getBytes());
+            md.update(email.getValue().getBytes());
 
             sb.append("-").append(Base64.getEncoder().withoutPadding().encodeToString(md.digest()), 0, 10);
         } catch (NoSuchAlgorithmException e) {

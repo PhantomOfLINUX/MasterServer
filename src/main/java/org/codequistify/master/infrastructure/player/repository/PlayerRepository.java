@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.core.domain.player.model.OAuthType;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.model.PolId;
+import org.codequistify.master.core.domain.vo.Email;
 import org.codequistify.master.infrastructure.player.converter.PlayerConverter;
 import org.codequistify.master.infrastructure.player.entity.PlayerEntity;
 import org.springframework.stereotype.Repository;
@@ -23,7 +24,7 @@ public class PlayerRepository {
         return PlayerConverter.toDomain(saved);
     }
 
-    public Optional<Player> findByEmail(String email) {
+    public Optional<Player> findByEmail(Email email) {
         return jpaRepository.findByEmail(email).map(PlayerConverter::toDomain);
     }
 
@@ -35,7 +36,7 @@ public class PlayerRepository {
         return jpaRepository.existsByNameIgnoreCase(name);
     }
 
-    public boolean existsByEmailIgnoreCase(String email) {
+    public boolean existsByEmailIgnoreCase(Email email) {
         return jpaRepository.existsByEmailIgnoreCase(email);
     }
 
@@ -47,7 +48,7 @@ public class PlayerRepository {
         return jpaRepository.getRefreshToken(uid);
     }
 
-    public Optional<OAuthType> getOAuthTypeByEmail(String email) {
+    public Optional<OAuthType> getOAuthTypeByEmail(Email email) {
         return jpaRepository.getOAuthTypeByEmail(email);
     }
 

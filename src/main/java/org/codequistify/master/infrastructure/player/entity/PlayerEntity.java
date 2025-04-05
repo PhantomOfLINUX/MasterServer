@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.codequistify.master.core.domain.player.model.OAuthType;
 import org.codequistify.master.core.domain.player.model.PolId;
+import org.codequistify.master.core.domain.vo.Email;
 import org.codequistify.master.global.util.BaseTimeEntity;
+import org.codequistify.master.infrastructure.converter.EmailConverter;
 import org.codequistify.master.infrastructure.player.converter.PolIdConverter;
 import org.hibernate.annotations.ColumnDefault;
 
@@ -33,7 +35,8 @@ public class PlayerEntity extends BaseTimeEntity {
     private String name;
 
     @Column(name = "email", unique = true)
-    private String email;
+    @Convert(converter = EmailConverter.class)
+    private Email email;
 
     @Column(name = "password")
     private String password;
