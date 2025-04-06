@@ -5,7 +5,7 @@ import org.codequistify.master.application.exception.ApplicationException;
 import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.core.domain.lab.utils.KubernetesResourceNaming;
 import org.codequistify.master.core.domain.stage.domain.StageImageType;
-import org.codequistify.master.core.domain.stage.dto.StageActionRequest;
+import org.codequistify.master.application.stage.dto.StageActionRequest;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.util.SuccessResponse;
 import org.slf4j.Logger;

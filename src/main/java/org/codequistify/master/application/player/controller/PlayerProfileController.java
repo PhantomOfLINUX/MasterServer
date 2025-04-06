@@ -11,7 +11,7 @@ import org.codequistify.master.application.player.service.PlayerProfileService;
 import org.codequistify.master.application.player.service.PlayerQueryService;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.stage.domain.CompletedStatus;
-import org.codequistify.master.core.domain.stage.dto.HeatMapDataPoint;
+import org.codequistify.master.application.stage.dto.HeatMapDataPoint;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.util.BasicResponse;
 import org.codequistify.master.infrastructure.security.TokenPlayer;

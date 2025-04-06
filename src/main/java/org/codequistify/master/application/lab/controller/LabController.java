@@ -8,7 +8,7 @@ import org.codequistify.master.application.lab.dto.PShellExistsResponse;
 import org.codequistify.master.application.lab.service.LabService;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.stage.domain.Stage;
-import org.codequistify.master.core.domain.stage.service.impl.StageSearchServiceImpl;
+import org.codequistify.master.application.stage.service.impl.StageSearchServiceImpl;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.lock.LockManager;
