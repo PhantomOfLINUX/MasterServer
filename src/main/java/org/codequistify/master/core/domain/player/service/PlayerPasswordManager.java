@@ -12,19 +12,11 @@ public class PlayerPasswordManager {
         this.encoder = encoder;
     }
 
-    public Player encodePassword(Player player) {
-        return player.toBuilder()
-                     .password(encoder.encode(player.getPassword()))
-                     .build();
-    }
-
-    public Player encodePassword(Player player, String rawPassword) {
-        return player.toBuilder()
-                     .password(encoder.encode(rawPassword))
-                     .build();
+    public String encode(String rawPassword) {
+        return encoder.encode(rawPassword);
     }
 
     public boolean matches(Player player, String rawPassword) {
-        return encoder.matches(rawPassword, player.getPassword());
+        return encoder.matches(rawPassword, player.getPassword().getValue());
     }
 }
