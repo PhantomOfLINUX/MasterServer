@@ -5,8 +5,8 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import org.codequistify.master.core.domain.lab.utils.KubernetesResourceNaming;
 import org.codequistify.master.core.domain.player.model.PolId;
-import org.codequistify.master.core.domain.stage.domain.Stage;
-import org.codequistify.master.core.domain.stage.domain.StageImageType;
+import org.codequistify.master.core.domain.stage.model.StageImageType;
+import org.codequistify.master.infrastructure.stage.entity.StageEntity;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,8 +15,8 @@ public class KubernetesServiceFactory implements ServiceFactory {
     private static final long ACTIVE_DEADLINE = 10_800L;
 
     @Override
-    public Service create(Stage stage, int port, PolId uid) {
-        StageImageType stageImage = stage.getStageImage();
+    public Service create(StageEntity stageEntity, int port, PolId uid) {
+        StageImageType stageImage = stageEntity.getStageImage();
 
         String lowerUid = uid.getValue().toLowerCase();
         String lowerStageName = stageImage.name().toLowerCase();
@@ -28,7 +28,7 @@ public class KubernetesServiceFactory implements ServiceFactory {
                 .addToLabels("app", "pol")
                 .addToLabels("tire", "term")
                 .addToLabels("player", lowerUid)
-                .addToLabels("stage", lowerStageName)
+                .addToLabels("stageEntity", lowerStageName)
                 .endMetadata()
                 .withNewSpec()
                 .withType("ClusterIP")
@@ -41,7 +41,7 @@ public class KubernetesServiceFactory implements ServiceFactory {
                 .addToSelector("app", "pol")
                 .addToSelector("tire", "term")
                 .addToSelector("player", lowerUid)
-                .addToSelector("stage", lowerStageName)
+                .addToSelector("stageEntity", lowerStageName)
                 .endSpec()
                 .build();
     }

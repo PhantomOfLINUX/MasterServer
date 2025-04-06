@@ -1,8 +1,9 @@
 package org.codequistify.master.infrastructure.stage.repository;
 
-import org.codequistify.master.core.domain.stage.domain.CompletedStage;
 import org.codequistify.master.application.stage.dto.HeatMapDataPoint;
 import org.codequistify.master.application.stage.dto.StageCodeDTO;
+import org.codequistify.master.core.domain.player.model.PolId;
+import org.codequistify.master.infrastructure.stage.entity.CompletedStageEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,25 +13,31 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface CompletedStageRepository extends JpaRepository<CompletedStage, Long> {
-    @Query("SELECT new org.codequistify.master.domain.stage.dto.StageCodeDTO(c.stage.stageImage, '') " +
-            "FROM CompletedStage c " +
-            "WHERE c.player.id = :playerId AND c.status = org.codequistify.master.domain.stage.domain.CompletedStatus.COMPLETED")
-    List<StageCodeDTO> findCompletedStagesByPlayerId(@Param("playerId") Long playerId);
+public interface CompletedStageRepository extends JpaRepository<CompletedStageEntity, Long> {
 
-    @Query("SELECT new org.codequistify.master.domain.stage.dto.StageCodeDTO(c.stage.stageImage, '') " +
-            "FROM CompletedStage c " +
-            "WHERE c.player.id = :playerId AND c.status = org.codequistify.master.domain.stage.domain.CompletedStatus.IN_PROGRESS")
-    List<StageCodeDTO> findInProgressStagesByPlayerId(@Param("playerId") Long playerId);
+    @Query("""
+            SELECT new org.codequistify.master.application.stage.dto.StageCodeDTO(c.stage.stageImage, '')
+            FROM CompletedStageEntity c
+            WHERE c.player.uid = :playerId AND c.status = org.codequistify.master.core.domain.stage.model.CompletedStatus.COMPLETED
+            """)
+    List<StageCodeDTO> findCompletedStagesByPlayerId(@Param("playerId") PolId playerId);
 
-    @Query("SELECT new org.codequistify.master.domain.stage.dto" +
-            ".HeatMapDataPoint(DATE(cs.modifiedDate), COUNT(*)) " +
-            "FROM CompletedStage cs " +
-            "WHERE cs.player.id = :playerId " +
-            "GROUP BY DATE(cs.modifiedDate)")
-    List<HeatMapDataPoint> countDataByModifiedDate(@Param("playerId") Long playerId);
+    @Query("""
+            SELECT new org.codequistify.master.application.stage.dto.StageCodeDTO(c.stage.stageImage, '')
+            FROM CompletedStageEntity c
+            WHERE c.player.uid = :playerId AND c.status = org.codequistify.master.core.domain.stage.model.CompletedStatus.IN_PROGRESS
+            """)
+    List<StageCodeDTO> findInProgressStagesByPlayerId(@Param("playerId") PolId playerId);
 
-    Optional<CompletedStage> findByPlayerIdAndStageId(Long playerId, Long stageId);
+    @Query("""
+            SELECT new org.codequistify.master.application.stage.dto.HeatMapDataPoint(DATE(c.modifiedDate), COUNT(*))
+            FROM CompletedStageEntity c
+            WHERE c.player.uid = :playerId
+            GROUP BY DATE(c.modifiedDate)
+            """)
+    List<HeatMapDataPoint> countDataByModifiedDate(@Param("playerId") PolId playerId);
 
-    boolean existsByPlayerIdAndStageId(Long playerId, Long stageId);
+    Optional<CompletedStageEntity> findByPlayerIdAndStageId(PolId playerId, Long stageId);
+
+    boolean existsByPlayerIdAndStageId(PolId playerId, Long stageId);
 }

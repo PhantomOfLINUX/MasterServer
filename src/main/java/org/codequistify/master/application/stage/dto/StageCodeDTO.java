@@ -1,6 +1,6 @@
 package org.codequistify.master.application.stage.dto;
 
-import org.codequistify.master.core.domain.stage.domain.StageImageType;
+import org.codequistify.master.core.domain.stage.model.StageImageType;
 
 public record StageCodeDTO(
         StageImageType stageCode,

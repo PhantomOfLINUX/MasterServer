@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.application.exception.ApplicationException;
 import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.core.domain.player.model.Player;
-import org.codequistify.master.core.domain.stage.domain.Stage;
 import org.codequistify.master.global.aspect.LogExecutionTime;
+import org.codequistify.master.infrastructure.stage.entity.StageEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -21,39 +21,39 @@ public class LabService {
     private final static int SLEEP_PERIOD = 5000;
 
     @LogExecutionTime
-    public void createStageOnKubernetes(Player player, Stage stage){
-        kubernetesResourceManager.createServiceOnKubernetes(stage, uid);
-        kubernetesResourceManager.createPodOnKubernetes(stage, uid);
+    public void createStageOnKubernetes(Player player, StageEntity stageEntity) {
+        kubernetesResourceManager.createServiceOnKubernetes(stageEntity, uid);
+        kubernetesResourceManager.createPodOnKubernetes(stageEntity, uid);
 
-        LOGGER.info("[createStageOnKubernetes] stage: {}", stage.getId());
+        LOGGER.info("[createStageOnKubernetes] stageEntity: {}", stageEntity.getId());
 
     }
 
     @LogExecutionTime
-    public void deleteAsyncStageOnKubernetes(Player player, Stage stage) {
+    public void deleteAsyncStageOnKubernetes(Player player, StageEntity stageEntity) {
         String uid = player.getUid().toLowerCase();
 
-        kubernetesResourceManager.deleteAsyncPod(stage, uid);
-        kubernetesResourceManager.deleteAsyncService(stage, uid);
+        kubernetesResourceManager.deleteAsyncPod(stageEntity, uid);
+        kubernetesResourceManager.deleteAsyncService(stageEntity, uid);
     }
 
     @LogExecutionTime
-    public void deleteSyncStageOnKubernetes(Player player, Stage stage) {
+    public void deleteSyncStageOnKubernetes(Player player, StageEntity stageEntity) {
         String uid = player.getUid().toLowerCase();
 
-        kubernetesResourceManager.deleteAsyncPod(stage, uid);
-        kubernetesResourceManager.deleteAsyncService(stage, uid);
+        kubernetesResourceManager.deleteAsyncPod(stageEntity, uid);
+        kubernetesResourceManager.deleteAsyncService(stageEntity, uid);
 
         boolean podDeleted = false;
         boolean serviceDeleted = false;
         int retryCount = 0;
 
         while (!podDeleted || !serviceDeleted) {
-            if (!podDeleted && !kubernetesResourceManager.existsPod(stage, uid)) {
+            if (!podDeleted && !kubernetesResourceManager.existsPod(stageEntity, uid)) {
                 podDeleted = true;
                 LOGGER.info("[deleteSyncStageOnKubernetes] Pod 삭제 확인 {}번 시도", retryCount);
             }
-            if (!serviceDeleted && !kubernetesResourceManager.existsService(stage, uid)) {
+            if (!serviceDeleted && !kubernetesResourceManager.existsService(stageEntity, uid)) {
                 serviceDeleted = true;
                 LOGGER.info("[deleteSyncStageOnKubernetes] Service 삭제 확인 {}번 시도", retryCount);
             }
@@ -73,20 +73,20 @@ public class LabService {
     }
 
     @LogExecutionTime
-    public boolean existsStageOnKubernetes(Player player, Stage stage) {
-        boolean podExists = kubernetesResourceManager.existsPod(stage, player.getUid());
-        boolean serviceExists = kubernetesResourceManager.existsService(stage, player.getUid());
+    public boolean existsStageOnKubernetes(Player player, StageEntity stageEntity) {
+        boolean podExists = kubernetesResourceManager.existsPod(stageEntity, player.getUid());
+        boolean serviceExists = kubernetesResourceManager.existsService(stageEntity, player.getUid());
 
         LOGGER.info("[existsStageOnKubernetes] pod: {}, svc: {}", podExists, serviceExists);
         return podExists && serviceExists;
     }
 
     @LogExecutionTime
-    public void waitForPodReadiness(Player player, Stage stage) {
+    public void waitForPodReadiness(Player player, StageEntity stageEntity) {
         String uid = player.getUid().toLowerCase();
         int retryCount = 0;
         while (true) {
-            Pod pod = kubernetesResourceManager.getPod(stage, uid);
+            Pod pod = kubernetesResourceManager.getPod(stageEntity, uid);
             if (pod != null && pod.getStatus() != null && pod.getStatus().getConditions() != null) {
                 for (PodCondition condition : pod.getStatus().getConditions()) {
                     if ("Ready".equals(condition.getType()) && "True".equals(condition.getStatus())) {

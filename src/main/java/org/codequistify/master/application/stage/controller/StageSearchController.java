@@ -5,17 +5,17 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.core.domain.player.model.Player;
-import org.codequistify.master.infrastructure.stage.convertoer.StageConverter;
 import org.codequistify.master.application.stage.dto.QuestionResponse;
 import org.codequistify.master.application.stage.dto.SearchCriteria;
 import org.codequistify.master.application.stage.dto.StagePageResponse;
 import org.codequistify.master.application.stage.dto.StageResponse;
 import org.codequistify.master.application.stage.service.StageManagementService;
 import org.codequistify.master.application.stage.service.StageSearchService;
+import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.stage.utils.HangulExtractor;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
+import org.codequistify.master.infrastructure.stage.converter.StageConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Stage")
+@Tag(name = "org.codequistify.master.core.domain.stageEntity.model.StageEntity")
 @RequestMapping("api")
 public class StageSearchController {
     private final Logger LOGGER = LoggerFactory.getLogger(StageSearchController.class);
@@ -84,7 +84,7 @@ public class StageSearchController {
 
     @Operation(
             summary = "문항 조회",
-            description = "문항을 조회합니다. 'stage 정보'와 '몇 번째 문항' 인지에 대한 정보로 조회합니다."
+            description = "문항을 조회합니다. 'stageEntity 정보'와 '몇 번째 문항' 인지에 대한 정보로 조회합니다."
     )
     // 스테이지 문항 조회 -> 정답은 클라이언트에게 제공 안 됨, 옵션들은 전부 제공되어야 함
     @LogMonitoring

@@ -1,4 +1,4 @@
-package org.codequistify.master.application.stage.service.impl;
+package org.codequistify.master.application.stage.service;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
@@ -13,19 +13,18 @@ import org.codequistify.master.application.player.dto.PlayerStageProgressRespons
 import org.codequistify.master.application.stage.dto.*;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.model.PolId;
-import org.codequistify.master.infrastructure.stage.convertoer.QuestionConverter;
-import org.codequistify.master.infrastructure.stage.convertoer.StageConverter;
-import org.codequistify.master.core.domain.stage.domain.CompletedStatus;
-import org.codequistify.master.core.domain.stage.domain.Question;
-import org.codequistify.master.core.domain.stage.domain.Stage;
-import org.codequistify.master.infrastructure.stage.repository.CompletedStageRepository;
-import org.codequistify.master.infrastructure.stage.repository.QuestionRepository;
-import org.codequistify.master.infrastructure.stage.repository.StageRepository;
-import org.codequistify.master.application.stage.service.StageSearchService;
+import org.codequistify.master.core.domain.stage.model.CompletedStatus;
 import org.codequistify.master.core.domain.stage.utils.HangulExtractor;
 import org.codequistify.master.domain.stage.domain.QCompletedStage;
 import org.codequistify.master.domain.stage.domain.QStage;
 import org.codequistify.master.global.aspect.LogMonitoring;
+import org.codequistify.master.infrastructure.stage.converter.QuestionConverter;
+import org.codequistify.master.infrastructure.stage.converter.StageConverter;
+import org.codequistify.master.infrastructure.stage.entity.QuestionEntity;
+import org.codequistify.master.infrastructure.stage.entity.StageEntity;
+import org.codequistify.master.infrastructure.stage.repository.CompletedStageRepository;
+import org.codequistify.master.infrastructure.stage.repository.QuestionRepository;
+import org.codequistify.master.infrastructure.stage.repository.StageRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -53,7 +52,7 @@ public class StageSearchServiceImpl implements StageSearchService {
 
     @Override // 스테이지 조회
     @Transactional
-    public Stage getStageById(Long stageId) {
+    public StageEntity getStageById(Long stageId) {
         return stageRepository.findById(stageId)
                 .orElseThrow(() -> {
                     LOGGER.info("[findStageById] 등록되지 않은 스테이지 id: {}", stageId);
@@ -64,13 +63,13 @@ public class StageSearchServiceImpl implements StageSearchService {
     @Override // 문항 조회
     @Transactional
     public QuestionResponse findQuestion(Long stageId, Integer questionIndex) {
-        Question question = questionRepository.findByStageIdAndIndex(stageId, questionIndex)
-                                              .orElseThrow(() -> {
+        QuestionEntity questionEntity = questionRepository.findByStageIdAndIndex(stageId, questionIndex)
+                                                          .orElseThrow(() -> {
                     LOGGER.info("[findQuestion] {}, id: {}, index: {}", ErrorCode.QUESTION_NOT_FOUND.getMessage(), stageId, questionIndex);
                                                   return new ApplicationException(ErrorCode.QUESTION_NOT_FOUND,
                                                                                   HttpStatus.NOT_FOUND);
                 });
-        QuestionResponse response = questionConverter.convert(question);
+        QuestionResponse response = questionConverter.convert(questionEntity);
 
         LOGGER.info("[findQuestion] 문항 조회, id: {}, index: {}", stageId, questionIndex);
         return response;

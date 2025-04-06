@@ -4,7 +4,7 @@ import org.codequistify.master.core.domain.player.model.PolId;
 
 public class KubernetesResourceNaming {
     private static final String POD_NAME_FORMAT = "%s-%s";
-    private static final String QUERY_URL_FORMAT = "?uid=%s&stage=%s";
+    private static final String QUERY_URL_FORMAT = "?uid=%s&stageEntity=%s";
     private static final String SERVICE_DNS_FORMAT = "%s.%s.svc.cluster.local";
     private static final String SERVICE_NAME_FORMAT = "%s-%s";
 

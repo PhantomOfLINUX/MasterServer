@@ -4,13 +4,13 @@ import org.codequistify.master.application.player.dto.PlayerStageProgressRespons
 import org.codequistify.master.application.stage.dto.*;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.model.PolId;
-import org.codequistify.master.core.domain.stage.domain.Stage;
+import org.codequistify.master.infrastructure.stage.entity.StageEntity;
 
 import java.util.List;
 
 public interface StageSearchService {
     // 스테이지 조회
-    Stage getStageById(Long stageId);
+    StageEntity getStageById(Long stageId);
 
     // 스테이지 목록 조회
     StagePageResponse findStagesByCriteria(SearchCriteria searchCriteria, Player player);

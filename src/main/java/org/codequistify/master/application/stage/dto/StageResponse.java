@@ -1,8 +1,8 @@
 package org.codequistify.master.application.stage.dto;
 
-import org.codequistify.master.core.domain.stage.domain.CompletedStatus;
-import org.codequistify.master.core.domain.stage.domain.DifficultyLevelType;
-import org.codequistify.master.core.domain.stage.domain.StageGroupType;
+import org.codequistify.master.core.domain.stage.model.CompletedStatus;
+import org.codequistify.master.core.domain.stage.model.DifficultyLevelType;
+import org.codequistify.master.core.domain.stage.model.StageGroupType;
 
 public record StageResponse(
         Long id,

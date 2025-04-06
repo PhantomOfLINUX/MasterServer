@@ -1,4 +1,4 @@
-package org.codequistify.master.core.domain.stage.domain;
+package org.codequistify.master.core.domain.stage.model;
 
 public enum StageGroupType {
     BASIC_PROBLEMS("B"),

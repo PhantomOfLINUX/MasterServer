@@ -5,8 +5,8 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import org.codequistify.master.core.domain.lab.utils.KubernetesResourceNaming;
 import org.codequistify.master.core.domain.player.model.PolId;
-import org.codequistify.master.core.domain.stage.domain.Stage;
-import org.codequistify.master.core.domain.stage.domain.StageImageType;
+import org.codequistify.master.core.domain.stage.model.StageImageType;
+import org.codequistify.master.infrastructure.stage.entity.StageEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -18,8 +18,8 @@ public class KubernetesPodFactory implements PodFactory {
     private final Logger logger = LoggerFactory.getLogger(KubernetesPodFactory.class);
 
     @Override
-    public Pod create(Stage stage, int port, PolId uid) {
-        StageImageType stageImage = stage.getStageImage();
+    public Pod create(StageEntity stageEntity, int port, PolId uid) {
+        StageImageType stageImage = stageEntity.getStageImage();
         String lowerUid = uid.getValue().toLowerCase();
         String imageName = stageImage.name().toLowerCase();
         String podName = KubernetesResourceNaming.getPodName(stageImage.name(), uid);
@@ -30,7 +30,7 @@ public class KubernetesPodFactory implements PodFactory {
                 .addToLabels("app", "pol")
                 .addToLabels("tire", "term")
                 .addToLabels("player", lowerUid)
-                .addToLabels("stage", imageName)
+                .addToLabels("stageEntity", imageName)
                 .endMetadata()
                 .withNewSpec()
                 .addNewContainer()

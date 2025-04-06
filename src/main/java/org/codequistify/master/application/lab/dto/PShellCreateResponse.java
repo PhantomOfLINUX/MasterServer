@@ -7,7 +7,7 @@ public record PShellCreateResponse(
         String query
 ) {
     public static PShellCreateResponse of(String url, PolId uid, String stageImageName) {
-        String query = "?uid=" + uid.getValue().toLowerCase() + "&stage=" + stageImageName;
+        String query = "?uid=" + uid.getValue().toLowerCase() + "&stageEntity=" + stageImageName;
         return new PShellCreateResponse(
                 url + query,
                 query

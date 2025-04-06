@@ -1,4 +1,4 @@
-package org.codequistify.master.core.domain.stage.domain;
+package org.codequistify.master.core.domain.stage.model;
 
 import lombok.Getter;
 
