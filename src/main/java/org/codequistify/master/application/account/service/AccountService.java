@@ -2,15 +2,15 @@ package org.codequistify.master.application.account.service;
 
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.application.account.strategy.SignupPolicy;
 import org.codequistify.master.application.exception.ApplicationException;
 import org.codequistify.master.application.exception.ErrorCode;
-import org.codequistify.master.application.player.service.PlayerProfileService;
 import org.codequistify.master.application.player.service.PlayerQueryService;
+import org.codequistify.master.core.domain.player.model.HashedPassword;
 import org.codequistify.master.core.domain.player.model.OAuthType;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.model.PolId;
 import org.codequistify.master.core.domain.player.service.PlayerPasswordManager;
-import org.codequistify.master.core.domain.player.service.PlayerValidator;
 import org.codequistify.master.core.domain.vo.Email;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
@@ -36,56 +36,43 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class AccountService {
-    private final Logger logger = LoggerFactory.getLogger(AccountService.class);
+
+    private static final boolean DEFAULT_LOCKED = false;
+    private static final String GOOGLE_REVOKE_URL = "https://accounts.google.com/o/oauth2/revoke?token=";
+    private static final int INITIAL_EXP = 0;
+    private static final String INITIAL_OAUTH_ID = "0";
+    private static final String TIMESTAMP_PATTERN = "yyyy-MM-dd HH:mm:ss";
+    private static final Logger logger = LoggerFactory.getLogger(AccountService.class);
     private final PlayerPasswordManager playerPasswordManager;
-    private final PlayerProfileService playerProfileService;
     private final PlayerQueryService playerQueryService;
     private final PlayerRepository playerRepository;
-    private final PlayerValidator playerValidator;
+    private final SignupPolicy signupPolicy;
     private final TokenProvider tokenProvider;
 
     @Transactional
     @LogMonitoring
-    public Player signUp(String name, Email email, String password) {
-        validateSignUp(name, email, password);
+    public Player signUp(String name, Email email, String rawPassword) {
+        signupPolicy.validate(name, email, rawPassword);
 
-        Player newPlayer = Player.builder()
-                                 .email(email)
-                                 .name(name)
-                                 .password(password)
-                                 .oAuthType(OAuthType.POL)
-                                 .oAuthId("0")
-                                 .locked(false)
-                                 .exp(0)
-                                 .build();
-
-        Player encoded = playerPasswordManager.encodePassword(newPlayer);
-        Player saved = playerRepository.save(encoded);
-        logger.info("[signUp] Player: {}, 회원가입 완료", encoded.getUid());
-
-        return saved;
-    }
-
-    private void validateSignUp(String name, Email email, String password) {
-        playerRepository.getOAuthTypeByEmail(email).ifPresent(authType -> {
-            ErrorCode code = authType.equals(OAuthType.POL)
-                    ? ErrorCode.EMAIL_ALREADY_EXISTS
-                    : ErrorCode.EMAIL_ALREADY_EXISTS_OTHER_AUTH;
-            throw new ApplicationException(code, HttpStatus.BAD_REQUEST, authType.name());
-        });
-
-        Optional.of(password)
-                .filter(playerValidator::isValidPassword)
-                .orElseThrow(() -> new ApplicationException(ErrorCode.PASSWORD_POLICY_VIOLATION,
-                                                            HttpStatus.BAD_REQUEST));
-
-        Optional.of(name)
-                .filter(playerValidator::isValidName)
-                .orElseThrow(() -> new ApplicationException(ErrorCode.PROFANITY_IN_NAME, HttpStatus.BAD_REQUEST));
-
-        if (playerProfileService.isDuplicatedName(name)) {
-            throw new ApplicationException(ErrorCode.DUPLICATE_NAME, HttpStatus.BAD_REQUEST);
-        }
+        return Optional.of(rawPassword)
+                       .map(playerPasswordManager::encode)
+                       .map(HashedPassword::fromHashed)
+                       .map(password -> Player.builder()
+                                              .email(email)
+                                              .name(name)
+                                              .password(password)
+                                              .oAuthType(OAuthType.POL)
+                                              .oAuthId(INITIAL_OAUTH_ID)
+                                              .locked(DEFAULT_LOCKED)
+                                              .exp(INITIAL_EXP)
+                                              .build())
+                       .map(playerRepository::save)
+                       .map(saved -> {
+                           logger.info("[signUp] Player: {}, 회원가입 완료", saved.getUid());
+                           return saved;
+                       })
+                       .orElseThrow(() -> new ApplicationException(ErrorCode.FAIL_PROCEED,
+                                                                   HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
     @Transactional
@@ -115,7 +102,7 @@ public class AccountService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-            String url = "https://accounts.google.com/o/oauth2/revoke?token=" + token;
+            String url = GOOGLE_REVOKE_URL + token;
             restTemplate.postForEntity(url, new HttpEntity<>(headers), String.class);
         } catch (RuntimeException e) {
             logger.info("[revokeTokenForGoogle] 만료시킬 수 없는 토큰");
@@ -155,7 +142,7 @@ public class AccountService {
                                 .orElseThrow(() -> new ApplicationException(ErrorCode.INVALID_TOKEN,
                                                                             HttpStatus.BAD_REQUEST));
 
-        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat fmt = new SimpleDateFormat(TIMESTAMP_PATTERN);
 
         return new TokenInfo(
                 claims.getAudience(),
