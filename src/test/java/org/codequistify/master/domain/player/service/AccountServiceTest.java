@@ -1,10 +1,10 @@
 package org.codequistify.master.domain.player.service;
 
-import org.codequistify.master.application.account.dto.LogInRequest;
-import org.codequistify.master.application.account.dto.SignUpRequest;
 import org.codequistify.master.application.account.service.AccountService;
+import org.codequistify.master.application.exception.ApplicationException;
 import org.codequistify.master.application.exception.ErrorCode;
-import org.codequistify.master.application.player.dto.PlayerProfile;
+import org.codequistify.master.core.domain.player.model.Player;
+import org.codequistify.master.core.domain.vo.Email;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,84 +29,65 @@ class AccountServiceTest {
 
     @BeforeEach
     void setUp() {
-        SignUpRequest request = new SignUpRequest("A", "A@pol.or.kr", "password99763892*");
-        PlayerProfile result = accountService.signUp(request);
+        accountService.signUp("A", Email.of("A@pol.or.kr"), "password99763892*");
     }
-
 
     @Test
     @Order(1)
-    public void 회원가입_성공(){
-        SignUpRequest request = new SignUpRequest("B", "B@pol.or.kr", "password99763892*");
-        PlayerProfile result = accountService.signUp(request);
+    public void 회원가입_성공() {
+        Player result = accountService.signUp("B", Email.of("B@pol.or.kr"), "password99763892*");
 
         assertNotNull(result);
-        assertEquals(request.name(), result.name());
-        assertEquals(request.email(), result.email());
+        assertEquals("B", result.getName());
+        assertEquals(Email.of("B@pol.or.kr"), result.getEmail());
     }
 
     @Test
-    public void 중복_회원가입(){
-        SignUpRequest request = new SignUpRequest("A", "A@pol.or.kr", "password99763892*");
-
-        Throwable ex = assertThrows(ApplicationException.class, () -> {
-            accountService.signUp(request);
+    @Order(2)
+    public void 중복_회원가입() {
+        ApplicationException ex = assertThrows(ApplicationException.class, () -> {
+            accountService.signUp("A", Email.of("A@pol.or.kr"), "password99763892*");
         });
+
         assertEquals(ErrorCode.EMAIL_ALREADY_EXISTS.getMessage(), ex.getMessage());
     }
 
-    /*@Test
-    public void 이메일_양식_미충족(){
-        SignUpRequest request = new SignUpRequest("C", "", "password99763892*");
-
-        Throwable ex = assertThrows(ApplicationException.class, () -> {
-            authenticationService.signUp(request);
-        });
-        assertEquals(ErrorCode.INVALID_EMAIL_FORMAT.getMessage(), ex.getMessage());
-    }*/
-
     @Test
-    public void 비밀번호_조건_미충족(){
-        SignUpRequest request = new SignUpRequest("D", "D@pol.or.kr", "pass63892");
-
-        Throwable ex = assertThrows(ApplicationException.class, () -> {
-            accountService.signUp(request);
+    @Order(3)
+    public void 비밀번호_조건_미충족() {
+        ApplicationException ex = assertThrows(ApplicationException.class, () -> {
+            accountService.signUp("D", Email.of("D@pol.or.kr"), "pass63892");
         });
+
         assertEquals(ErrorCode.PASSWORD_POLICY_VIOLATION.getMessage(), ex.getMessage());
     }
 
     @Test
+    @Order(4)
     public void 정상_로그인() {
-        LogInRequest request = new LogInRequest("A@pol.or.kr", "password99763892*");
-
-        PlayerProfile result = accountService.logIn(request);
+        Player result = accountService.logIn(Email.of("A@pol.or.kr"), "password99763892*");
 
         assertNotNull(result);
-        assertEquals(request.email(), result.email());
+        assertEquals(Email.of("A@pol.or.kr"), result.getEmail());
     }
 
-    //로그인 비밀번호 오류
     @Test
+    @Order(5)
     public void 로그인_비밀번호_오류() {
-        LogInRequest request = new LogInRequest("A@pol.or.kr", "wrong");
-
-        Throwable ex = assertThrows(ApplicationException.class, () -> {
-            accountService.logIn(request);
+        ApplicationException ex = assertThrows(ApplicationException.class, () -> {
+            accountService.logIn(Email.of("A@pol.or.kr"), "wrong");
         });
+
         assertEquals(ErrorCode.INVALID_EMAIL_OR_PASSWORD.getMessage(), ex.getMessage());
     }
 
-    //로그인 이메일 오류
     @Test
+    @Order(6)
     public void 로그인_이메일_오류() {
-        LogInRequest request = new LogInRequest("wrong@pol.or.kr", "password99763892*");
-
-        Throwable ex = assertThrows(ApplicationException.class, () -> {
-            accountService.logIn(request);
+        ApplicationException ex = assertThrows(ApplicationException.class, () -> {
+            accountService.logIn(Email.of("wrong@pol.or.kr"), "password99763892*");
         });
+
         assertEquals(ErrorCode.INVALID_EMAIL_OR_PASSWORD.getMessage(), ex.getMessage());
     }
-
-
-
 }
