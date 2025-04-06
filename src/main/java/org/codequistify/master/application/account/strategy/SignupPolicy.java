@@ -23,9 +23,15 @@ public class SignupPolicy {
 
     public void validate(String name, Email email, String password) {
         validateEmailNotTaken(email);
-        validatePassword(password);
-        validateName(name);
-        validateNameUniqueness(name);
+
+        check(password)
+                .with(playerValidator::isValidPassword, ErrorCode.PASSWORD_POLICY_VIOLATION)
+                .orThrow();
+
+        check(name)
+                .with(playerValidator::isValidName, ErrorCode.PROFANITY_IN_NAME)
+                .with(n -> !playerProfileService.isDuplicatedName(n), ErrorCode.DUPLICATE_NAME)
+                .orThrow();
     }
 
     private void validateEmailNotTaken(Email email) {
@@ -37,23 +43,33 @@ public class SignupPolicy {
         });
     }
 
-    private void validatePassword(String password) {
-        Predicate<String> validPassword = playerValidator::isValidPassword;
-        if (!validPassword.test(password)) {
-            throw new ApplicationException(ErrorCode.PASSWORD_POLICY_VIOLATION, HttpStatus.BAD_REQUEST);
-        }
+    private <T> ValidatorChain<T> check(T target) {
+        return new ValidatorChain<>(target);
     }
 
-    private void validateName(String name) {
-        Predicate<String> validName = playerValidator::isValidName;
-        if (!validName.test(name)) {
-            throw new ApplicationException(ErrorCode.PROFANITY_IN_NAME, HttpStatus.BAD_REQUEST);
-        }
-    }
+    private static class ValidatorChain<T> {
+        private final T target;
+        private ApplicationException failure;
 
-    private void validateNameUniqueness(String name) {
-        if (playerProfileService.isDuplicatedName(name)) {
-            throw new ApplicationException(ErrorCode.DUPLICATE_NAME, HttpStatus.BAD_REQUEST);
+        public ValidatorChain(T target) {
+            this.target = target;
+        }
+
+        public ValidatorChain<T> with(Predicate<T> predicate, ErrorCode errorCode) {
+            return with(predicate, errorCode, HttpStatus.BAD_REQUEST);
+        }
+
+        public ValidatorChain<T> with(Predicate<T> predicate, ErrorCode errorCode, HttpStatus status) {
+            if (failure == null && !predicate.test(target)) {
+                failure = new ApplicationException(errorCode, status);
+            }
+            return this;
+        }
+
+        public void orThrow() {
+            if (failure != null) {
+                throw failure;
+            }
         }
     }
 }
