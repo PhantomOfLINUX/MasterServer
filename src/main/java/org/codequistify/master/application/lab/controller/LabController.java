@@ -6,15 +6,12 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.application.lab.dto.PShellCreateResponse;
 import org.codequistify.master.application.lab.dto.PShellExistsResponse;
 import org.codequistify.master.application.lab.service.LabService;
+import org.codequistify.master.application.stage.service.impl.StageSearchServiceImpl;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.stage.domain.Stage;
-import org.codequistify.master.application.stage.service.impl.StageSearchServiceImpl;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.lock.LockManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,14 +19,18 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Optional;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.springframework.http.HttpStatus.TOO_MANY_REQUESTS;
 
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Lab")
 public class LabController {
-    private final String LAB_HOST = "wss://lab.pol.or.kr";
-    private final Logger LOGGER = LoggerFactory.getLogger(LabController.class);
+
+    private static final String LAB_HOST = "wss://lab.pol.or.kr";
+
     private final LabService labService;
     private final LockManager lockManager;
     private final StageSearchServiceImpl stageSearchService;
@@ -48,34 +49,26 @@ public class LabController {
     @LogMonitoring
     @PostMapping("lab/terminal/stage/{stage_id}")
     public ResponseEntity<PShellCreateResponse> applyPShell(@AuthenticationPrincipal Player player,
-                                                            @PathVariable(name = "stage_id") Long stageId) {
-        ReentrantLock lock = lockManager.getLock(player.getId(), stageId);
-        if (lock.tryLock()) {
-            try {
-                Stage stage = stageSearchService.getStageById(stageId);
+                                                            @PathVariable("stage_id") Long stageId) {
+        return tryWithLock(player.getId(), stageId)
+                .map(lock -> {
+                    try {
+                        Stage stage = stageSearchService.getStageById(stageId);
+                        labService.deleteSyncStageOnKubernetes(player, stage);
+                        labService.createStageOnKubernetes(player, stage);
+                        labService.waitForPodReadiness(player, stage);
 
-                labService.deleteSyncStageOnKubernetes(player, stage); // 동기 삭제
-                labService.createStageOnKubernetes(player, stage);
-
-                PShellCreateResponse response = PShellCreateResponse
-                        .of(LAB_HOST, player.getUid(), stage.getStageImage().name().toLowerCase());
-
-                labService.waitForPodReadiness(player, stage);
-
-                return ResponseEntity
-                        .status(HttpStatus.OK)
-                        .body(response);
-            } finally {
-                lockManager.unlock(player.getId(), stageId);
-            }
-        }
-
-        // 락 걸린 동안 들어오는 요청은 무시
-        LOGGER.info("[applyPShell] apply 작업중 중복된 요청 발생. stage: {}", stageId);
-        return ResponseEntity
-                .status(HttpStatus.TOO_MANY_REQUESTS)
-                .body(null);
-
+                        // 락 걸린 동안 들어오는 요청은 무시
+                        return ResponseEntity.ok(PShellCreateResponse.of(
+                                LAB_HOST,
+                                player.getUid(),
+                                stage.getStageImage().name().toLowerCase()
+                        ));
+                    } finally {
+                        lockManager.unlock(player.getId(), stageId);
+                    }
+                })
+                .orElseGet(() -> ResponseEntity.status(TOO_MANY_REQUESTS).body(null));
     }
 
     // 접속 가능한 주소 조회
@@ -90,17 +83,9 @@ public class LabController {
     @GetMapping("lab/terminal/access-url/{stage_id}")
     @LogMonitoring
     public ResponseEntity<PShellCreateResponse> getPShellAccessUrl(@AuthenticationPrincipal Player player,
-                                                                   @PathVariable(name = "stage_id") Long stageId) {
-        Stage stage = stageSearchService.getStageById(stageId);
-
-        PShellCreateResponse response = PShellCreateResponse
-                .of(LAB_HOST, player.getUid(), stage.getStageImage().name().toLowerCase());
-
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(response);
+                                                                   @PathVariable("stage_id") Long stageId) {
+        return ResponseEntity.ok(buildPShellResponse(player, stageId));
     }
-
 
     // 현재 터미널 존재 여부 조회
     @Operation(
@@ -112,20 +97,32 @@ public class LabController {
     @LogExecutionTime
     @GetMapping("/lab/terminal/existence/{stage_id}")
     public ResponseEntity<PShellExistsResponse> checkPShellExistence(@AuthenticationPrincipal Player player,
-                                                                     @PathVariable(name = "stage_id") Long stageId) {
+                                                                     @PathVariable("stage_id") Long stageId) {
         Stage stage = stageSearchService.getStageById(stageId);
-
-        boolean stageExists = labService.existsStageOnKubernetes(player, stage);
+        boolean exists = labService.existsStageOnKubernetes(player, stage);
 
         PShellExistsResponse response = new PShellExistsResponse(
                 player.getUid(),
                 stageId,
                 stage.getStageImage().name(),
-                stageExists
+                exists
         );
 
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(response);
+        return ResponseEntity.ok(response);
+    }
+
+    private Optional<ReentrantLock> tryWithLock(String playerId, Long stageId) {
+        ReentrantLock lock = lockManager.getLock(playerId, stageId);
+        return lock.tryLock() ? Optional.of(lock) : Optional.empty();
+    }
+
+    private PShellCreateResponse buildPShellResponse(Player player, Long stageId) {
+        return Optional.of(stageSearchService.getStageById(stageId))
+                       .map(stage -> PShellCreateResponse.of(
+                               LAB_HOST,
+                               player.getUid(),
+                               stage.getStageImage().name().toLowerCase()
+                       ))
+                       .orElseThrow();
     }
 }
