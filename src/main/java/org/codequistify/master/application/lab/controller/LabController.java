@@ -1,11 +1,11 @@
-package org.codequistify.master.core.domain.lab.controller;
+package org.codequistify.master.application.lab.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.core.domain.lab.dto.PShellCreateResponse;
-import org.codequistify.master.core.domain.lab.dto.PShellExistsResponse;
-import org.codequistify.master.core.domain.lab.service.LabService;
+import org.codequistify.master.application.lab.dto.PShellCreateResponse;
+import org.codequistify.master.application.lab.dto.PShellExistsResponse;
+import org.codequistify.master.application.lab.service.LabService;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.stage.domain.Stage;
 import org.codequistify.master.core.domain.stage.service.impl.StageSearchServiceImpl;

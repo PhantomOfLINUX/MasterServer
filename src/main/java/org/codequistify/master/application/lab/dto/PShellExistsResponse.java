@@ -1,4 +1,4 @@
-package org.codequistify.master.core.domain.lab.dto;
+package org.codequistify.master.application.lab.dto;
 
 public record PShellExistsResponse(
         String uid,

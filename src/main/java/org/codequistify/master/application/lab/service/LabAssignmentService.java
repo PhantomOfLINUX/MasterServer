@@ -1,4 +1,4 @@
-package org.codequistify.master.core.domain.lab.service;
+package org.codequistify.master.application.lab.service;
 
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.application.exception.ApplicationException;

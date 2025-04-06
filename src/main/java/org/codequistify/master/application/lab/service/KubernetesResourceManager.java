@@ -1,4 +1,4 @@
-package org.codequistify.master.core.domain.lab.service;
+package org.codequistify.master.application.lab.service;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodList;
