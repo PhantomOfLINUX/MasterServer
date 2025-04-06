@@ -4,6 +4,7 @@ import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import org.codequistify.master.core.domain.lab.utils.KubernetesResourceNaming;
+import org.codequistify.master.core.domain.player.model.PolId;
 import org.codequistify.master.core.domain.stage.domain.Stage;
 import org.codequistify.master.core.domain.stage.domain.StageImageType;
 import org.slf4j.Logger;
@@ -12,12 +13,15 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class KubernetesPodFactory implements PodFactory {
-    private final static Long ACTIVE_DEADLINE = 10_800L;
-    private final Logger LOGGER = LoggerFactory.getLogger(KubernetesPodFactory.class);
+
+    private static final long ACTIVE_DEADLINE = 10_800L;
+    private final Logger logger = LoggerFactory.getLogger(KubernetesPodFactory.class);
 
     @Override
-    public Pod create(Stage stage, int port, String uid) {
+    public Pod create(Stage stage, int port, PolId uid) {
         StageImageType stageImage = stage.getStageImage();
+        String lowerUid = uid.getValue().toLowerCase();
+        String imageName = stageImage.name().toLowerCase();
         String podName = KubernetesResourceNaming.getPodName(stageImage.name(), uid);
 
         return new PodBuilder()
@@ -25,17 +29,17 @@ public class KubernetesPodFactory implements PodFactory {
                 .withName(podName)
                 .addToLabels("app", "pol")
                 .addToLabels("tire", "term")
-                .addToLabels("player", uid)
-                .addToLabels("stage", stageImage.name().toLowerCase())
+                .addToLabels("player", lowerUid)
+                .addToLabels("stage", imageName)
                 .endMetadata()
                 .withNewSpec()
                 .addNewContainer()
-                .withName(stageImage.name().toLowerCase())
+                .withName(imageName)
                 .withImage(stageImage.getImageName())
                 .addNewPort()
                 .withContainerPort(port)
                 .endPort()
-                .withNewReadinessProbe()// agent 준비 확인
+                .withNewReadinessProbe()
                 .withNewHttpGet()
                 .withPath("/health")
                 .withPort(new IntOrString(8080))
@@ -45,10 +49,7 @@ public class KubernetesPodFactory implements PodFactory {
                 .endReadinessProbe()
                 .endContainer()
                 .withActiveDeadlineSeconds(ACTIVE_DEADLINE)
-                .endSpec().build();
-    }
-
-    private String generatePodName(StageImageType stageImage, String uid) {
-        return stageImage.name().toLowerCase() + "-pod-" + uid;
+                .endSpec()
+                .build();
     }
 }

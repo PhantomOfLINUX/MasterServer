@@ -3,90 +3,97 @@ package org.codequistify.master.application.lab.service;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.application.exception.ApplicationException;
 import org.codequistify.master.application.exception.ErrorCode;
-import org.codequistify.master.core.domain.lab.utils.KubernetesResourceNaming;
-import org.codequistify.master.core.domain.stage.domain.StageImageType;
 import org.codequistify.master.application.stage.dto.StageActionRequest;
+import org.codequistify.master.core.domain.lab.utils.KubernetesResourceNaming;
+import org.codequistify.master.core.domain.player.model.PolId;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.util.SuccessResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
-@RequiredArgsConstructor
+import java.util.Optional;
+import java.util.function.Supplier;
+
 @Service
+@RequiredArgsConstructor
 public class LabAssignmentService {
-    private final Logger LOGGER = LoggerFactory.getLogger(LabAssignmentService.class);
-    private final String NAMESPACE = "default";
+
+    private static final String BASE_URL = "https://lab.pol.or.kr";
+
+    private final Logger logger = LoggerFactory.getLogger(LabAssignmentService.class);
     private final RestTemplate restTemplate;
 
-    @Bean
-    public void testA() {
-        String stageCode = StageImageType.S1015.name();
-        String uid = "pol-bdbeej-gj5antzprz";
-        //String qUrl = KubernetesResourceNaming.getQuery(stageCode, uid);
-        System.out.println("https://lab.pol.or.kr/grade" + KubernetesResourceNaming.getQuery(stageCode, uid));
-        System.out.println("https://lab.pol.or.kr/compose" + KubernetesResourceNaming.getQuery(stageCode, uid));
+    @LogExecutionTime
+    public SuccessResponse sendGradingRequest(String stageCode, PolId uid, StageActionRequest request) {
+        return sendLabRequest("/grade", stageCode, uid, request);
     }
 
     @LogExecutionTime
-    public ResponseEntity<SuccessResponse> sendGradingRequest(String stageCode,
-                                                              String uid,
-                                                              StageActionRequest request) {
-        //String svcName = KubernetesResourceNaming.getServiceName(stageCode, uid);
-        String url = "https://lab.pol.or.kr/grade" + KubernetesResourceNaming.getQuery(stageCode, uid);
+    public SuccessResponse sendComposeRequest(String stageCode, PolId uid, StageActionRequest request) {
+        return sendLabRequest("/compose", stageCode, uid, request);
+    }
 
-        HttpHeaders headers = new HttpHeaders();
+    private SuccessResponse sendLabRequest(String path,
+                                           String stageCode,
+                                           PolId uid,
+                                           StageActionRequest request) {
+
+        final String url = buildUrl(path, stageCode, uid);
+        final HttpEntity<StageActionRequest> entity = buildRequest(request);
+
+        logger.info("Request URL: {}", url);
+        logger.info("Request Payload: {}", request);
+
+        return Optional.of(url)
+                       .map(u -> execute(u, entity))
+                       .map(this::handleResponse)
+                       .orElseThrow();
+    }
+
+    private String buildUrl(String path, String stageCode, PolId uid) {
+        return BASE_URL + path + KubernetesResourceNaming.getQuery(stageCode, uid);
+    }
+
+    private HttpEntity<StageActionRequest> buildRequest(StageActionRequest original) {
+        var payload = new StageActionRequest(
+                original.stageCode().toLowerCase(),
+                original.questionIndex()
+        );
+
+        var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        request = new StageActionRequest(request.stageCode().toLowerCase(), request.questionIndex());
+        return new HttpEntity<>(payload, headers);
+    }
 
-        HttpEntity<StageActionRequest> entity = new HttpEntity<>(request, headers);
-
-        // URL 및 요청 데이터 로깅
-        LOGGER.info("Request URL: {}", url);
-        LOGGER.info("Request Data: {}", request);
-
+    private ResponseEntity<SuccessResponse> execute(String url, HttpEntity<StageActionRequest> entity) {
         try {
-            ResponseEntity<SuccessResponse> response = restTemplate.postForEntity(url, entity, SuccessResponse.class);
-            if (response.getStatusCode().is5xxServerError()) {
-                LOGGER.info("[sendGradingRequest] 실습서버가 정상적으로 응답하지 않습니다. url: {}", url);
-                throw new ApplicationException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-            return response;
+            return restTemplate.postForEntity(url, entity, SuccessResponse.class);
         } catch (HttpServerErrorException e) {
-            // 서버 오류에 대한 상세 정보 로깅
-            LOGGER.error("[sendGradingRequest] Internal Server Error: {}, URL: {}", e.getResponseBodyAsString(), url);
-            throw e;
+            logAndThrow(() -> String.format("서버 오류: %s", e.getResponseBodyAsString()), e);
         } catch (ResourceAccessException e) {
-            // 리소스 접근 오류에 대한 상세 정보 로깅
-            LOGGER.error("[sendGradingRequest] Resource Access Error: {}, URL: {}", e.getMessage(), url);
-            throw e;
+            logAndThrow(() -> String.format("접근 오류: %s", e.getMessage()), e);
         }
+
+        return ResponseEntity.internalServerError().build();
     }
 
-    @LogExecutionTime
-    public ResponseEntity<SuccessResponse> sendComposeRequest(String stageCode,
-                                                              String uid,
-                                                              StageActionRequest request) {
-        String url = "https://lab.pol.or.kr/compose" + KubernetesResourceNaming.getQuery(stageCode, uid);
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        request = new StageActionRequest(request.stageCode().toLowerCase(), request.questionIndex());
-        LOGGER.info("qurl: {}", url);
-        HttpEntity<StageActionRequest> entity = new HttpEntity<>(request, headers);
-
-        ResponseEntity<SuccessResponse> response = restTemplate.postForEntity(url, entity, SuccessResponse.class);
+    private SuccessResponse handleResponse(ResponseEntity<SuccessResponse> response) {
         if (response.getStatusCode().is5xxServerError()) {
-            LOGGER.info("[sendComposeRequest] 실습서버가 정상적으로 응답하지 않습니다. url: {}", url);
             throw new ApplicationException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return response;
+        return Optional.ofNullable(response.getBody())
+                       .orElseThrow(() -> new ApplicationException(ErrorCode.FAIL_PROCEED,
+                                                                   HttpStatus.INTERNAL_SERVER_ERROR));
+    }
+
+    private void logAndThrow(Supplier<String> logMessage, RuntimeException ex) {
+        logger.error("[sendLabRequest] {}", logMessage.get());
+        throw ex;
     }
 }

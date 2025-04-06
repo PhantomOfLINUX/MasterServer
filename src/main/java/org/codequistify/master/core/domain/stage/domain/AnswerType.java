@@ -14,4 +14,8 @@ public enum AnswerType {
     AnswerType(String code) {
         this.code = code;
     }
+
+    public boolean isStandard() {
+        return this == MULTIPLE_CHOICE || this == SHORT_ANSWER;
+    }
 }

@@ -22,8 +22,6 @@ public class LabService {
 
     @LogExecutionTime
     public void createStageOnKubernetes(Player player, Stage stage){
-        String uid = player.getUid().toLowerCase();
-
         kubernetesResourceManager.createServiceOnKubernetes(stage, uid);
         kubernetesResourceManager.createPodOnKubernetes(stage, uid);
 
