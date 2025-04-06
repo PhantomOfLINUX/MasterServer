@@ -36,14 +36,13 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class AccountService {
-    private final PlayerQueryService playerQueryService;
-    private final PlayerProfileService playerProfileService;
+    private final Logger logger = LoggerFactory.getLogger(AccountService.class);
     private final PlayerPasswordManager playerPasswordManager;
+    private final PlayerProfileService playerProfileService;
+    private final PlayerQueryService playerQueryService;
+    private final PlayerRepository playerRepository;
     private final PlayerValidator playerValidator;
     private final TokenProvider tokenProvider;
-    private final PlayerRepository playerRepository;
-
-    private final Logger logger = LoggerFactory.getLogger(AccountService.class);
 
     @Transactional
     @LogMonitoring
@@ -93,9 +92,9 @@ public class AccountService {
     @LogMonitoring
     public Player logIn(Email email, String password) {
         return Optional.ofNullable(playerQueryService.findOneByEmail(email))
-                                .filter(p -> playerPasswordManager.matches(p, password))
-                                .orElseThrow(() -> new ApplicationException(ErrorCode.INVALID_EMAIL_OR_PASSWORD,
-                                                                            HttpStatus.BAD_REQUEST));
+                       .filter(p -> playerPasswordManager.matches(p, password))
+                       .orElseThrow(() -> new ApplicationException(ErrorCode.INVALID_EMAIL_OR_PASSWORD,
+                                                                   HttpStatus.BAD_REQUEST));
     }
 
     @Transactional
@@ -141,7 +140,7 @@ public class AccountService {
                                 .map(PolId::of)
                                 .map(playerQueryService::findOneByUid)
                                 .orElseThrow(() -> new ApplicationException(ErrorCode.INVALID_TOKEN,
-                                                                         HttpStatus.UNAUTHORIZED));
+                                                                            HttpStatus.UNAUTHORIZED));
 
         String accessToken = player.getRefreshToken().equals(request.refreshToken())
                 ? tokenProvider.generateAccessToken(player)
@@ -154,7 +153,7 @@ public class AccountService {
     public TokenInfo analyzeTokenInfo(String token) {
         Claims claims = Optional.ofNullable(tokenProvider.getClaims(token))
                                 .orElseThrow(() -> new ApplicationException(ErrorCode.INVALID_TOKEN,
-                                                                         HttpStatus.BAD_REQUEST));
+                                                                            HttpStatus.BAD_REQUEST));
 
         SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 

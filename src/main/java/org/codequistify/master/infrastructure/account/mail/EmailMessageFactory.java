@@ -26,7 +26,7 @@ public class EmailMessageFactory {
     private final TemplateEngine templateEngine;
 
     public MimeMessage createVerificationMessage(Email email, String code, EmailVerificationType type) throws
-                                                                                                        MessagingException {
+                                                                                                       MessagingException {
         Map<String, Object> variables = Map.of(
                 "authCode", code,
                 "email", URLEncoder.encode(email.getValue(), StandardCharsets.UTF_8),

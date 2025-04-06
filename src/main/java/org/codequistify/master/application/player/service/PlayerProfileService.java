@@ -2,11 +2,11 @@ package org.codequistify.master.application.player.service;
 
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.application.player.dto.PlayerStageProgressResponse;
+import org.codequistify.master.application.stage.dto.HeatMapDataPoint;
+import org.codequistify.master.application.stage.service.StageSearchService;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.core.domain.player.model.PlayerRoleType;
 import org.codequistify.master.core.domain.player.service.PlayerRolesChecker;
-import org.codequistify.master.core.domain.stage.dto.HeatMapDataPoint;
-import org.codequistify.master.core.domain.stage.service.StageSearchService;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.infrastructure.player.repository.PlayerRepository;
 import org.springframework.stereotype.Service;

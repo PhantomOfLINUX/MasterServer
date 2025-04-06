@@ -9,13 +9,22 @@ import org.codequistify.master.core.domain.vo.Email;
 @ToString
 @Builder(toBuilder = true)
 public class EmailVerification {
-    private final Long id;
-
-    private final Email email;
     private final String code;
-    private final boolean verified;
-    private final boolean used;
+    private final Email email;
     private final EmailVerificationType emailVerificationType;
+    private final Long id;
+    private final boolean used;
+    private final boolean verified;
+
+    public static EmailVerification of(Email email, String code, EmailVerificationType type) {
+        return EmailVerification.builder()
+                                .email(email)
+                                .code(code)
+                                .verified(false)
+                                .used(false)
+                                .emailVerificationType(type)
+                                .build();
+    }
 
     public EmailVerification markAsVerified() {
         return this.toBuilder()
@@ -27,15 +36,5 @@ public class EmailVerification {
         return this.toBuilder()
                    .used(true)
                    .build();
-    }
-
-    public static EmailVerification of(Email email, String code, EmailVerificationType type) {
-        return EmailVerification.builder()
-                                .email(email)
-                                .code(code)
-                                .verified(false)
-                                .used(false)
-                                .emailVerificationType(type)
-                                .build();
     }
 }

@@ -19,10 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class PlayerCredentialService {
 
-    private final PlayerRepository playerRepository;
-    private final PlayerPasswordManager playerPasswordManager;
-
     private final Logger logger = LoggerFactory.getLogger(PlayerCredentialService.class);
+    private final PlayerPasswordManager playerPasswordManager;
+    private final PlayerRepository playerRepository;
 
     @Transactional
     @LogExecutionTime
@@ -30,7 +29,8 @@ public class PlayerCredentialService {
         Player updated = playerRepository.findByUid(player.getUid())
                                          .map(current -> {
                                              if (!playerPasswordManager.matches(current, request.rawPassword())) {
-                                                 throw new ApplicationException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);
+                                                 throw new ApplicationException(ErrorCode.INVALID_EMAIL_OR_PASSWORD,
+                                                                                HttpStatus.BAD_REQUEST);
                                              }
                                              return playerPasswordManager.encodePassword(current, request.password());
                                          })
