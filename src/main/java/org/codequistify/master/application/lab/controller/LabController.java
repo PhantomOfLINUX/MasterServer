@@ -8,10 +8,10 @@ import org.codequistify.master.application.lab.dto.PShellExistsResponse;
 import org.codequistify.master.application.lab.service.LabService;
 import org.codequistify.master.application.stage.service.StageSearchService;
 import org.codequistify.master.core.domain.player.model.Player;
+import org.codequistify.master.core.domain.stage.model.Stage;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.lock.LockManager;
-import org.codequistify.master.infrastructure.stage.entity.StageEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,16 +53,16 @@ public class LabController {
         return tryWithLock(player.getId(), stageId)
                 .map(lock -> {
                     try {
-                        StageEntity stageEntity = stageSearchService.getStageById(stageId);
-                        labService.deleteSyncStageOnKubernetes(player, stageEntity);
-                        labService.createStageOnKubernetes(player, stageEntity);
-                        labService.waitForPodReadiness(player, stageEntity);
+                        Stage stage = stageSearchService.getStageById(stageId);
+                        labService.deleteSyncStageOnKubernetes(player, stage);
+                        labService.createStageOnKubernetes(player, stage);
+                        labService.waitForPodReadiness(player, stage);
 
                         // 락 걸린 동안 들어오는 요청은 무시
                         return ResponseEntity.ok(PShellCreateResponse.of(
                                 LAB_HOST,
                                 player.getUid(),
-                                stageEntity.getStageImage().name().toLowerCase()
+                                stage.getStageImage().name().toLowerCase()
                         ));
                     } finally {
                         lockManager.unlock(player.getId(), stageId);
@@ -98,13 +98,13 @@ public class LabController {
     @GetMapping("/lab/terminal/existence/{stage_id}")
     public ResponseEntity<PShellExistsResponse> checkPShellExistence(@AuthenticationPrincipal Player player,
                                                                      @PathVariable("stage_id") Long stageId) {
-        StageEntity stageEntity = stageSearchService.getStageById(stageId);
-        boolean exists = labService.existsStageOnKubernetes(player, stageEntity);
+        Stage stage = stageSearchService.getStageById(stageId);
+        boolean exists = labService.existsStageOnKubernetes(player, stage);
 
         PShellExistsResponse response = new PShellExistsResponse(
                 player.getUid(),
                 stageId,
-                stageEntity.getStageImage().name(),
+                stage.getStageImage().name(),
                 exists
         );
 

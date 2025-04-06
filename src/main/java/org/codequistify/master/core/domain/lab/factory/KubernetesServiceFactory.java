@@ -5,8 +5,8 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
 import org.codequistify.master.core.domain.lab.utils.KubernetesResourceNaming;
 import org.codequistify.master.core.domain.player.model.PolId;
+import org.codequistify.master.core.domain.stage.model.Stage;
 import org.codequistify.master.core.domain.stage.model.StageImageType;
-import org.codequistify.master.infrastructure.stage.entity.StageEntity;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,8 +15,8 @@ public class KubernetesServiceFactory implements ServiceFactory {
     private static final long ACTIVE_DEADLINE = 10_800L;
 
     @Override
-    public Service create(StageEntity stageEntity, int port, PolId uid) {
-        StageImageType stageImage = stageEntity.getStageImage();
+    public Service create(Stage stage, int port, PolId uid) {
+        StageImageType stageImage = stage.getStageImage();
 
         String lowerUid = uid.getValue().toLowerCase();
         String lowerStageName = stageImage.name().toLowerCase();

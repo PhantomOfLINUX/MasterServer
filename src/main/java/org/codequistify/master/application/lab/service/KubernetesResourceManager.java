@@ -10,7 +10,7 @@ import org.codequistify.master.core.domain.lab.factory.PodFactory;
 import org.codequistify.master.core.domain.lab.factory.ServiceFactory;
 import org.codequistify.master.core.domain.lab.utils.KubernetesResourceNaming;
 import org.codequistify.master.core.domain.player.model.PolId;
-import org.codequistify.master.infrastructure.stage.entity.StageEntity;
+import org.codequistify.master.core.domain.stage.model.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,8 +28,8 @@ public class KubernetesResourceManager {
     private final PodFactory podFactory;
     private final ServiceFactory serviceFactory;
 
-    public Service createServiceOnKubernetes(StageEntity stageEntity, PolId uid) {
-        return Optional.of(serviceFactory.create(stageEntity, 8080, uid))
+    public Service createServiceOnKubernetes(Stage stage, PolId uid) {
+        return Optional.of(serviceFactory.create(stage, 8080, uid))
                        .map(service -> kubernetesClient.services()
                                                        .inNamespace(NAMESPACE)
                                                        .resource(service)
@@ -41,8 +41,8 @@ public class KubernetesResourceManager {
                        .orElseThrow();
     }
 
-    public Pod createPodOnKubernetes(StageEntity stageEntity, PolId uid) {
-        return Optional.of(podFactory.create(stageEntity, 8080, uid))
+    public Pod createPodOnKubernetes(Stage stage, PolId uid) {
+        return Optional.of(podFactory.create(stage, 8080, uid))
                        .map(pod -> kubernetesClient.pods()
                                                    .inNamespace(NAMESPACE)
                                                    .resource(pod)
@@ -54,8 +54,8 @@ public class KubernetesResourceManager {
                        .orElseThrow();
     }
 
-    public void deleteAsyncService(StageEntity stageEntity, PolId uid) {
-        deleteAsyncService(KubernetesResourceNaming.getServiceName(stageEntity.getStageImage().name(), uid));
+    public void deleteAsyncService(Stage stage, PolId uid) {
+        deleteAsyncService(KubernetesResourceNaming.getServiceName(stage.getStageImage().name(), uid));
     }
 
     public void deleteAsyncService(String svcName) {
@@ -66,8 +66,8 @@ public class KubernetesResourceManager {
                                           .delete());
     }
 
-    public void deleteAsyncPod(StageEntity stageEntity, PolId uid) {
-        deleteAsyncPod(KubernetesResourceNaming.getPodName(stageEntity.getStageImage().name(), uid));
+    public void deleteAsyncPod(Stage stage, PolId uid) {
+        deleteAsyncPod(KubernetesResourceNaming.getPodName(stage.getStageImage().name(), uid));
     }
 
     public void deleteAsyncPod(String podName) {
@@ -78,8 +78,8 @@ public class KubernetesResourceManager {
                                           .delete());
     }
 
-    public Service getService(StageEntity stageEntity, PolId uid) {
-        String name = KubernetesResourceNaming.getServiceName(stageEntity.getStageImage().name(), uid);
+    public Service getService(Stage stage, PolId uid) {
+        String name = KubernetesResourceNaming.getServiceName(stage.getStageImage().name(), uid);
         return Optional.ofNullable(kubernetesClient.services()
                                                    .inNamespace(NAMESPACE)
                                                    .withName(name)
@@ -91,8 +91,8 @@ public class KubernetesResourceManager {
                        .orElseThrow();
     }
 
-    public Pod getPod(StageEntity stageEntity, PolId uid) {
-        String name = KubernetesResourceNaming.getPodName(stageEntity.getStageImage().name(), uid);
+    public Pod getPod(Stage stage, PolId uid) {
+        String name = KubernetesResourceNaming.getPodName(stage.getStageImage().name(), uid);
         return Optional.ofNullable(kubernetesClient.pods()
                                                    .inNamespace(NAMESPACE)
                                                    .withName(name)
@@ -104,16 +104,16 @@ public class KubernetesResourceManager {
                        .orElseThrow();
     }
 
-    public boolean existsService(StageEntity stageEntity, PolId uid) {
-        String name = KubernetesResourceNaming.getServiceName(stageEntity.getStageImage().name(), uid);
+    public boolean existsService(Stage stage, PolId uid) {
+        String name = KubernetesResourceNaming.getServiceName(stage.getStageImage().name(), uid);
         return kubernetesClient.services()
                                .inNamespace(NAMESPACE)
                                .withName(name)
                                .get() != null;
     }
 
-    public boolean existsPod(StageEntity stageEntity, PolId uid) {
-        String name = KubernetesResourceNaming.getPodName(stageEntity.getStageImage().name(), uid);
+    public boolean existsPod(Stage stage, PolId uid) {
+        String name = KubernetesResourceNaming.getPodName(stage.getStageImage().name(), uid);
         return kubernetesClient.pods()
                                .inNamespace(NAMESPACE)
                                .withName(name)
