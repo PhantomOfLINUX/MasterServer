@@ -8,16 +8,15 @@ import org.codequistify.master.application.player.service.PlayerProfileService;
 import org.codequistify.master.application.stage.dto.GradingResponse;
 import org.codequistify.master.application.stage.dto.StageActionRequest;
 import org.codequistify.master.application.stage.dto.StageCompletionResponse;
-import org.codequistify.master.application.stage.dto.StageRegistryRequest;
 import org.codequistify.master.core.domain.player.model.Player;
-import org.codequistify.master.core.domain.stage.model.CompletedStatus;
+import org.codequistify.master.core.domain.stage.model.CompletedStage;
+import org.codequistify.master.core.domain.stage.model.Question;
+import org.codequistify.master.core.domain.stage.model.Stage;
 import org.codequistify.master.core.domain.stage.model.StageImageType;
 import org.codequistify.master.global.util.SuccessResponse;
-import org.codequistify.master.infrastructure.player.converter.PlayerConverter;
+import org.codequistify.master.infrastructure.stage.converter.CompletedStageConverter;
+import org.codequistify.master.infrastructure.stage.converter.QuestionConverter;
 import org.codequistify.master.infrastructure.stage.converter.StageConverter;
-import org.codequistify.master.infrastructure.stage.entity.CompletedStageEntity;
-import org.codequistify.master.infrastructure.stage.entity.QuestionEntity;
-import org.codequistify.master.infrastructure.stage.entity.StageEntity;
 import org.codequistify.master.infrastructure.stage.repository.CompletedStageRepository;
 import org.codequistify.master.infrastructure.stage.repository.QuestionRepository;
 import org.codequistify.master.infrastructure.stage.repository.StageRepository;
@@ -35,108 +34,59 @@ public class StageManagementService {
 
     private static final int LEVEL_STEP_SIZE = 500;
     private static final Logger logger = LoggerFactory.getLogger(StageManagementService.class);
+
     private final CompletedStageRepository completedStageRepository;
     private final LabAssignmentService labAssignmentService;
     private final PlayerProfileService playerProfileService;
     private final QuestionRepository questionRepository;
-    private final StageConverter stageConverter;
     private final StageRepository stageRepository;
 
     @Transactional
-    public void saveStage(StageRegistryRequest request) {
-        StageEntity stageEntity = stageConverter.convert(request);
-        stageEntity.updateStageImage(StageImageType.S0000);
-        stageRepository.save(stageEntity);
+    public void saveStage(Stage stage) {
+        stageRepository.save(StageConverter.toEntity(stage.withStageImage(StageImageType.S0000)));
     }
 
     @Transactional
     public GradingResponse evaluateAnswer(Player player, Long stageId, int questionIndex, String answer) {
-        QuestionEntity questionEntity = findQuestion(stageId, questionIndex);
-        StageEntity stageEntity = questionEntity.getStageEntity();
+        Question question = getQuestion(stageId, questionIndex);
+        Stage stage = question.getStage();
 
-        boolean isCorrect = isAnswerCorrect(player, questionEntity, stageEntity, questionIndex, answer);
+        boolean isCorrect = isAnswerCorrect(question, answer, stage, player);
         boolean isLast = isLastQuestion(stageId, questionIndex);
-        boolean isComposable = isComposableQuestion(stageId, questionIndex);
-        int nextIndex = isLast ? -1 : questionIndex + 1;
+        boolean isComposable = isComposable(stageId, questionIndex);
 
-        return new GradingResponse(isCorrect, nextIndex, isLast, isComposable);
-    }
-
-    private boolean isAnswerCorrect(Player player,
-                                    QuestionEntity questionEntity,
-                                    StageEntity stageEntity,
-                                    int index,
-                                    String answer) {
-        return questionEntity.getAnswerType().isStandard()
-                ? isStandardAnswerCorrect(questionEntity, answer)
-                : isPracticalAnswerCorrect(player, stageEntity, index);
-    }
-
-    private boolean isStandardAnswerCorrect(QuestionEntity questionEntity, String answer) {
-        return questionEntity.getCorrectAnswer().equalsIgnoreCase(answer);
-    }
-
-    private boolean isPracticalAnswerCorrect(Player player, StageEntity stageEntity, int index) {
-        StageActionRequest action = new StageActionRequest(stageEntity.getStageImage().name(), index);
-        return labAssignmentService.sendGradingRequest(stageEntity.getStageImage().name(), player.getUid(), action)
-                                   .success();
-    }
-
-    private boolean isLastQuestion(Long stageId, int index) {
-        return !questionRepository.existsByStageIdAndIndex(stageId, index + 1);
-    }
-
-    private boolean isComposableQuestion(Long stageId, int index) {
-        return Optional.ofNullable(questionRepository.isComposableForStageAndIndex(stageId, index)).orElse(false);
+        return new GradingResponse(
+                isCorrect,
+                isLast ? -1 : questionIndex + 1,
+                isLast,
+                isComposable
+        );
     }
 
     @Transactional
-    public SuccessResponse composePShell(Player player, Long stageId, int index) {
-        QuestionEntity questionEntity = findQuestion(stageId, index);
-        StageEntity stageEntity = questionEntity.getStageEntity();
-        StageActionRequest action = new StageActionRequest(stageEntity.getStageImage().name(), index);
-
-        return labAssignmentService.sendComposeRequest(stageEntity.getStageImage().name(), player.getUid(), action);
+    public SuccessResponse composePShell(Player player, Long stageId, int questionIndex) {
+        Stage stage = getQuestion(stageId, questionIndex).getStage();
+        return labAssignmentService.sendComposeRequest(
+                stage.getStageImage().name(),
+                player.getUid(),
+                new StageActionRequest(stage.getStageImage().name(), questionIndex)
+        );
     }
 
     @Transactional
     public StageCompletionResponse recordStageComplete(Player player, Long stageId) {
-        StageEntity stageEntity = findStage(stageId);
-        CompletedStageEntity completedStageEntity = loadOrInitCompletedStage(player, stageId, stageEntity);
+        Stage stage = getStage(stageId);
 
-        completedStageEntity.updateQuestionIndex(stageEntity.getQuestionCount());
-        completedStageRepository.save(completedStageEntity);
+        CompletedStage completedStage = getCompletedStage(player, stageId)
+                .map(CompletedStage::markCompleted)
+                .map(s -> s.withQuestionIndex(stage.getQuestionCount()))
+                .orElseThrow();
 
-        int updatedExp = playerProfileService.increaseExp(player, stageEntity.getDifficultyLevel().getExp());
+        completedStageRepository.save(CompletedStageConverter.toEntity(completedStage));
 
-        logger.info("[recordStageComplete] player: {}, stageEntity: {} 클리어", player.getUid(), stageId);
+        int updatedExp = playerProfileService.increaseExp(player, stage.getDifficultyLevel().getExp());
 
-        return new StageCompletionResponse(
-                player.getExp(),
-                player.getExp() / LEVEL_STEP_SIZE,
-                updatedExp,
-                updatedExp / LEVEL_STEP_SIZE
-        );
-    }
-
-    private CompletedStageEntity loadOrInitCompletedStage(Player player, Long stageId, StageEntity stageEntity) {
-        if (!completedStageRepository.existsByPlayerIdAndStageId(player.getUid(), stageId)) {
-            return CompletedStageEntity.builder()
-                                       .player(PlayerConverter.toEntity(player))
-                                       .stage(stageEntity)
-                                       .status(CompletedStatus.COMPLETED)
-                                       .build();
-        }
-
-        return completedStageRepository.findByPlayerIdAndStageId(player.getUid(), stageId)
-                                       .map(this::markAsCompleted)
-                                       .orElseThrow(() -> new ApplicationException(ErrorCode.STAGE_PROGRESS_NOT_FOUND,
-                                                                                   HttpStatus.NOT_FOUND));
-    }
-
-    private CompletedStageEntity markAsCompleted(CompletedStageEntity stage) {
-        stage.updateCompleted();
-        return stage;
+        return buildCompletionResponse(player.getExp(), updatedExp);
     }
 
     @Transactional
@@ -145,38 +95,75 @@ public class StageManagementService {
             return;
         }
 
-        StageEntity stageEntity = findStage(stageId);
-        CompletedStageEntity progress = CompletedStageEntity.builder()
-                                                            .player(PlayerConverter.toEntity(player))
-                                                            .stage(stageEntity)
-                                                            .status(CompletedStatus.IN_PROGRESS)
-                                                            .build();
+        Stage stage = getStage(stageId);
+        CompletedStage progress = CompletedStage.builder()
+                                                .stage(stage)
+                                                .questionIndex(index)
+                                                .build()
+                                                .markCompleted();
 
-        completedStageRepository.save(progress);
-        logger.info("[recordInProgressStageInit] 풀이 시작 - stageEntity: {}, index: {}", stageId, index);
+        completedStageRepository.save(CompletedStageConverter.toEntity(progress));
+        logger.info("[recordInProgressStageInit] stage: {}, index: {}", stageId, index);
     }
 
     @Transactional
     public void updateInProgressStage(Player player, Long stageId, int index) {
-        CompletedStageEntity stage = completedStageRepository.findByPlayerIdAndStageId(player.getUid(), stageId)
-                                                             .orElseThrow(() -> new ApplicationException(ErrorCode.STAGE_PROGRESS_NOT_FOUND,
-                                                                                                         HttpStatus.NOT_FOUND));
+        CompletedStage stage = getCompletedStage(player, stageId)
+                .map(s -> s.withQuestionIndex(index))
+                .orElseThrow(() -> new ApplicationException(
+                        ErrorCode.STAGE_PROGRESS_NOT_FOUND,
+                        HttpStatus.NOT_FOUND));
 
-        stage.updateQuestionIndex(index);
-        completedStageRepository.save(stage);
-
-        logger.info("[updateInProgressStage] 진행 업데이트 - stageEntity: {}, index: {}", stageId, index);
+        completedStageRepository.save(CompletedStageConverter.toEntity(stage));
+        logger.info("[updateInProgressStage] 진행 업데이트 - stage: {}, index: {}", stageId, index);
     }
 
-    private QuestionEntity findQuestion(Long stageId, int index) {
+    private Question getQuestion(Long stageId, int index) {
         return questionRepository.findByStageIdAndIndex(stageId, index)
+                                 .map(QuestionConverter::toDomain)
                                  .orElseThrow(() -> new ApplicationException(ErrorCode.QUESTION_NOT_FOUND,
                                                                              HttpStatus.NOT_FOUND));
     }
 
-    private StageEntity findStage(Long stageId) {
+    private Stage getStage(Long stageId) {
         return stageRepository.findById(stageId)
+                              .map(StageConverter::toDomain)
                               .orElseThrow(() -> new ApplicationException(ErrorCode.STAGE_NOT_FOUND,
                                                                           HttpStatus.NOT_FOUND));
+    }
+
+    private Optional<CompletedStage> getCompletedStage(Player player, Long stageId) {
+        return completedStageRepository.findByPlayerIdAndStageId(player.getUid(), stageId)
+                                       .map(CompletedStageConverter::toDomain);
+    }
+
+    private boolean isAnswerCorrect(Question question, String answer, Stage stage, Player player) {
+        if (question.getAnswerType().isStandard()) {
+            return question.getCorrectAnswer().equalsIgnoreCase(answer);
+        }
+        return labAssignmentService.sendGradingRequest(
+                stage.getStageImage().name(),
+                player.getUid(),
+                new StageActionRequest(stage.getStageImage().name(), question.getIndex())
+        ).success();
+    }
+
+    private boolean isLastQuestion(Long stageId, int index) {
+        return !questionRepository.existsByStageIdAndIndex(stageId, index + 1);
+    }
+
+    private boolean isComposable(Long stageId, int index) {
+        return Optional.ofNullable(
+                questionRepository.isComposableForStageAndIndex(stageId, index)
+        ).orElse(false);
+    }
+
+    private StageCompletionResponse buildCompletionResponse(int oldExp, int newExp) {
+        return new StageCompletionResponse(
+                oldExp,
+                oldExp / LEVEL_STEP_SIZE,
+                newExp,
+                newExp / LEVEL_STEP_SIZE
+        );
     }
 }

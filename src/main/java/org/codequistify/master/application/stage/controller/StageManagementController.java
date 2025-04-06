@@ -9,6 +9,8 @@ import org.codequistify.master.application.exception.ErrorCode;
 import org.codequistify.master.application.stage.dto.*;
 import org.codequistify.master.application.stage.service.StageManagementService;
 import org.codequistify.master.core.domain.player.model.Player;
+import org.codequistify.master.core.domain.stage.model.Question;
+import org.codequistify.master.core.domain.stage.model.Stage;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.util.BasicResponse;
 import org.slf4j.Logger;
@@ -17,6 +19,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,7 +39,28 @@ public class StageManagementController {
     @PostMapping("stages")
     @LogMonitoring
     public ResponseEntity<BasicResponse> registryStage(@RequestBody StageRegistryRequest request) {
-        stageManagementService.saveStage(request);
+        List<QuestionRequest> questionRequests = request.questions();
+
+        List<Question> questions = questionRequests.stream()
+                                                   .map(q -> Question.builder()
+                                                                     .title(q.title())
+                                                                     .description(q.description())
+                                                                     .answerType(q.answerType())
+                                                                     .correctAnswer(q.correctAnswer())
+                                                                     .options(q.options())
+                                                                     .build())
+                                                   .collect(Collectors.toList());
+
+        Stage stage = Stage.builder()
+                           .title(request.title())
+                           .description(request.description())
+                           .stageGroup(request.groupType())
+                           .difficultyLevel(request.difficultyLevel())
+                           .questions(questions)
+                           .build();
+
+        stageManagementService.saveStage(stage);
+
         logger.info("[registryStage] 스테이지 등록 완료");
         return ResponseEntity.ok(BasicResponse.of("SUCCESS"));
     }

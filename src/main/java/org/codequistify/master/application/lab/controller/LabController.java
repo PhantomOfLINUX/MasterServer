@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.application.lab.dto.PShellCreateResponse;
 import org.codequistify.master.application.lab.dto.PShellExistsResponse;
 import org.codequistify.master.application.lab.service.LabService;
-import org.codequistify.master.application.stage.service.StageSearchServiceImpl;
+import org.codequistify.master.application.stage.service.StageSearchService;
 import org.codequistify.master.core.domain.player.model.Player;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
@@ -33,7 +33,7 @@ public class LabController {
 
     private final LabService labService;
     private final LockManager lockManager;
-    private final StageSearchServiceImpl stageSearchService;
+    private final StageSearchService stageSearchService;
 
     @Operation(
             summary = "가상 터미널 (PShell) 생성요청",
