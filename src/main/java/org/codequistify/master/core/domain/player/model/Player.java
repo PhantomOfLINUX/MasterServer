@@ -22,7 +22,7 @@ public class Player {
     private final String oAuthAccessToken;
     private final String oAuthId;
     private final OAuthType oAuthType;
-    private final String password;
+    private final HashedPassword password;
     private final String refreshToken;
     private final Set<String> roles;
     private final PolId uid;
