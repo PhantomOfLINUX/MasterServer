@@ -23,8 +23,8 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/players")
 public class PlayerCredentialController {
 
-    private final PlayerCredentialService playerCredentialService;
     private final Logger logger = LoggerFactory.getLogger(PlayerCredentialController.class);
+    private final PlayerCredentialService playerCredentialService;
 
     @Operation(
             summary = "비밀번호 재설정",

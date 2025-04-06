@@ -17,8 +17,8 @@ import static org.codequistify.master.application.stage.util.RetryExecutor.retry
 public class LabService {
     private static final int SLEEP_PERIOD = 5000;
     private static final int THRESHOLD = 20;
-    private final Logger logger = LoggerFactory.getLogger(LabService.class);
     private final KubernetesResourceManager kubernetesResourceManager;
+    private final Logger logger = LoggerFactory.getLogger(LabService.class);
 
     @LogExecutionTime
     public void createStageOnKubernetes(Player player, Stage stage) {

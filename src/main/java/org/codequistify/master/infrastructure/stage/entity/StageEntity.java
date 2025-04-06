@@ -63,7 +63,7 @@ public class StageEntity extends BaseTimeEntity {
     private List<QuestionEntity> questions = new ArrayList<>();
 
     @OneToMany(mappedBy = "stage", fetch = FetchType.LAZY)
-    private Set<CompletedStageEntity> completedStages = new HashSet<>();
+    private final Set<CompletedStageEntity> completedStages = new HashSet<>();
 
     @Builder
     public StageEntity(String title,
