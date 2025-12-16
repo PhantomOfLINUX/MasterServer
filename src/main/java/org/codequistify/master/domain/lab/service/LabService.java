@@ -3,11 +3,14 @@ package org.codequistify.master.domain.lab.service;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodCondition;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.lab.domain.LabK8sRoute;
 import org.codequistify.master.domain.lab.dto.PShellCreateResponse;
 import org.codequistify.master.domain.lab.dto.PShellExistsResponse;
-import org.codequistify.master.domain.lab.vo.LabResourceId;
+import org.codequistify.master.domain.lab.domain.VirtualWorkspace;
+import org.codequistify.master.domain.lab.domain.VirtualWorkspaceEntity;
+import org.codequistify.master.domain.lab.vo.LabRouteId;
+import org.codequistify.master.domain.lab.vo.LabServiceName;
 import org.codequistify.master.domain.lab.vo.LabUserUid;
+import org.codequistify.master.domain.lab.vo.LabResourceId;
 import org.codequistify.master.domain.lab.vo.StageCode;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.stage.domain.Stage;
@@ -23,7 +26,7 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public class LabService {
     private final KubernetesResourceManager kubernetesResourceManager;
-    private final LabK8sRouteService labK8sRouteService;
+    private final VirtualWorkspaceRouteService virtualWorkspaceRouteService;
     private final StageSearchService stageSearchService;
     private final Logger LOGGER = LoggerFactory.getLogger(LabService.class);
     private final static int THRESHOLD = 20;
@@ -31,7 +34,8 @@ public class LabService {
 
     @LogExecutionTime
     public PShellCreateResponse recreateStageOnKubernetes(String labHost, Long stageId, Player player) {
-        LabResourceId labResourceId = resolveResourceId(stageId, player);
+        VirtualWorkspace workspace = resolveWorkspace(stageId, player);
+        LabResourceId labResourceId = workspace.resourceId();
 
         deleteSyncStageOnKubernetes(labResourceId);
         createStageOnKubernetes(labResourceId);
@@ -39,18 +43,19 @@ public class LabService {
         LOGGER.info("[createStageOnKubernetes] stage: {}", labResourceId.stage().getId());
 
         waitForPodReadiness(labResourceId);
-        return PShellCreateResponse.of(labHost, labResourceId.resourceName().query());
+        return workspace.toAccessResponse(labHost);
     }
 
     @LogExecutionTime
     public PShellCreateResponse getPShellAccessUrl(String labHost, Long stageId, Player player) {
-        LabResourceId labResourceId = resolveResourceId(stageId, player);
-        return PShellCreateResponse.of(labHost, labResourceId.resourceName().query());
+        VirtualWorkspace workspace = resolveWorkspace(stageId, player);
+        return workspace.toAccessResponse(labHost);
     }
 
     @LogExecutionTime
     public PShellExistsResponse checkPShellExistence(Long stageId, Player player) {
-        LabResourceId labResourceId = resolveResourceId(stageId, player);
+        VirtualWorkspace workspace = resolveWorkspace(stageId, player);
+        LabResourceId labResourceId = workspace.resourceId();
 
         boolean podExists = kubernetesResourceManager.existsPod(labResourceId);
         boolean serviceExists = kubernetesResourceManager.existsService(labResourceId);
@@ -60,17 +65,27 @@ public class LabService {
         return new PShellExistsResponse(
                 labResourceId.uid().value(),
                 stageId,
-                labResourceId.stage().getStageImage().name(),
+                workspace.stage().getStageImage().name(),
                 podExists && serviceExists
         );
     }
 
-    private LabResourceId resolveResourceId(Long stageId, Player player) {
+    private VirtualWorkspace resolveWorkspace(Long stageId, Player player) {
         Stage stage = stageSearchService.getStageById(stageId);
         StageCode stageCode = StageCode.from(stage);
         LabUserUid uid = LabUserUid.from(player);
-        LabK8sRoute route = labK8sRouteService.getOrCreate(player.id(), stageCode, uid);
-        return LabResourceId.from(stage, player, route.serviceNameVo());
+        LabRouteId routeId = LabRouteId.of(player.id(), stageCode);
+        LabServiceName issuedName = LabServiceName.issue(stageCode, uid);
+
+        VirtualWorkspaceEntity entity = virtualWorkspaceRouteService.getOrCreate(routeId, issuedName);
+
+        return VirtualWorkspace.of(
+                routeId,
+                uid,
+                entity.serviceNameVo(),
+                entity.getServiceDns(),
+                stage
+        );
     }
 
     private void createStageOnKubernetes(LabResourceId labResourceId) {

@@ -10,11 +10,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.codequistify.master.domain.lab.vo.LabServiceName;
 import org.codequistify.master.domain.lab.vo.LabRouteId;
+import org.codequistify.master.domain.lab.vo.LabServiceName;
+import org.codequistify.master.domain.lab.vo.StageCode;
+import org.codequistify.master.domain.player.domain.PlayerId;
 import org.codequistify.master.global.util.BaseTimeEntity;
-
-import java.util.Objects;
 
 @Getter
 @Builder
@@ -23,7 +23,7 @@ import java.util.Objects;
 @Entity
 @IdClass(LabK8sRouteKey.class)
 @Table(name = "lab_k8s_route")
-public class LabK8sRoute extends BaseTimeEntity {
+public class VirtualWorkspaceEntity extends BaseTimeEntity {
 
     @Id
     @Column(name = "player_id")
@@ -39,16 +39,17 @@ public class LabK8sRoute extends BaseTimeEntity {
     @Column(name = "service_dns", nullable = false)
     private String serviceDns;
 
-    public static LabK8sRoute create(LabRouteId routeId, LabServiceName serviceName, String namespace) {
-        Objects.requireNonNull(serviceName, "serviceName must not be null");
-        Objects.requireNonNull(namespace, "namespace must not be null");
-
-        return LabK8sRoute.builder()
+    public static VirtualWorkspaceEntity create(LabRouteId routeId, LabServiceName serviceName, String namespace) {
+        return VirtualWorkspaceEntity.builder()
                 .playerId(routeId.playerId().value())
                 .stageCodeValue(routeId.stageCode().value())
                 .serviceName(serviceName.value())
                 .serviceDns(serviceName.serviceDns(namespace))
                 .build();
+    }
+
+    public LabRouteId routeId() {
+        return LabRouteId.of(PlayerId.of(playerId), StageCode.from(stageCodeValue));
     }
 
     public LabServiceName serviceNameVo() {
