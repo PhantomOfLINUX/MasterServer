@@ -3,26 +3,25 @@ package org.codequistify.master.domain.lab.factory;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServiceBuilder;
-import org.codequistify.master.domain.lab.utils.KubernetesResourceNaming;
-import org.codequistify.master.domain.stage.domain.Stage;
+import org.codequistify.master.domain.lab.vo.KubernetesResourceName;
+import org.codequistify.master.domain.lab.vo.LabResourceId;
+import org.codequistify.master.domain.lab.vo.LabResourceLabels;
+import org.codequistify.master.global.data.Labels;
 import org.codequistify.master.domain.stage.domain.StageImageType;
 import org.springframework.stereotype.Component;
 
 @Component
 public class KubernetesServiceFactory implements ServiceFactory{
-    private final static Long ACTIVE_DEADLINE = 10_800L;
     @Override
-    public Service create(Stage stage, int port, String uid) {
-        StageImageType stageImage = stage.getStageImage();
-        String serviceName = KubernetesResourceNaming.getServiceName(stageImage.name(), uid);
+    public Service create(LabResourceId resourceId, int port) {
+        StageImageType stageImage = resourceId.stage().getStageImage();
+        KubernetesResourceName resourceName = resourceId.resourceName();
+        Labels labels = LabResourceLabels.standard(resourceId);
 
         return new ServiceBuilder()
                 .withNewMetadata()
-                    .withName(serviceName)
-                    .addToLabels("app", "pol")
-                    .addToLabels("tire", "term")
-                    .addToLabels("player", uid)
-                    .addToLabels("stage", stageImage.name().toLowerCase())
+                    .withName(resourceName.serviceName())
+                    .withLabels(labels.toSingleValueMap())
                 .endMetadata()
                 .withNewSpec()
                     .withType("ClusterIP")
@@ -32,10 +31,7 @@ public class KubernetesServiceFactory implements ServiceFactory{
                         .withPort(port)
                     .withTargetPort(new IntOrString(port))
                     .endPort()
-                    .addToSelector("app", "pol")
-                    .addToSelector("tire", "term")
-                    .addToSelector("player", uid)
-                    .addToSelector("stage", stageImage.name().toLowerCase())
+                    .withSelector(labels.toSingleValueMap())
                 .endSpec().build();
     }
 

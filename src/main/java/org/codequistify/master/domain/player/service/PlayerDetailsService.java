@@ -54,7 +54,7 @@ public class PlayerDetailsService implements UserDetailsService {
     @LogMonitoring
     public void updatePassword(Player player, UpdatePasswordRequest request) {
         // 비밀번호 데이터는 담기지 않으므로 다시 조회해야함
-        player = playerRepository.getReferenceById(player.getId()); // jwt 필터에서 null 아닌 player 객체만 들어옴
+        player = playerRepository.getReferenceById(player.id().value()); // jwt 필터에서 null 아닌 player 객체만 들어옴
 
         if (!player.decodePassword(request.rawPassword(), passwordEncoder)) {
             throw new BusinessException(ErrorCode.INVALID_EMAIL_OR_PASSWORD, HttpStatus.BAD_REQUEST);

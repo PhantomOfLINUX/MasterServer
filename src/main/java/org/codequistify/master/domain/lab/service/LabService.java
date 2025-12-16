@@ -3,8 +3,11 @@ package org.codequistify.master.domain.lab.service;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodCondition;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.lab.dto.PShellCreateResponse;
+import org.codequistify.master.domain.lab.dto.PShellExistsResponse;
+import org.codequistify.master.domain.lab.vo.LabResourceId;
 import org.codequistify.master.domain.stage.domain.Stage;
+import org.codequistify.master.domain.stage.service.StageSearchService;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
@@ -16,46 +19,75 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public class LabService {
     private final KubernetesResourceManager kubernetesResourceManager;
+    private final StageSearchService stageSearchService;
     private final Logger LOGGER = LoggerFactory.getLogger(LabService.class);
     private final static int THRESHOLD = 20;
     private final static int SLEEP_PERIOD = 5000;
 
     @LogExecutionTime
-    public void createStageOnKubernetes(Player player, Stage stage){
-        String uid = player.getUid().toLowerCase();
+    public PShellCreateResponse recreateStageOnKubernetes(String labHost, Long stageId, String playerUid) {
+        LabResourceId labResourceId = resolveResourceId(stageId, playerUid);
 
-        kubernetesResourceManager.createServiceOnKubernetes(stage, uid);
-        kubernetesResourceManager.createPodOnKubernetes(stage, uid);
+        deleteSyncStageOnKubernetes(labResourceId);
+        createStageOnKubernetes(labResourceId);
 
-        LOGGER.info("[createStageOnKubernetes] stage: {}", stage.getId());
+        LOGGER.info("[createStageOnKubernetes] stage: {}", labResourceId.stage().getId());
 
+        waitForPodReadiness(labResourceId);
+        return PShellCreateResponse.of(labHost, labResourceId.uid(), labResourceId.stageCode());
     }
 
     @LogExecutionTime
-    public void deleteAsyncStageOnKubernetes(Player player, Stage stage) {
-        String uid = player.getUid().toLowerCase();
-
-        kubernetesResourceManager.deleteAsyncPod(stage, uid);
-        kubernetesResourceManager.deleteAsyncService(stage, uid);
+    public PShellCreateResponse getPShellAccessUrl(String labHost, Long stageId, String playerUid) {
+        LabResourceId labResourceId = resolveResourceId(stageId, playerUid);
+        return PShellCreateResponse.of(labHost, labResourceId.uid(), labResourceId.stageCode());
     }
 
     @LogExecutionTime
-    public void deleteSyncStageOnKubernetes(Player player, Stage stage) {
-        String uid = player.getUid().toLowerCase();
+    public PShellExistsResponse checkPShellExistence(Long stageId, String playerUid) {
+        LabResourceId labResourceId = resolveResourceId(stageId, playerUid);
 
-        kubernetesResourceManager.deleteAsyncPod(stage, uid);
-        kubernetesResourceManager.deleteAsyncService(stage, uid);
+        boolean podExists = kubernetesResourceManager.existsPod(labResourceId);
+        boolean serviceExists = kubernetesResourceManager.existsService(labResourceId);
+
+        LOGGER.info("[existsStageOnKubernetes] pod: {}, svc: {}", podExists, serviceExists);
+
+        return new PShellExistsResponse(
+                labResourceId.uid().value(),
+                stageId,
+                labResourceId.stage().getStageImage().name(),
+                podExists && serviceExists
+        );
+    }
+
+    private LabResourceId resolveResourceId(Long stageId, String playerUid) {
+        Stage stage = stageSearchService.getStageById(stageId);
+        return LabResourceId.from(stage, playerUid);
+    }
+
+    private void createStageOnKubernetes(LabResourceId labResourceId) {
+        kubernetesResourceManager.createServiceOnKubernetes(labResourceId);
+        kubernetesResourceManager.createPodOnKubernetes(labResourceId);
+    }
+
+    private void deleteAsyncStageOnKubernetes(LabResourceId labResourceId) {
+        kubernetesResourceManager.deleteAsyncPod(labResourceId);
+        kubernetesResourceManager.deleteAsyncService(labResourceId);
+    }
+
+    private void deleteSyncStageOnKubernetes(LabResourceId labResourceId) {
+        deleteAsyncStageOnKubernetes(labResourceId);
 
         boolean podDeleted = false;
         boolean serviceDeleted = false;
         int retryCount = 0;
 
         while (!podDeleted || !serviceDeleted) {
-            if (!podDeleted && !kubernetesResourceManager.existsPod(stage, uid)) {
+            if (!podDeleted && !kubernetesResourceManager.existsPod(labResourceId)) {
                 podDeleted = true;
                 LOGGER.info("[deleteSyncStageOnKubernetes] Pod 삭제 확인 {}번 시도", retryCount);
             }
-            if (!serviceDeleted && !kubernetesResourceManager.existsService(stage, uid)) {
+            if (!serviceDeleted && !kubernetesResourceManager.existsService(labResourceId)) {
                 serviceDeleted = true;
                 LOGGER.info("[deleteSyncStageOnKubernetes] Service 삭제 확인 {}번 시도", retryCount);
             }
@@ -74,21 +106,10 @@ public class LabService {
         }
     }
 
-    @LogExecutionTime
-    public boolean existsStageOnKubernetes(Player player, Stage stage) {
-        boolean podExists = kubernetesResourceManager.existsPod(stage, player.getUid());
-        boolean serviceExists = kubernetesResourceManager.existsService(stage, player.getUid());
-
-        LOGGER.info("[existsStageOnKubernetes] pod: {}, svc: {}", podExists, serviceExists);
-        return podExists && serviceExists;
-    }
-
-    @LogExecutionTime
-    public void waitForPodReadiness(Player player, Stage stage) {
-        String uid = player.getUid().toLowerCase();
+    private void waitForPodReadiness(LabResourceId labResourceId) {
         int retryCount = 0;
         while (true) {
-            Pod pod = kubernetesResourceManager.getPod(stage, uid);
+            Pod pod = kubernetesResourceManager.getPod(labResourceId);
             if (pod != null && pod.getStatus() != null && pod.getStatus().getConditions() != null) {
                 for (PodCondition condition : pod.getStatus().getConditions()) {
                     if ("Ready".equals(condition.getType()) && "True".equals(condition.getStatus())) {

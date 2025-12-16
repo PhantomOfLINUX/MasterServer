@@ -6,13 +6,12 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.StatusDetails;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.lab.config.LabInfrastructureDefaults;
 import org.codequistify.master.domain.lab.factory.PodFactory;
 import org.codequistify.master.domain.lab.factory.ServiceFactory;
-import org.codequistify.master.domain.lab.utils.KubernetesResourceNaming;
-import org.codequistify.master.domain.stage.domain.Stage;
+import org.codequistify.master.domain.lab.vo.LabResourceId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Bean;
 
 import java.util.List;
 
@@ -26,11 +25,11 @@ public class KubernetesResourceManager {
 
     private final KubernetesClient kubernetesClient;
 
-    public Service createServiceOnKubernetes(Stage stage, String uid) {
-        Service service = serviceFactory.create(stage, 8080, uid);
+    public Service createServiceOnKubernetes(LabResourceId resourceId) {
+        Service service = serviceFactory.create(resourceId, LabInfrastructureDefaults.LAB_SERVICE_PORT);
 
         service = kubernetesClient.services()
-                .inNamespace("default")
+                .inNamespace(LabInfrastructureDefaults.LAB_NAMESPACE)
                 .resource(service)
                 .create();
 
@@ -38,11 +37,11 @@ public class KubernetesResourceManager {
         return service;
     }
 
-    public Pod createPodOnKubernetes(Stage stage, String uid) {
-        Pod pod = podFactory.create(stage, 8080, uid);
+    public Pod createPodOnKubernetes(LabResourceId resourceId) {
+        Pod pod = podFactory.create(resourceId, LabInfrastructureDefaults.LAB_SERVICE_PORT);
 
         pod = kubernetesClient.pods()
-                .inNamespace("default")
+                .inNamespace(LabInfrastructureDefaults.LAB_NAMESPACE)
                 .resource(pod)
                 .create();
 
@@ -50,11 +49,11 @@ public class KubernetesResourceManager {
         return pod;
     }
 
-    public void deleteAsyncService(Stage stage, String uid) {
-        String svcName = KubernetesResourceNaming.getServiceName(stage.getStageImage().name(), uid);
+    public void deleteAsyncService(LabResourceId resourceId) {
+        String svcName = resourceId.resourceName().serviceName();
 
         List<StatusDetails> result = kubernetesClient.services()
-                .inNamespace("default")
+                .inNamespace(LabInfrastructureDefaults.LAB_NAMESPACE)
                 .withName(svcName)
                 .delete();
 
@@ -63,18 +62,18 @@ public class KubernetesResourceManager {
 
     public void deleteAsyncService(String svcName) {
         List<StatusDetails> result = kubernetesClient.services()
-                .inNamespace("default")
+                .inNamespace(LabInfrastructureDefaults.LAB_NAMESPACE)
                 .withName(svcName)
                 .delete();
 
         LOGGER.debug("[deleteAsyncService] result {}", result);
     }
 
-    public void deleteAsyncPod(Stage stage, String uid) {
-        String podName = KubernetesResourceNaming.getPodName(stage.getStageImage().name(), uid);
+    public void deleteAsyncPod(LabResourceId resourceId) {
+        String podName = resourceId.resourceName().podName();
 
         List<StatusDetails> result = kubernetesClient.pods()
-                .inNamespace("default")
+                .inNamespace(LabInfrastructureDefaults.LAB_NAMESPACE)
                 .withName(podName)
                 .delete();
 
@@ -83,18 +82,18 @@ public class KubernetesResourceManager {
 
     public void deleteAsyncPod(String podName) {
         List<StatusDetails> result = kubernetesClient.pods()
-                .inNamespace("default")
+                .inNamespace(LabInfrastructureDefaults.LAB_NAMESPACE)
                 .withName(podName)
                 .delete();
 
         LOGGER.debug("[deleteAsyncPod] result {}", result);
     }
 
-    public Service getService(Stage stage, String uid) {
-        String svcName = KubernetesResourceNaming.getServiceName(stage.getStageImage().name(), uid);
+    public Service getService(LabResourceId resourceId) {
+        String svcName = resourceId.resourceName().serviceName();
 
         Service service = kubernetesClient.services()
-                .inNamespace("default")
+                .inNamespace(LabInfrastructureDefaults.LAB_NAMESPACE)
                 .withName(svcName)
                 .get();
 
@@ -102,11 +101,11 @@ public class KubernetesResourceManager {
         return service;
     }
 
-    public Pod getPod(Stage stage, String uid) {
-        String podName = KubernetesResourceNaming.getPodName(stage.getStageImage().name(), uid);
+    public Pod getPod(LabResourceId resourceId) {
+        String podName = resourceId.resourceName().podName();
 
         Pod pod = kubernetesClient.pods()
-                .inNamespace("default")
+                .inNamespace(LabInfrastructureDefaults.LAB_NAMESPACE)
                 .withName(podName)
                 .get();
 
@@ -114,11 +113,11 @@ public class KubernetesResourceManager {
         return pod;
     }
 
-    public boolean existsService(Stage stage, String uid) {
-        String svcName = KubernetesResourceNaming.getServiceName(stage.getStageImage().name(), uid);
+    public boolean existsService(LabResourceId resourceId) {
+        String svcName = resourceId.resourceName().serviceName();
 
         boolean exists = kubernetesClient.services()
-                .inNamespace("default")
+                .inNamespace(LabInfrastructureDefaults.LAB_NAMESPACE)
                 .withName(svcName)
                 .get() != null;
 
@@ -126,11 +125,11 @@ public class KubernetesResourceManager {
         return exists;
     }
 
-    public boolean existsPod(Stage stage, String uid) {
-        String podName = KubernetesResourceNaming.getPodName(stage.getStageImage().name(), uid);
+    public boolean existsPod(LabResourceId resourceId) {
+        String podName = resourceId.resourceName().podName();
 
         boolean exists = kubernetesClient.pods()
-                .inNamespace("default")
+                .inNamespace(LabInfrastructureDefaults.LAB_NAMESPACE)
                 .withName(podName)
                 .get() != null;
 
@@ -139,7 +138,7 @@ public class KubernetesResourceManager {
     }
 
     public List<Pod> getTimeOutPods() {
-        PodList podList = kubernetesClient.pods().inNamespace("default").list();
+        PodList podList = kubernetesClient.pods().inNamespace(LabInfrastructureDefaults.LAB_NAMESPACE).list();
 
         return podList.getItems().stream()
                 .filter(this::isPhaseFailed)
