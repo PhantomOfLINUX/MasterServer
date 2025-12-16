@@ -1,9 +1,13 @@
 package org.codequistify.master.domain.lab.service;
 
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.lab.utils.KubernetesResourceNaming;
+import org.codequistify.master.domain.lab.config.LabExternalEndpoints;
+import org.codequistify.master.domain.lab.vo.KubernetesResourceName;
+import org.codequistify.master.domain.lab.vo.LabUserUid;
+import org.codequistify.master.domain.lab.vo.StageCode;
 import org.codequistify.master.domain.stage.domain.StageImageType;
 import org.codequistify.master.domain.stage.dto.StageActionRequest;
+import org.codequistify.master.global.data.UrlQuery;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
@@ -29,15 +33,16 @@ public class LabAssignmentService {
     public void testA() {
         String stageCode = StageImageType.S1015.name();
         String uid = "pol-bdbeej-gj5antzprz";
-        //String qUrl = KubernetesResourceNaming.getQuery(stageCode, uid);
-        System.out.println("https://lab.pol.or.kr/grade"+KubernetesResourceNaming.getQuery(stageCode, uid));
-        System.out.println("https://lab.pol.or.kr/compose"+KubernetesResourceNaming.getQuery(stageCode, uid));
+        KubernetesResourceName resourceName = KubernetesResourceName.of(StageCode.from(stageCode), LabUserUid.from(uid));
+        UrlQuery query = resourceName.query();
+        System.out.println(LabExternalEndpoints.gradeUrl(query));
+        System.out.println(LabExternalEndpoints.composeUrl(query));
     }
 
     @LogExecutionTime
     public ResponseEntity<SuccessResponse> sendGradingRequest(String stageCode, String uid, StageActionRequest request) {
-        //String svcName = KubernetesResourceNaming.getServiceName(stageCode, uid);
-        String url = "https://lab.pol.or.kr/grade" + KubernetesResourceNaming.getQuery(stageCode, uid);
+        KubernetesResourceName resourceName = KubernetesResourceName.of(StageCode.from(stageCode), LabUserUid.from(uid));
+        String url = LabExternalEndpoints.gradeUrl(resourceName.query());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -70,7 +75,8 @@ public class LabAssignmentService {
 
     @LogExecutionTime
     public ResponseEntity<SuccessResponse> sendComposeRequest(String stageCode, String uid, StageActionRequest request) {
-        String url = "https://lab.pol.or.kr/compose"+KubernetesResourceNaming.getQuery(stageCode, uid);
+        KubernetesResourceName resourceName = KubernetesResourceName.of(StageCode.from(stageCode), LabUserUid.from(uid));
+        String url = LabExternalEndpoints.composeUrl(resourceName.query());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);

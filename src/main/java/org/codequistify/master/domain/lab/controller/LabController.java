@@ -3,12 +3,11 @@ package org.codequistify.master.domain.lab.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.lab.config.LabExternalEndpoints;
 import org.codequistify.master.domain.lab.dto.PShellCreateResponse;
 import org.codequistify.master.domain.lab.dto.PShellExistsResponse;
 import org.codequistify.master.domain.lab.service.LabService;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.stage.domain.Stage;
-import org.codequistify.master.domain.stage.service.impl.StageSearchServiceImpl;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.lock.LockManager;
@@ -29,10 +28,9 @@ import java.util.concurrent.locks.ReentrantLock;
 @Tag(name = "Lab")
 public class LabController {
     private final LabService labService;
-    private final StageSearchServiceImpl stageSearchService;
     private final LockManager lockManager;
 
-    private final String LAB_HOST = "wss://lab.pol.or.kr";
+    private final String LAB_HOST = LabExternalEndpoints.websocketHost();
 
     private final Logger LOGGER = LoggerFactory.getLogger(LabController.class);
 
@@ -54,15 +52,8 @@ public class LabController {
         ReentrantLock lock = lockManager.getLock(player.getId(), stageId);
         if (lock.tryLock()) {
             try {
-                Stage stage = stageSearchService.getStageById(stageId);
-
-                labService.deleteSyncStageOnKubernetes(player, stage); // 동기 삭제
-                labService.createStageOnKubernetes(player, stage);
-
-                PShellCreateResponse response = PShellCreateResponse
-                        .of(LAB_HOST, player.getUid(), stage.getStageImage().name().toLowerCase());
-
-                labService.waitForPodReadiness(player, stage);
+                PShellCreateResponse response = labService
+                        .recreateStageOnKubernetes(LAB_HOST, stageId, player.getUid());
 
                 return ResponseEntity
                         .status(HttpStatus.OK)
@@ -93,10 +84,7 @@ public class LabController {
     @LogMonitoring
     public ResponseEntity<PShellCreateResponse> getPShellAccessUrl(@AuthenticationPrincipal Player player,
                                                                    @PathVariable(name = "stage_id") Long stageId) {
-        Stage stage = stageSearchService.getStageById(stageId);
-
-        PShellCreateResponse response = PShellCreateResponse
-                .of(LAB_HOST, player.getUid(), stage.getStageImage().name().toLowerCase());
+        PShellCreateResponse response = labService.getPShellAccessUrl(LAB_HOST, stageId, player.getUid());
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -115,16 +103,7 @@ public class LabController {
     @GetMapping("/lab/terminal/existence/{stage_id}")
     public ResponseEntity<PShellExistsResponse> checkPShellExistence(@AuthenticationPrincipal Player player,
                                                                      @PathVariable(name = "stage_id") Long stageId) {
-        Stage stage = stageSearchService.getStageById(stageId);
-
-        boolean stageExists = labService.existsStageOnKubernetes(player, stage);
-
-        PShellExistsResponse response = new PShellExistsResponse(
-                player.getUid(),
-                stageId,
-                stage.getStageImage().name(),
-                stageExists
-        );
+        PShellExistsResponse response = labService.checkPShellExistence(stageId, player.getUid());
 
         return ResponseEntity
                 .status(HttpStatus.OK)

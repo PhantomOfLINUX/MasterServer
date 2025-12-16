@@ -1,14 +1,22 @@
 package org.codequistify.master.domain.lab.dto;
 
+import org.codequistify.master.domain.lab.vo.LabUserUid;
+import org.codequistify.master.domain.lab.vo.StageCode;
+import org.codequistify.master.global.data.Pair;
+import org.codequistify.master.global.data.UrlQuery;
+
 public record PShellCreateResponse(
         String url,
         String query
 ) {
-    public static PShellCreateResponse of (String url, String uid, String stageImageName) {
-        String query = "?uid=" + uid.toLowerCase() + "&stage=" + stageImageName;
+    public static PShellCreateResponse of(String url, LabUserUid uid, StageCode stageCode) {
+        UrlQuery query = UrlQuery.from(
+                Pair.of("uid", uid.value()),
+                Pair.of("stage", stageCode.lowercase())
+        );
         return new PShellCreateResponse(
-                url+query,
-                query
+                url + query.value(),
+                query.value()
         );
     }
 
