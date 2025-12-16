@@ -20,7 +20,7 @@ public class KubernetesServiceFactory implements ServiceFactory{
 
         return new ServiceBuilder()
                 .withNewMetadata()
-                    .withName(resourceName.serviceName())
+                    .withName(resourceName.serviceName().value())
                     .withLabels(labels.toSingleValueMap())
                 .endMetadata()
                 .withNewSpec()

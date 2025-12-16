@@ -9,15 +9,19 @@ public record PShellCreateResponse(
         String url,
         String query
 ) {
+    public static PShellCreateResponse of(String url, UrlQuery query) {
+        return new PShellCreateResponse(
+                url + query.value(),
+                query.value()
+        );
+    }
+
     public static PShellCreateResponse of(String url, LabUserUid uid, StageCode stageCode) {
         UrlQuery query = UrlQuery.from(
                 Pair.of("uid", uid.value()),
                 Pair.of("stage", stageCode.lowercase())
         );
-        return new PShellCreateResponse(
-                url + query.value(),
-                query.value()
-        );
+        return of(url, query);
     }
 
     public static record XHeader (

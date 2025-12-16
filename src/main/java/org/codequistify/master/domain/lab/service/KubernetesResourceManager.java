@@ -50,7 +50,7 @@ public class KubernetesResourceManager {
     }
 
     public void deleteAsyncService(LabResourceId resourceId) {
-        String svcName = resourceId.resourceName().serviceName();
+        String svcName = resourceId.resourceName().serviceName().value();
 
         List<StatusDetails> result = kubernetesClient.services()
                 .inNamespace(LabInfrastructureDefaults.LAB_NAMESPACE)
@@ -90,7 +90,7 @@ public class KubernetesResourceManager {
     }
 
     public Service getService(LabResourceId resourceId) {
-        String svcName = resourceId.resourceName().serviceName();
+        String svcName = resourceId.resourceName().serviceName().value();
 
         Service service = kubernetesClient.services()
                 .inNamespace(LabInfrastructureDefaults.LAB_NAMESPACE)
@@ -114,7 +114,7 @@ public class KubernetesResourceManager {
     }
 
     public boolean existsService(LabResourceId resourceId) {
-        String svcName = resourceId.resourceName().serviceName();
+        String svcName = resourceId.resourceName().serviceName().value();
 
         boolean exists = kubernetesClient.services()
                 .inNamespace(LabInfrastructureDefaults.LAB_NAMESPACE)

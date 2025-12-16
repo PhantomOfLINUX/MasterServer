@@ -53,7 +53,7 @@ public class LabController {
         if (lock.tryLock()) {
             try {
                 PShellCreateResponse response = labService
-                        .recreateStageOnKubernetes(LAB_HOST, stageId, player.getUid());
+                        .recreateStageOnKubernetes(LAB_HOST, stageId, player);
 
                 return ResponseEntity
                         .status(HttpStatus.OK)
@@ -84,7 +84,7 @@ public class LabController {
     @LogMonitoring
     public ResponseEntity<PShellCreateResponse> getPShellAccessUrl(@AuthenticationPrincipal Player player,
                                                                    @PathVariable(name = "stage_id") Long stageId) {
-        PShellCreateResponse response = labService.getPShellAccessUrl(LAB_HOST, stageId, player.getUid());
+        PShellCreateResponse response = labService.getPShellAccessUrl(LAB_HOST, stageId, player);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -103,7 +103,7 @@ public class LabController {
     @GetMapping("/lab/terminal/existence/{stage_id}")
     public ResponseEntity<PShellExistsResponse> checkPShellExistence(@AuthenticationPrincipal Player player,
                                                                      @PathVariable(name = "stage_id") Long stageId) {
-        PShellExistsResponse response = labService.checkPShellExistence(stageId, player.getUid());
+        PShellExistsResponse response = labService.checkPShellExistence(stageId, player);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
