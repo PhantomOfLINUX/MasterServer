@@ -3,8 +3,8 @@ package org.codequistify.master.domain.lab.service;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodCondition;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.lab.dto.PShellCreateResponse;
-import org.codequistify.master.domain.lab.dto.PShellExistsResponse;
+import org.codequistify.master.domain.lab.dto.VirtualWorkspaceCreateResponse;
+import org.codequistify.master.domain.lab.dto.VirtualWorkspaceExistsResponse;
 import org.codequistify.master.domain.lab.domain.VirtualWorkspace;
 import org.codequistify.master.domain.lab.domain.VirtualWorkspaceEntity;
 import org.codequistify.master.domain.lab.vo.LabRouteId;
@@ -33,7 +33,7 @@ public class LabService {
     private final static int SLEEP_PERIOD = 5000;
 
     @LogExecutionTime
-    public PShellCreateResponse recreateStageOnKubernetes(String labHost, Long stageId, Player player) {
+    public VirtualWorkspaceCreateResponse recreateStageOnKubernetes(String labHost, Long stageId, Player player) {
         VirtualWorkspace workspace = resolveWorkspace(stageId, player);
         LabResourceId labResourceId = workspace.resourceId();
 
@@ -43,17 +43,17 @@ public class LabService {
         LOGGER.info("[createStageOnKubernetes] stage: {}", labResourceId.stage().getId());
 
         waitForPodReadiness(labResourceId);
-        return workspace.toAccessResponse(labHost);
+        return VirtualWorkspaceCreateResponse.of(labHost, workspace.accessQuery());
     }
 
     @LogExecutionTime
-    public PShellCreateResponse getPShellAccessUrl(String labHost, Long stageId, Player player) {
+    public VirtualWorkspaceCreateResponse getVirtualWorkspaceAccessUrl(String labHost, Long stageId, Player player) {
         VirtualWorkspace workspace = resolveWorkspace(stageId, player);
-        return workspace.toAccessResponse(labHost);
+        return VirtualWorkspaceCreateResponse.of(labHost, workspace.accessQuery());
     }
 
     @LogExecutionTime
-    public PShellExistsResponse checkPShellExistence(Long stageId, Player player) {
+    public VirtualWorkspaceExistsResponse checkVirtualWorkspaceExistence(Long stageId, Player player) {
         VirtualWorkspace workspace = resolveWorkspace(stageId, player);
         LabResourceId labResourceId = workspace.resourceId();
 
@@ -62,7 +62,7 @@ public class LabService {
 
         LOGGER.info("[existsStageOnKubernetes] pod: {}, svc: {}", podExists, serviceExists);
 
-        return new PShellExistsResponse(
+        return new VirtualWorkspaceExistsResponse(
                 labResourceId.uid().value(),
                 stageId,
                 workspace.stage().getStageImage().name(),
@@ -115,8 +115,8 @@ public class LabService {
                 LOGGER.info("[deleteSyncStageOnKubernetes] Service 삭제 확인 {}번 시도", retryCount);
             }
             if (retryCount > THRESHOLD) {
-                LOGGER.error("[deleteSyncStageOnKubernetes] {}",ErrorCode.PSHELL_CREATE_FAILED.getMessage());
-                throw new BusinessException(ErrorCode.PSHELL_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
+                LOGGER.error("[deleteSyncStageOnKubernetes] {}",ErrorCode.VIRTUAL_WORKSPACE_CREATE_FAILED.getMessage());
+                throw new BusinessException(ErrorCode.VIRTUAL_WORKSPACE_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             try {
                 Thread.sleep(SLEEP_PERIOD);
@@ -143,8 +143,8 @@ public class LabService {
             }
 
             if (retryCount > THRESHOLD) {
-                LOGGER.error("[checkPodReady] {}",ErrorCode.PSHELL_CREATE_FAILED.getMessage());
-                throw new BusinessException(ErrorCode.PSHELL_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
+                LOGGER.error("[checkPodReady] {}",ErrorCode.VIRTUAL_WORKSPACE_CREATE_FAILED.getMessage());
+                throw new BusinessException(ErrorCode.VIRTUAL_WORKSPACE_CREATE_FAILED, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             try {
                 Thread.sleep(2000L);

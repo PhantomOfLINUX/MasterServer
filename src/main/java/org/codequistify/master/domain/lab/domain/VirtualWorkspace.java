@@ -1,12 +1,12 @@
 package org.codequistify.master.domain.lab.domain;
 
-import org.codequistify.master.domain.lab.dto.PShellCreateResponse;
 import org.codequistify.master.domain.lab.vo.KubernetesResourceName;
 import org.codequistify.master.domain.lab.vo.LabResourceId;
 import org.codequistify.master.domain.lab.vo.LabRouteId;
 import org.codequistify.master.domain.lab.vo.LabServiceName;
 import org.codequistify.master.domain.lab.vo.LabUserUid;
 import org.codequistify.master.domain.lab.vo.StageCode;
+import org.codequistify.master.global.data.UrlQuery;
 import org.codequistify.master.domain.stage.domain.Stage;
 
 import java.util.Objects;
@@ -42,7 +42,7 @@ public record VirtualWorkspace(
         return routeId.stageCode();
     }
 
-    public PShellCreateResponse toAccessResponse(String labHost) {
-        return PShellCreateResponse.of(labHost, resourceName().query());
+    public UrlQuery accessQuery() {
+        return resourceName().query();
     }
 }

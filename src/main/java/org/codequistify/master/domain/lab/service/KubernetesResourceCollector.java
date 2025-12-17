@@ -25,7 +25,7 @@ public class KubernetesResourceCollector {
             kubernetesResourceManager.deleteAsyncService(timeoutPod);
         });
 
-        LOGGER.info("[resourceCollection] PShell {}개 제거, List: {}", timeoutPods.size(), timeoutPods.toString());
+        LOGGER.info("[resourceCollection] VirtualWorkspace {}개 제거, List: {}", timeoutPods.size(), timeoutPods.toString());
     }
 
     private String getResourceName(Pod pod) {

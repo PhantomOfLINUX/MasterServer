@@ -101,7 +101,7 @@ public class StageManagementServiceImpl implements StageManagementService {
     // compose 메서드
     @Override
     @Transactional
-    public SuccessResponse composePShell(Player player, GradingRequest request) {
+    public SuccessResponse composeVirtualWorkspace(Player player, GradingRequest request) {
         Question question = questionRepository.findByStageIdAndIndex(request.stageId(), request.questionIndex())
                 .orElseThrow(() -> {
                     LOGGER.info("[checkAnswerCorrectness] {}, id: {}, index: {}",

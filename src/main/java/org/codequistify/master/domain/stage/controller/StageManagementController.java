@@ -78,7 +78,7 @@ public class StageManagementController {
     @PostMapping("question/compose")
     public ResponseEntity<BasicResponse> compose(@AuthenticationPrincipal Player player,
                                                  @Valid @RequestBody GradingRequest request) {
-        SuccessResponse successResponse = stageManagementService.composePShell(player, request);
+        SuccessResponse successResponse = stageManagementService.composeVirtualWorkspace(player, request);
 
         if (successResponse.success().equals(false)) {
             throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);

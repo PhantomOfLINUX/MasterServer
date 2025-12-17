@@ -15,7 +15,7 @@ public interface StageManagementService {
     GradingResponse evaluateAnswer(Player player, GradingRequest request);
 
     // 다음 문제 설정 구성
-    SuccessResponse composePShell(Player player, GradingRequest request);
+    SuccessResponse composeVirtualWorkspace(Player player, GradingRequest request);
 
     // 풀이 완료 기록
     StageCompletionResponse recordStageComplete(Player player, Long stageId);

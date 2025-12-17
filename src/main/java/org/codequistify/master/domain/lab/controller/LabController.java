@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.lab.config.LabExternalEndpoints;
-import org.codequistify.master.domain.lab.dto.PShellCreateResponse;
-import org.codequistify.master.domain.lab.dto.PShellExistsResponse;
+import org.codequistify.master.domain.lab.dto.VirtualWorkspaceCreateResponse;
+import org.codequistify.master.domain.lab.dto.VirtualWorkspaceExistsResponse;
 import org.codequistify.master.domain.lab.service.LabService;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.global.aspect.LogExecutionTime;
@@ -35,10 +35,10 @@ public class LabController {
     private final Logger LOGGER = LoggerFactory.getLogger(LabController.class);
 
     @Operation(
-            summary = "가상 터미널 (PShell) 생성요청",
+            summary = "가상 작업공간 (VirtualWorkspace) 생성요청",
             description = """
-                    :stage에 대한 터미널(PShell)을 생성한다.
-                    기존 터미널이 존재할경우, 제거하고 생성한다.
+                    :stage에 대한 VirtualWorkspace를 생성한다.
+                    기존 작업공간이 존재할경우, 제거하고 생성한다.
                     생성시에 네트워크 연결까지 약 10초 정도가 소요되며, 
                     제거시에는 약 45s 이상이 소요된다.
                     
@@ -47,12 +47,12 @@ public class LabController {
     )
     @LogMonitoring
     @PostMapping("lab/terminal/stage/{stage_id}")
-    public ResponseEntity<PShellCreateResponse> applyPShell(@AuthenticationPrincipal Player player,
+    public ResponseEntity<VirtualWorkspaceCreateResponse> applyVirtualWorkspace(@AuthenticationPrincipal Player player,
                                                             @PathVariable(name = "stage_id") Long stageId) {
         ReentrantLock lock = lockManager.getLock(player.getId(), stageId);
         if (lock.tryLock()) {
             try {
-                PShellCreateResponse response = labService
+                VirtualWorkspaceCreateResponse response = labService
                         .recreateStageOnKubernetes(LAB_HOST, stageId, player);
 
                 return ResponseEntity
@@ -64,7 +64,7 @@ public class LabController {
         }
 
         // 락 걸린 동안 들어오는 요청은 무시
-        LOGGER.info("[applyPShell] apply 작업중 중복된 요청 발생. stage: {}", stageId);
+        LOGGER.info("[applyVirtualWorkspace] 작업 중 중복된 요청 발생. stage: {}", stageId);
         return ResponseEntity
                 .status(HttpStatus.TOO_MANY_REQUESTS)
                 .body(null);
@@ -73,18 +73,18 @@ public class LabController {
 
     // 접속 가능한 주소 조회
     @Operation(
-            summary = "가상 터미널 (PShell) 접속 주소 & 쿼리파라미터 조회",
+            summary = "가상 작업공간 (VirtualWorkspace) 접속 주소 & 쿼리파라미터 조회",
             description = """
-                    :stage에 대한 터미널(PShell)에 접속할 수 있는 쿼리파라미터 정보를 조회한다.
+                    :stage에 대한 VirtualWorkspace에 접속할 수 있는 쿼리파라미터 정보를 조회한다.
                     
                     사용시에는 쿼리파라미터 값을 추가해서 connection 연결을 보내야한다.
                     """
     )
     @GetMapping("lab/terminal/access-url/{stage_id}")
     @LogMonitoring
-    public ResponseEntity<PShellCreateResponse> getPShellAccessUrl(@AuthenticationPrincipal Player player,
+    public ResponseEntity<VirtualWorkspaceCreateResponse> getVirtualWorkspaceAccessUrl(@AuthenticationPrincipal Player player,
                                                                    @PathVariable(name = "stage_id") Long stageId) {
-        PShellCreateResponse response = labService.getPShellAccessUrl(LAB_HOST, stageId, player);
+        VirtualWorkspaceCreateResponse response = labService.getVirtualWorkspaceAccessUrl(LAB_HOST, stageId, player);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -94,16 +94,16 @@ public class LabController {
 
     // 현재 터미널 존재 여부 조회
     @Operation(
-            summary = "기존 가상 터미널 (PShell) 존재여부 조회",
+            summary = "기존 가상 작업공간 (VirtualWorkspace) 존재여부 조회",
             description = """
-                    :stage에 대한 기존 터미널(PShell)이 존재하는지를 확인한다.
+                    :stage에 대한 기존 VirtualWorkspace가 존재하는지를 확인한다.
                     """
     )
     @LogExecutionTime
     @GetMapping("/lab/terminal/existence/{stage_id}")
-    public ResponseEntity<PShellExistsResponse> checkPShellExistence(@AuthenticationPrincipal Player player,
+    public ResponseEntity<VirtualWorkspaceExistsResponse> checkVirtualWorkspaceExistence(@AuthenticationPrincipal Player player,
                                                                      @PathVariable(name = "stage_id") Long stageId) {
-        PShellExistsResponse response = labService.checkPShellExistence(stageId, player);
+        VirtualWorkspaceExistsResponse response = labService.checkVirtualWorkspaceExistence(stageId, player);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
