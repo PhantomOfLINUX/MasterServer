@@ -3,12 +3,10 @@ package org.codequistify.master.domain.lab.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.lab.config.LabExternalEndpoints;
-import org.codequistify.master.domain.lab.dto.VirtualWorkspaceCreateResponse;
-import org.codequistify.master.domain.lab.dto.VirtualWorkspaceExistsResponse;
-import org.codequistify.master.domain.lab.service.LabService;
+import org.codequistify.master.domain.lab.virtualworkspace.application.VirtualWorkspaceApplicationService;
+import org.codequistify.master.domain.lab.virtualworkspace.dto.VirtualWorkspaceConnectResponse;
+import org.codequistify.master.domain.lab.virtualworkspace.dto.VirtualWorkspaceExistenceResponse;
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.lock.LockManager;
 import org.slf4j.Logger;
@@ -27,10 +25,8 @@ import java.util.concurrent.locks.ReentrantLock;
 @RequiredArgsConstructor
 @Tag(name = "Lab")
 public class LabController {
-    private final LabService labService;
+    private final VirtualWorkspaceApplicationService virtualWorkspaceApplicationService;
     private final LockManager lockManager;
-
-    private final String LAB_HOST = LabExternalEndpoints.websocketHost();
 
     private final Logger LOGGER = LoggerFactory.getLogger(LabController.class);
 
@@ -41,19 +37,19 @@ public class LabController {
                     기존 작업공간이 존재할경우, 제거하고 생성한다.
                     생성시에 네트워크 연결까지 약 10초 정도가 소요되며, 
                     제거시에는 약 45s 이상이 소요된다.
-                    
-                    사용시에는 쿼리파라미터 값을 추가해서 connection 연결을 보내야한다.
+
+                    생성 완료 시 publicId 기반 서브도메인(WebSocket) 접속 정보를 반환한다.
                     """
     )
     @LogMonitoring
     @PostMapping("lab/terminal/stage/{stage_id}")
-    public ResponseEntity<VirtualWorkspaceCreateResponse> applyVirtualWorkspace(@AuthenticationPrincipal Player player,
+    public ResponseEntity<VirtualWorkspaceConnectResponse> applyVirtualWorkspace(@AuthenticationPrincipal Player player,
                                                             @PathVariable(name = "stage_id") Long stageId) {
         ReentrantLock lock = lockManager.getLock(player.getId(), stageId);
         if (lock.tryLock()) {
             try {
-                VirtualWorkspaceCreateResponse response = labService
-                        .recreateStageOnKubernetes(LAB_HOST, stageId, player);
+                VirtualWorkspaceConnectResponse response = virtualWorkspaceApplicationService
+                        .recreate(stageId, player);
 
                 return ResponseEntity
                         .status(HttpStatus.OK)
@@ -75,16 +71,14 @@ public class LabController {
     @Operation(
             summary = "가상 작업공간 (VirtualWorkspace) 접속 주소 & 쿼리파라미터 조회",
             description = """
-                    :stage에 대한 VirtualWorkspace에 접속할 수 있는 쿼리파라미터 정보를 조회한다.
-                    
-                    사용시에는 쿼리파라미터 값을 추가해서 connection 연결을 보내야한다.
+                    :stage에 대한 VirtualWorkspace 접속 주소 정보를 조회한다.
                     """
     )
     @GetMapping("lab/terminal/access-url/{stage_id}")
     @LogMonitoring
-    public ResponseEntity<VirtualWorkspaceCreateResponse> getVirtualWorkspaceAccessUrl(@AuthenticationPrincipal Player player,
+    public ResponseEntity<VirtualWorkspaceConnectResponse> getVirtualWorkspaceAccessUrl(@AuthenticationPrincipal Player player,
                                                                    @PathVariable(name = "stage_id") Long stageId) {
-        VirtualWorkspaceCreateResponse response = labService.getVirtualWorkspaceAccessUrl(LAB_HOST, stageId, player);
+        VirtualWorkspaceConnectResponse response = virtualWorkspaceApplicationService.getAccessUrl(stageId, player);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -99,11 +93,10 @@ public class LabController {
                     :stage에 대한 기존 VirtualWorkspace가 존재하는지를 확인한다.
                     """
     )
-    @LogExecutionTime
     @GetMapping("/lab/terminal/existence/{stage_id}")
-    public ResponseEntity<VirtualWorkspaceExistsResponse> checkVirtualWorkspaceExistence(@AuthenticationPrincipal Player player,
+    public ResponseEntity<VirtualWorkspaceExistenceResponse> checkVirtualWorkspaceExistence(@AuthenticationPrincipal Player player,
                                                                      @PathVariable(name = "stage_id") Long stageId) {
-        VirtualWorkspaceExistsResponse response = labService.checkVirtualWorkspaceExistence(stageId, player);
+        VirtualWorkspaceExistenceResponse response = virtualWorkspaceApplicationService.checkExistence(stageId, player);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
