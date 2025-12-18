@@ -14,16 +14,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import java.util.concurrent.locks.ReentrantLock;
 
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "Lab")
+@Validated
 public class LabController {
     private final VirtualWorkspaceApplicationService virtualWorkspaceApplicationService;
     private final LockManager lockManager;
@@ -44,7 +48,7 @@ public class LabController {
     @LogMonitoring
     @PostMapping("lab/terminal/stage/{stage_id}")
     public ResponseEntity<VirtualWorkspaceConnectResponse> applyVirtualWorkspace(@AuthenticationPrincipal Player player,
-                                                            @PathVariable(name = "stage_id") Long stageId) {
+                                                            @NotNull @Min(1) @PathVariable(name = "stage_id") Long stageId) {
         ReentrantLock lock = lockManager.getLock(player.getId(), stageId);
         if (lock.tryLock()) {
             try {
@@ -77,7 +81,7 @@ public class LabController {
     @GetMapping("lab/terminal/access-url/{stage_id}")
     @LogMonitoring
     public ResponseEntity<VirtualWorkspaceConnectResponse> getVirtualWorkspaceAccessUrl(@AuthenticationPrincipal Player player,
-                                                                   @PathVariable(name = "stage_id") Long stageId) {
+                                                                   @NotNull @Min(1) @PathVariable(name = "stage_id") Long stageId) {
         VirtualWorkspaceConnectResponse response = virtualWorkspaceApplicationService.getAccessUrl(stageId, player);
 
         return ResponseEntity
@@ -95,7 +99,7 @@ public class LabController {
     )
     @GetMapping("/lab/terminal/existence/{stage_id}")
     public ResponseEntity<VirtualWorkspaceExistenceResponse> checkVirtualWorkspaceExistence(@AuthenticationPrincipal Player player,
-                                                                     @PathVariable(name = "stage_id") Long stageId) {
+                                                                     @NotNull @Min(1) @PathVariable(name = "stage_id") Long stageId) {
         VirtualWorkspaceExistenceResponse response = virtualWorkspaceApplicationService.checkExistence(stageId, player);
 
         return ResponseEntity

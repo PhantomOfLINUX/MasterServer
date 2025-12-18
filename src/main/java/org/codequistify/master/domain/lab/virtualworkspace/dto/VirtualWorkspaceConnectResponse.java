@@ -8,4 +8,3 @@ public record VirtualWorkspaceConnectResponse(
         return new VirtualWorkspaceConnectResponse(websocketUrl, publicId);
     }
 }
-

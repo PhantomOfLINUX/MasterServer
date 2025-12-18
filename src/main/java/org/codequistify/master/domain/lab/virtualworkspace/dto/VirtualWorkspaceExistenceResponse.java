@@ -8,4 +8,3 @@ public record VirtualWorkspaceExistenceResponse(
         return new VirtualWorkspaceExistenceResponse(publicId, exists);
     }
 }
-
