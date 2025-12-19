@@ -1,7 +1,7 @@
 package org.codequistify.master.domain.stage.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.judging.application.LabAssignmentService;
+import org.codequistify.master.domain.judging.application.JudgingService;
 import org.codequistify.master.domain.judging.domain.vo.JudgingAction;
 import org.codequistify.master.domain.judging.domain.vo.JudgingTarget;
 import org.codequistify.master.domain.judging.domain.vo.LabUserUid;
@@ -32,7 +32,7 @@ public class StageManagementServiceImpl implements StageManagementService {
     private final QuestionRepository questionRepository;
     private final CompletedStageRepository completedStageRepository;
 
-    private final LabAssignmentService labAssignmentService;
+    private final JudgingService judgingService;
     private final PlayerProfileService playerProfileService;
 
     private final StageConverter stageConverter;
@@ -95,8 +95,8 @@ public class StageManagementServiceImpl implements StageManagementService {
         JudgingTarget target = JudgingTarget.of(stageCode, LabUserUid.from(player.getUid()));
         JudgingAction action = JudgingAction.of(stageCode, request.questionIndex());
 
-        SuccessResponse response = labAssignmentService
-                .sendGradingRequest(target, action)
+        SuccessResponse response = judgingService
+                .requestGrading(target, action)
                 .getBody();
 
         return response.success();
@@ -118,8 +118,8 @@ public class StageManagementServiceImpl implements StageManagementService {
         JudgingTarget target = JudgingTarget.of(stageCode, LabUserUid.from(player.getUid()));
         JudgingAction action = JudgingAction.of(stageCode, request.questionIndex());
 
-        SuccessResponse response = labAssignmentService
-                .sendComposeRequest(target, action)
+        SuccessResponse response = judgingService
+                .requestCompose(target, action)
                 .getBody();
 
         return response;

@@ -25,9 +25,9 @@ import org.springframework.web.client.RestTemplate;
 
 @RequiredArgsConstructor
 @Service
-public class LabAssignmentService {
+public class JudgingService {
     private final RestTemplate restTemplate;
-    private final Logger LOGGER = LoggerFactory.getLogger(LabAssignmentService.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(JudgingService.class);
     private final String NAMESPACE = "default";
 
 
@@ -42,7 +42,7 @@ public class LabAssignmentService {
     }
 
     @LogExecutionTime
-    public ResponseEntity<SuccessResponse> sendGradingRequest(JudgingTarget target, JudgingAction action) {
+    public ResponseEntity<SuccessResponse> requestGrading(JudgingTarget target, JudgingAction action) {
         KubernetesResourceName resourceName = KubernetesResourceName.of(target.stageCode(), target.uid());
         String url = LabExternalEndpoints.gradeUrl(resourceName.query());
 
@@ -60,23 +60,23 @@ public class LabAssignmentService {
         try {
             ResponseEntity<SuccessResponse> response = restTemplate.postForEntity(url, entity, SuccessResponse.class);
             if (response.getStatusCode().is5xxServerError()) {
-                LOGGER.info("[sendGradingRequest] 실습서버가 정상적으로 응답하지 않습니다. url: {}", url);
+                LOGGER.info("[requestGrading] 실습서버가 정상적으로 응답하지 않습니다. url: {}", url);
                 throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
             }
             return response;
         } catch (HttpServerErrorException e) {
             // 서버 오류에 대한 상세 정보 로깅
-            LOGGER.error("[sendGradingRequest] Internal Server Error: {}, URL: {}", e.getResponseBodyAsString(), url);
+            LOGGER.error("[requestGrading] Internal Server Error: {}, URL: {}", e.getResponseBodyAsString(), url);
             throw e;
         } catch (ResourceAccessException e) {
             // 리소스 접근 오류에 대한 상세 정보 로깅
-            LOGGER.error("[sendGradingRequest] Resource Access Error: {}, URL: {}", e.getMessage(), url);
+            LOGGER.error("[requestGrading] Resource Access Error: {}, URL: {}", e.getMessage(), url);
             throw e;
         }
     }
 
     @LogExecutionTime
-    public ResponseEntity<SuccessResponse> sendComposeRequest(JudgingTarget target, JudgingAction action) {
+    public ResponseEntity<SuccessResponse> requestCompose(JudgingTarget target, JudgingAction action) {
         KubernetesResourceName resourceName = KubernetesResourceName.of(target.stageCode(), target.uid());
         String url = LabExternalEndpoints.composeUrl(resourceName.query());
 
@@ -89,7 +89,7 @@ public class LabAssignmentService {
 
         ResponseEntity<SuccessResponse> response = restTemplate.postForEntity(url, entity, SuccessResponse.class);
         if (response.getStatusCode().is5xxServerError()) {
-            LOGGER.info("[sendComposeRequest] 실습서버가 정상적으로 응답하지 않습니다. url: {}", url);
+            LOGGER.info("[requestCompose] 실습서버가 정상적으로 응답하지 않습니다. url: {}", url);
             throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return response;
