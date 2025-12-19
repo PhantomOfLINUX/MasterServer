@@ -2,6 +2,10 @@ package org.codequistify.master.domain.stage.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.judging.application.LabAssignmentService;
+import org.codequistify.master.domain.judging.domain.vo.JudgingAction;
+import org.codequistify.master.domain.judging.domain.vo.JudgingTarget;
+import org.codequistify.master.domain.judging.domain.vo.LabUserUid;
+import org.codequistify.master.domain.judging.domain.vo.StageCode;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.service.PlayerProfileService;
 import org.codequistify.master.domain.stage.convertoer.QuestionConverter;
@@ -87,12 +91,12 @@ public class StageManagementServiceImpl implements StageManagementService {
     }
 
     private boolean evaluatePracticalAnswerCorrectness(Player player, Stage stage, GradingRequest request) {
-        StageActionRequest stageActionRequest = new StageActionRequest(
-                stage.getStageImage().name(),
-                request.questionIndex());
+        StageCode stageCode = StageCode.from(stage.getStageImage());
+        JudgingTarget target = JudgingTarget.of(stageCode, LabUserUid.from(player.getUid()));
+        JudgingAction action = JudgingAction.of(stageCode, request.questionIndex());
 
         SuccessResponse response = labAssignmentService
-                .sendGradingRequest(stage.getStageImage().name(), player.getUid().toLowerCase(), stageActionRequest)
+                .sendGradingRequest(target, action)
                 .getBody();
 
         return response.success();
@@ -110,12 +114,12 @@ public class StageManagementServiceImpl implements StageManagementService {
                 });
         Stage stage = question.getStage();
 
-        StageActionRequest stageActionRequest = new StageActionRequest(
-                stage.getStageImage().name(),
-                request.questionIndex());
+        StageCode stageCode = StageCode.from(stage.getStageImage());
+        JudgingTarget target = JudgingTarget.of(stageCode, LabUserUid.from(player.getUid()));
+        JudgingAction action = JudgingAction.of(stageCode, request.questionIndex());
 
         SuccessResponse response = labAssignmentService
-                .sendComposeRequest(stage.getStageImage().name(), player.getUid().toLowerCase(), stageActionRequest)
+                .sendComposeRequest(target, action)
                 .getBody();
 
         return response;

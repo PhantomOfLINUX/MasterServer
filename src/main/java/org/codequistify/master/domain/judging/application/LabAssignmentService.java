@@ -1,12 +1,14 @@
 package org.codequistify.master.domain.judging.application;
 
 import lombok.RequiredArgsConstructor;
+import org.codequistify.master.domain.judging.domain.vo.JudgingAction;
+import org.codequistify.master.domain.judging.domain.vo.JudgingTarget;
+import org.codequistify.master.domain.judging.dto.JudgingActionRequest;
 import org.codequistify.master.domain.judging.infrastructure.http.LabExternalEndpoints;
 import org.codequistify.master.domain.judging.domain.vo.KubernetesResourceName;
 import org.codequistify.master.domain.judging.domain.vo.LabUserUid;
 import org.codequistify.master.domain.judging.domain.vo.StageCode;
 import org.codequistify.master.domain.stage.domain.StageImageType;
-import org.codequistify.master.domain.stage.dto.StageActionRequest;
 import org.codequistify.master.global.data.UrlQuery;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.exception.ErrorCode;
@@ -40,16 +42,16 @@ public class LabAssignmentService {
     }
 
     @LogExecutionTime
-    public ResponseEntity<SuccessResponse> sendGradingRequest(String stageCode, String uid, StageActionRequest request) {
-        KubernetesResourceName resourceName = KubernetesResourceName.of(StageCode.from(stageCode), LabUserUid.from(uid));
+    public ResponseEntity<SuccessResponse> sendGradingRequest(JudgingTarget target, JudgingAction action) {
+        KubernetesResourceName resourceName = KubernetesResourceName.of(target.stageCode(), target.uid());
         String url = LabExternalEndpoints.gradeUrl(resourceName.query());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        request = new StageActionRequest(request.stageCode().toLowerCase(), request.questionIndex());
+        JudgingActionRequest request = JudgingActionRequest.from(action);
 
-        HttpEntity<StageActionRequest> entity = new HttpEntity<>(request, headers);
+        HttpEntity<JudgingActionRequest> entity = new HttpEntity<>(request, headers);
 
         // URL 및 요청 데이터 로깅
         LOGGER.info("Request URL: {}", url);
@@ -74,16 +76,16 @@ public class LabAssignmentService {
     }
 
     @LogExecutionTime
-    public ResponseEntity<SuccessResponse> sendComposeRequest(String stageCode, String uid, StageActionRequest request) {
-        KubernetesResourceName resourceName = KubernetesResourceName.of(StageCode.from(stageCode), LabUserUid.from(uid));
+    public ResponseEntity<SuccessResponse> sendComposeRequest(JudgingTarget target, JudgingAction action) {
+        KubernetesResourceName resourceName = KubernetesResourceName.of(target.stageCode(), target.uid());
         String url = LabExternalEndpoints.composeUrl(resourceName.query());
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        request = new StageActionRequest(request.stageCode().toLowerCase(), request.questionIndex());
+        JudgingActionRequest request = JudgingActionRequest.from(action);
         LOGGER.info("qurl: {}", url);
-        HttpEntity<StageActionRequest> entity = new HttpEntity<>(request, headers);
+        HttpEntity<JudgingActionRequest> entity = new HttpEntity<>(request, headers);
 
         ResponseEntity<SuccessResponse> response = restTemplate.postForEntity(url, entity, SuccessResponse.class);
         if (response.getStatusCode().is5xxServerError()) {
