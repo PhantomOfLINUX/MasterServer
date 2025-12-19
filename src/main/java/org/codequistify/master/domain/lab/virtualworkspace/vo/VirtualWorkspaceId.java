@@ -1,6 +1,7 @@
 package org.codequistify.master.domain.lab.virtualworkspace.vo;
 
 import org.codequistify.master.domain.player.domain.PlayerId;
+import org.codequistify.master.domain.shared.stage.StageCode;
 
 import java.util.Objects;
 
@@ -17,4 +18,3 @@ public record VirtualWorkspaceId(
         return new VirtualWorkspaceId(playerId, stageCode);
     }
 }
-

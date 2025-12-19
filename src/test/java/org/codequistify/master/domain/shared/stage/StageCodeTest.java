@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.lab.virtualworkspace.vo;
+package org.codequistify.master.domain.shared.stage;
 
 import org.junit.jupiter.api.Test;
 
@@ -18,4 +18,3 @@ class StageCodeTest {
         assertEquals("s1015", stageCode.lowercase());
     }
 }
-

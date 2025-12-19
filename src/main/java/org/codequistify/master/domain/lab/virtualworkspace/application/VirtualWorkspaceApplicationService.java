@@ -12,7 +12,7 @@ import org.codequistify.master.domain.lab.virtualworkspace.dto.VirtualWorkspaceC
 import org.codequistify.master.domain.lab.virtualworkspace.dto.VirtualWorkspaceExistenceResponse;
 import org.codequistify.master.domain.lab.virtualworkspace.k8s.VirtualWorkspaceKubernetesManager;
 import org.codequistify.master.domain.lab.virtualworkspace.repository.VirtualWorkspaceRepository;
-import org.codequistify.master.domain.lab.virtualworkspace.vo.StageCode;
+import org.codequistify.master.domain.shared.stage.StageCode;
 import org.codequistify.master.domain.lab.virtualworkspace.vo.SubjectId;
 import org.codequistify.master.domain.lab.virtualworkspace.vo.VirtualWorkspaceId;
 import org.codequistify.master.domain.lab.virtualworkspace.vo.WorkspacePublicId;

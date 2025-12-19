@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.judging.application.JudgingService;
 import org.codequistify.master.domain.judging.domain.vo.JudgingAction;
 import org.codequistify.master.domain.judging.domain.vo.JudgingTarget;
-import org.codequistify.master.domain.judging.domain.vo.StageCode;
+import org.codequistify.master.domain.shared.stage.StageCode;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.PlayerId;
 import org.codequistify.master.domain.player.service.PlayerProfileService;
@@ -94,7 +94,7 @@ public class StageManagementServiceImpl implements StageManagementService {
     }
 
     private boolean evaluatePracticalAnswerCorrectness(Stage stage, GradingRequest request) {
-        StageCode stageCode = StageCode.from(stage.getStageImage());
+        StageCode stageCode = StageCode.from(stage.getStageImage().name());
         JudgingTarget target = JudgingTarget.of(PlayerId.of(request.playerId()), stageCode);
         JudgingAction action = JudgingAction.of(request.questionIndex());
 
@@ -118,7 +118,7 @@ public class StageManagementServiceImpl implements StageManagementService {
                     return new BusinessException(ErrorCode.QUESTION_NOT_FOUND, HttpStatus.NOT_FOUND);
                 });
 
-        StageCode stageCode = StageCode.from(stage.getStageImage());
+        StageCode stageCode = StageCode.from(stage.getStageImage().name());
         JudgingTarget target = JudgingTarget.of(PlayerId.of(request.playerId()), stageCode);
         JudgingAction action = JudgingAction.of(request.questionIndex());
 

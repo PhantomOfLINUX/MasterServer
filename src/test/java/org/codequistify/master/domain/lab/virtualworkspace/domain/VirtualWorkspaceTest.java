@@ -1,10 +1,10 @@
 package org.codequistify.master.domain.lab.virtualworkspace.domain;
 
-import org.codequistify.master.domain.lab.virtualworkspace.vo.StageCode;
 import org.codequistify.master.domain.lab.virtualworkspace.vo.SubjectId;
 import org.codequistify.master.domain.lab.virtualworkspace.vo.VirtualWorkspaceId;
 import org.codequistify.master.domain.lab.virtualworkspace.vo.WorkspacePublicId;
 import org.codequistify.master.domain.player.domain.PlayerId;
+import org.codequistify.master.domain.shared.stage.StageCode;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,4 +31,3 @@ class VirtualWorkspaceTest {
         assertEquals(id, recreated.id());
     }
 }
-

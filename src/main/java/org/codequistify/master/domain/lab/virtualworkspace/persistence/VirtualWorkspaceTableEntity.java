@@ -23,7 +23,7 @@ import org.codequistify.master.domain.lab.virtualworkspace.domain.VirtualWorkspa
 import org.codequistify.master.domain.lab.virtualworkspace.domain.VirtualWorkspaceStatus;
 import org.codequistify.master.domain.lab.virtualworkspace.domain.WorkspaceAccessMode;
 import org.codequistify.master.domain.lab.virtualworkspace.domain.WorkspaceAccessPolicy;
-import org.codequistify.master.domain.lab.virtualworkspace.vo.StageCode;
+import org.codequistify.master.domain.shared.stage.StageCode;
 import org.codequistify.master.domain.lab.virtualworkspace.vo.SubjectId;
 import org.codequistify.master.domain.lab.virtualworkspace.vo.VirtualWorkspaceId;
 import org.codequistify.master.domain.lab.virtualworkspace.vo.WorkspacePublicId;
@@ -160,4 +160,3 @@ public class VirtualWorkspaceTableEntity extends BaseTimeEntity {
         return Optional.of(VirtualWorkspaceInternalRoute.of(k8sNamespace, serviceName, servicePort));
     }
 }
-

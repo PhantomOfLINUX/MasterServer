@@ -1,6 +1,6 @@
 package org.codequistify.master.domain.lab.virtualworkspace.domain;
 
-import org.codequistify.master.domain.lab.virtualworkspace.vo.StageCode;
+import org.codequistify.master.domain.shared.stage.StageCode;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -31,4 +31,3 @@ class StageSpecSnapshotTest {
         ));
     }
 }
-

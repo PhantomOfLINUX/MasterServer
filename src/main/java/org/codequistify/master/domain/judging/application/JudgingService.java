@@ -6,7 +6,6 @@ import org.codequistify.master.domain.judging.domain.vo.JudgingTarget;
 import org.codequistify.master.domain.judging.dto.JudgingActionRequest;
 import org.codequistify.master.domain.judging.infrastructure.http.LabExternalEndpoints;
 import org.codequistify.master.domain.lab.virtualworkspace.repository.VirtualWorkspaceRepository;
-import org.codequistify.master.domain.lab.virtualworkspace.vo.StageCode;
 import org.codequistify.master.domain.lab.virtualworkspace.vo.VirtualWorkspaceId;
 import org.codequistify.master.domain.lab.virtualworkspace.vo.WorkspacePublicId;
 import org.codequistify.master.global.data.Pair;
@@ -98,7 +97,7 @@ public class JudgingService {
     private WorkspacePublicId loadPublicId(JudgingTarget target) {
         VirtualWorkspaceId workspaceId = VirtualWorkspaceId.of(
                 target.playerId(),
-                StageCode.from(target.stageCode().value())
+                target.stageCode()
         );
 
         return virtualWorkspaceRepository.findById(workspaceId)

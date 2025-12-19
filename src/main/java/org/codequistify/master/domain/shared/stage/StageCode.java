@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.lab.virtualworkspace.vo;
+package org.codequistify.master.domain.shared.stage;
 
 import java.util.Locale;
 import java.util.Objects;
@@ -20,4 +20,3 @@ public record StageCode(String value) {
         return value.toLowerCase(Locale.ROOT);
     }
 }
-

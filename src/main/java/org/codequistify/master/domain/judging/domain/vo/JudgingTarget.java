@@ -1,6 +1,7 @@
 package org.codequistify.master.domain.judging.domain.vo;
 
 import org.codequistify.master.domain.player.domain.PlayerId;
+import org.codequistify.master.domain.shared.stage.StageCode;
 
 import java.util.Objects;
 

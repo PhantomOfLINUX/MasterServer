@@ -1,6 +1,6 @@
 package org.codequistify.master.domain.lab.virtualworkspace.domain;
 
-import org.codequistify.master.domain.lab.virtualworkspace.vo.StageCode;
+import org.codequistify.master.domain.shared.stage.StageCode;
 
 import java.util.Objects;
 
@@ -47,4 +47,3 @@ public record StageSpecSnapshot(
         return trimmed;
     }
 }
-
