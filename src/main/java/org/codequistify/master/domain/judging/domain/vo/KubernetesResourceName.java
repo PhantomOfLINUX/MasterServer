@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.lab.vo;
+package org.codequistify.master.domain.judging.domain.vo;
 
 import org.codequistify.master.global.data.Pair;
 import org.codequistify.master.global.data.UrlQuery;

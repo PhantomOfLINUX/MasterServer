@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.lab.vo;
+package org.codequistify.master.domain.judging.domain.vo;
 
 import java.util.Locale;
 import java.util.Objects;

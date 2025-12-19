@@ -1,7 +1,7 @@
 package org.codequistify.master.domain.stage.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.lab.service.LabAssignmentService;
+import org.codequistify.master.domain.judging.application.LabAssignmentService;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.service.PlayerProfileService;
 import org.codequistify.master.domain.stage.convertoer.QuestionConverter;

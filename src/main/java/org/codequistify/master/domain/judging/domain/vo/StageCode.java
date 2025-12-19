@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.lab.vo;
+package org.codequistify.master.domain.judging.domain.vo;
 
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.domain.StageImageType;
@@ -27,4 +27,3 @@ public record StageCode(String value) {
         return value.toLowerCase(Locale.ROOT);
     }
 }
-

@@ -1,10 +1,10 @@
-package org.codequistify.master.domain.lab.service;
+package org.codequistify.master.domain.judging.application;
 
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.lab.config.LabExternalEndpoints;
-import org.codequistify.master.domain.lab.vo.KubernetesResourceName;
-import org.codequistify.master.domain.lab.vo.LabUserUid;
-import org.codequistify.master.domain.lab.vo.StageCode;
+import org.codequistify.master.domain.judging.infrastructure.http.LabExternalEndpoints;
+import org.codequistify.master.domain.judging.domain.vo.KubernetesResourceName;
+import org.codequistify.master.domain.judging.domain.vo.LabUserUid;
+import org.codequistify.master.domain.judging.domain.vo.StageCode;
 import org.codequistify.master.domain.stage.domain.StageImageType;
 import org.codequistify.master.domain.stage.dto.StageActionRequest;
 import org.codequistify.master.global.data.UrlQuery;

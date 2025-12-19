@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.lab.vo;
+package org.codequistify.master.domain.judging.domain.vo;
 
 import org.codequistify.master.domain.player.domain.Player;
 
@@ -19,4 +19,3 @@ public record LabUserUid(String value) {
         return new LabUserUid(value);
     }
 }
-
