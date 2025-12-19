@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class VirtualWorkspaceApplicationService {
@@ -45,25 +47,20 @@ public class VirtualWorkspaceApplicationService {
 
         StageSpecSnapshot specSnapshot = snapshot(stage);
 
-        VirtualWorkspace existing = virtualWorkspaceRepository.findById(workspaceId).orElse(null);
+        Optional<VirtualWorkspace> existing = virtualWorkspaceRepository.findById(workspaceId);
         WorkspacePublicId newPublicId = WorkspacePublicId.issue();
         VirtualWorkspacePublicEndpoint newEndpoint = VirtualWorkspacePublicEndpoint.of(newPublicId, VirtualWorkspaceDefaults.BASE_HOST);
 
-        WorkspacePublicId oldPublicId = null;
-        VirtualWorkspace creating;
-        if (existing == null) {
-            creating = VirtualWorkspace.creating(workspaceId, newPublicId, specSnapshot, newEndpoint, accessPolicy);
-        } else {
-            oldPublicId = existing.publicId();
-            creating = existing.recreate(newPublicId, specSnapshot, newEndpoint);
-        }
+        VirtualWorkspace creating = existing
+                .map(current -> current.recreate(newPublicId, specSnapshot, newEndpoint))
+                .orElseGet(() -> VirtualWorkspace.creating(workspaceId, newPublicId, specSnapshot, newEndpoint, accessPolicy));
 
         virtualWorkspaceRepository.save(creating);
 
         try {
-            if (oldPublicId != null) {
-                kubernetesManager.deleteSync(oldPublicId);
-            }
+            existing
+                    .map(VirtualWorkspace::publicId)
+                    .ifPresent(kubernetesManager::deleteSync);
 
             kubernetesManager.createService(creating);
             kubernetesManager.createPod(creating);
@@ -112,7 +109,7 @@ public class VirtualWorkspaceApplicationService {
                             && kubernetesManager.existsPod(workspace.publicId());
                     return VirtualWorkspaceExistenceResponse.of(workspace.publicId().value(), exists);
                 })
-                .orElseGet(() -> VirtualWorkspaceExistenceResponse.of(null, false));
+                .orElseGet(() -> VirtualWorkspaceExistenceResponse.of("", false));
     }
 
     private StageSpecSnapshot snapshot(Stage stage) {
