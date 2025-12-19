@@ -5,10 +5,11 @@ import org.codequistify.master.domain.judging.domain.vo.JudgingAction;
 import org.codequistify.master.domain.judging.domain.vo.JudgingTarget;
 import org.codequistify.master.domain.judging.dto.JudgingActionRequest;
 import org.codequistify.master.domain.judging.infrastructure.http.LabExternalEndpoints;
-import org.codequistify.master.domain.judging.domain.vo.KubernetesResourceName;
-import org.codequistify.master.domain.judging.domain.vo.LabUserUid;
-import org.codequistify.master.domain.judging.domain.vo.StageCode;
-import org.codequistify.master.domain.stage.domain.StageImageType;
+import org.codequistify.master.domain.lab.virtualworkspace.repository.VirtualWorkspaceRepository;
+import org.codequistify.master.domain.lab.virtualworkspace.vo.StageCode;
+import org.codequistify.master.domain.lab.virtualworkspace.vo.VirtualWorkspaceId;
+import org.codequistify.master.domain.lab.virtualworkspace.vo.WorkspacePublicId;
+import org.codequistify.master.global.data.Pair;
 import org.codequistify.master.global.data.UrlQuery;
 import org.codequistify.master.global.aspect.LogExecutionTime;
 import org.codequistify.master.global.exception.ErrorCode;
@@ -27,29 +28,28 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class JudgingService {
     private final RestTemplate restTemplate;
+    private final VirtualWorkspaceRepository virtualWorkspaceRepository;
     private final Logger LOGGER = LoggerFactory.getLogger(JudgingService.class);
     private final String NAMESPACE = "default";
 
 
     @Bean
     public void testA() {
-        String stageCode = StageImageType.S1015.name();
-        String uid = "pol-bdbeej-gj5antzprz";
-        KubernetesResourceName resourceName = KubernetesResourceName.of(StageCode.from(stageCode), LabUserUid.from(uid));
-        UrlQuery query = resourceName.query();
+        WorkspacePublicId publicId = WorkspacePublicId.from("sample-public-id");
+        UrlQuery query = publicIdQuery(publicId);
         System.out.println(LabExternalEndpoints.gradeUrl(query));
         System.out.println(LabExternalEndpoints.composeUrl(query));
     }
 
     @LogExecutionTime
     public ResponseEntity<SuccessResponse> requestGrading(JudgingTarget target, JudgingAction action) {
-        KubernetesResourceName resourceName = KubernetesResourceName.of(target.stageCode(), target.uid());
-        String url = LabExternalEndpoints.gradeUrl(resourceName.query());
+        WorkspacePublicId publicId = loadPublicId(target);
+        String url = LabExternalEndpoints.gradeUrl(publicIdQuery(publicId));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        JudgingActionRequest request = JudgingActionRequest.from(action);
+        JudgingActionRequest request = JudgingActionRequest.from(target, action);
 
         HttpEntity<JudgingActionRequest> entity = new HttpEntity<>(request, headers);
 
@@ -77,13 +77,13 @@ public class JudgingService {
 
     @LogExecutionTime
     public ResponseEntity<SuccessResponse> requestCompose(JudgingTarget target, JudgingAction action) {
-        KubernetesResourceName resourceName = KubernetesResourceName.of(target.stageCode(), target.uid());
-        String url = LabExternalEndpoints.composeUrl(resourceName.query());
+        WorkspacePublicId publicId = loadPublicId(target);
+        String url = LabExternalEndpoints.composeUrl(publicIdQuery(publicId));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        JudgingActionRequest request = JudgingActionRequest.from(action);
+        JudgingActionRequest request = JudgingActionRequest.from(target, action);
         LOGGER.info("qurl: {}", url);
         HttpEntity<JudgingActionRequest> entity = new HttpEntity<>(request, headers);
 
@@ -93,5 +93,20 @@ public class JudgingService {
             throw new BusinessException(ErrorCode.FAIL_PROCEED, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return response;
+    }
+
+    private WorkspacePublicId loadPublicId(JudgingTarget target) {
+        VirtualWorkspaceId workspaceId = VirtualWorkspaceId.of(
+                target.playerId(),
+                StageCode.from(target.stageCode().value())
+        );
+
+        return virtualWorkspaceRepository.findById(workspaceId)
+                .map(workspace -> workspace.publicId())
+                .orElseThrow(() -> new BusinessException(ErrorCode.VIRTUAL_WORKSPACE_NOT_FOUND, HttpStatus.NOT_FOUND));
+    }
+
+    private UrlQuery publicIdQuery(WorkspacePublicId publicId) {
+        return UrlQuery.from(Pair.of("publicId", publicId.value()));
     }
 }

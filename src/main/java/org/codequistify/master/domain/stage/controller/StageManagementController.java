@@ -56,6 +56,7 @@ public class StageManagementController {
     @PostMapping("questions/grading")
     public ResponseEntity<GradingResponse> submitAnswerForGrading(@AuthenticationPrincipal Player player,
                                                                   @Valid @RequestBody GradingRequest request) {
+        validatePlayer(player, request);
 
         GradingResponse response = stageManagementService.evaluateAnswer(player, request);
         if (request.questionIndex() == 1) { // 첫문제인 경우 진행 시작 기록
@@ -78,6 +79,7 @@ public class StageManagementController {
     @PostMapping("question/compose")
     public ResponseEntity<BasicResponse> compose(@AuthenticationPrincipal Player player,
                                                  @Valid @RequestBody GradingRequest request) {
+        validatePlayer(player, request);
         SuccessResponse successResponse = stageManagementService.composeVirtualWorkspace(player, request);
 
         if (successResponse.success().equals(false)) {
@@ -113,6 +115,13 @@ public class StageManagementController {
     // 스테이지 문항 수정
 
     // 스테이지 옵션 수정
+
+    // !Note 어노테이션으로 변경해야함
+    private void validatePlayer(Player player, GradingRequest request) {
+        if (!player.getId().equals(request.playerId())) {
+            throw new BusinessException(ErrorCode.INSUFFICIENT_PLAYER_PERMISSION, HttpStatus.FORBIDDEN);
+        }
+    }
 
 
 }

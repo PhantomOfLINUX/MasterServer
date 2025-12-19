@@ -1,17 +1,19 @@
 package org.codequistify.master.domain.judging.domain.vo;
 
+import org.codequistify.master.domain.player.domain.PlayerId;
+
 import java.util.Objects;
 
 public record JudgingTarget(
-        StageCode stageCode,
-        LabUserUid uid
+        PlayerId playerId,
+        StageCode stageCode
 ) {
     public JudgingTarget {
+        Objects.requireNonNull(playerId, "playerId must not be null");
         Objects.requireNonNull(stageCode, "stageCode must not be null");
-        Objects.requireNonNull(uid, "uid must not be null");
     }
 
-    public static JudgingTarget of(StageCode stageCode, LabUserUid uid) {
-        return new JudgingTarget(stageCode, uid);
+    public static JudgingTarget of(PlayerId playerId, StageCode stageCode) {
+        return new JudgingTarget(playerId, stageCode);
     }
 }

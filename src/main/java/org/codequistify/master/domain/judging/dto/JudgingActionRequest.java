@@ -1,6 +1,7 @@
 package org.codequistify.master.domain.judging.dto;
 
 import org.codequistify.master.domain.judging.domain.vo.JudgingAction;
+import org.codequistify.master.domain.judging.domain.vo.JudgingTarget;
 
 import java.util.Objects;
 
@@ -13,9 +14,9 @@ public record JudgingActionRequest(
         Objects.requireNonNull(questionIndex, "questionIndex must not be null");
     }
 
-    public static JudgingActionRequest from(JudgingAction action) {
+    public static JudgingActionRequest from(JudgingTarget target, JudgingAction action) {
         return new JudgingActionRequest(
-                action.stageCode().lowercase(),
+                target.stageCode().lowercase(),
                 action.questionIndex()
         );
     }
