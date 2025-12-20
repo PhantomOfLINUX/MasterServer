@@ -11,7 +11,7 @@ import org.codequistify.master.virtualworkspace.domain.model.VirtualWorkspaceRou
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesVirtualWorkspacePodFactory implements VirtualWorkspacePodFactory {
+public class VirtualWorkspaceKubernetesPodFactory implements VirtualWorkspacePodFactory {
   private static final long ACTIVE_DEADLINE_SECONDS = 10_800L;
   private static final int READINESS_INITIAL_DELAY_SECONDS = 9;
   private static final int READINESS_PERIOD_SECONDS = 2;

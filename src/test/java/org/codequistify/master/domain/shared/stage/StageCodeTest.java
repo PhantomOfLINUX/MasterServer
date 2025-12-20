@@ -14,7 +14,7 @@ class StageCodeTest {
 
   @Test
   void stageCode는_lowercase_표현을_가져야한다() {
-    StageCode stageCode = StageCode.from("S1015");
-    assertEquals("s1015", stageCode.lowercase());
+    StageCode stageCode = StageCode.from("S1001");
+    assertEquals("S1001", stageCode.lowercase());
   }
 }

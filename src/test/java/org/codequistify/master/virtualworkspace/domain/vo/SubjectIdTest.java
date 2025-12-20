@@ -1,6 +1,7 @@
 package org.codequistify.master.virtualworkspace.domain.vo;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
@@ -15,5 +16,11 @@ class SubjectIdTest {
   @Test
   void subjectId가_존재하면_생성되어야한다() {
     assertDoesNotThrow(() -> SubjectId.from("user-subject-123"));
+  }
+
+  @Test
+  void subjectId는_트림되어야한다() {
+    SubjectId subjectId = SubjectId.from(" user-subject-123 ");
+    assertEquals("user-subject-123", subjectId.value());
   }
 }

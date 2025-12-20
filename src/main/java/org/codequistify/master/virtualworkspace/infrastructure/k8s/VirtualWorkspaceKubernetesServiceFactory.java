@@ -9,7 +9,7 @@ import org.codequistify.master.virtualworkspace.domain.model.VirtualWorkspaceRou
 import org.springframework.stereotype.Component;
 
 @Component
-public class KubernetesVirtualWorkspaceServiceFactory implements VirtualWorkspaceServiceFactory {
+public class VirtualWorkspaceKubernetesServiceFactory implements VirtualWorkspaceServiceFactory {
   @Override
   public Service create(VirtualWorkspace workspace) {
     VirtualWorkspaceRouting routing = workspace.routing();

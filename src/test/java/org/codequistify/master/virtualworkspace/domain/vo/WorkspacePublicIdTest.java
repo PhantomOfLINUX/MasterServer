@@ -50,4 +50,10 @@ class WorkspacePublicIdTest {
   void publicId가_하이픈으로_시작하면_생성이_실패해야한다() {
     assertThrows(IllegalArgumentException.class, () -> WorkspacePublicId.from("-abc"));
   }
+
+  @Test
+  void publicId가_63자를_초과하면_생성이_실패해야한다() {
+    String tooLong = "a".repeat(64);
+    assertThrows(IllegalArgumentException.class, () -> WorkspacePublicId.from(tooLong));
+  }
 }
