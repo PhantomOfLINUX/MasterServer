@@ -12,42 +12,50 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class RestExceptionHandler {
-    private final Logger LOGGER = LoggerFactory.getLogger(RestExceptionHandler.class);
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<BasicResponse> handleBusinessException(BusinessException exception) {
-        LOGGER.info("[ExceptionHandler] Message: {}, Detail: {}", exception.getMessage(), exception.getDetail());
+  private final Logger LOGGER = LoggerFactory.getLogger(RestExceptionHandler.class);
 
-        return BasicResponse.to(exception);
-    }
+  @ExceptionHandler(BusinessException.class)
+  public ResponseEntity<BasicResponse> handleBusinessException(BusinessException exception) {
+    LOGGER.info(
+        "[ExceptionHandler] Message: {}, Detail: {}",
+        exception.getMessage(),
+        exception.getDetail());
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<BasicResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException exception) {
-        ErrorCode errorCode = exception.getBindingResult().getAllErrors().stream()
-                .findAny()
-                .map(error -> ErrorCode.findByCode(
-                        error.getDefaultMessage()))
-                .orElse(ErrorCode.UNKNOWN);
+    return BasicResponse.to(exception);
+  }
 
-        BusinessException businessException = new BusinessException(errorCode, HttpStatus.BAD_REQUEST);
-        LOGGER.info("[ExceptionHandler] Message: {}, Detail: {}", businessException.getMessage(), businessException.getDetail());
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<BasicResponse> handleMethodArgumentNotValidException(
+      MethodArgumentNotValidException exception) {
+    ErrorCode errorCode = exception.getBindingResult().getAllErrors().stream()
+        .findAny()
+        .map(error -> ErrorCode.findByCode(error.getDefaultMessage()))
+        .orElse(ErrorCode.UNKNOWN);
 
-        return ResponseEntity
-                .status(businessException.getHttpStatus())
-                .body(BasicResponse.of(businessException));
-    }
+    BusinessException businessException = new BusinessException(errorCode, HttpStatus.BAD_REQUEST);
+    LOGGER.info(
+        "[ExceptionHandler] Message: {}, Detail: {}",
+        businessException.getMessage(),
+        businessException.getDetail());
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<BasicResponse> handleRuntimeException(RuntimeException exception) {
-        LOGGER.error("[ExceptionHandler] Runtime exception occurred: ", exception);
+    return ResponseEntity.status(businessException.getHttpStatus())
+        .body(BasicResponse.of(businessException));
+  }
 
-        ErrorCode errorCode = ErrorCode.FAIL_PROCEED;
-        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+  @ExceptionHandler(RuntimeException.class)
+  public ResponseEntity<BasicResponse> handleRuntimeException(RuntimeException exception) {
+    LOGGER.error("[ExceptionHandler] Runtime exception occurred: ", exception);
 
-        BusinessException businessException = new BusinessException(errorCode, status, "서버 내부 오류가 발생했습니다.");
-        LOGGER.error("[ExceptionHandler] Message: {}, Detail: {}", businessException.getMessage(), exception.getMessage());
+    ErrorCode errorCode = ErrorCode.FAIL_PROCEED;
+    HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
 
-        return ResponseEntity
-                .status(status)
-                .body(BasicResponse.of(businessException));
-    }
+    BusinessException businessException =
+        new BusinessException(errorCode, status, "서버 내부 오류가 발생했습니다.");
+    LOGGER.error(
+        "[ExceptionHandler] Message: {}, Detail: {}",
+        businessException.getMessage(),
+        exception.getMessage());
+
+    return ResponseEntity.status(status).body(BasicResponse.of(businessException));
+  }
 }

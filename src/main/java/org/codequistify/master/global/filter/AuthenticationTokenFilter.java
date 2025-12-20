@@ -4,6 +4,9 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.service.PlayerDetailsService;
 import org.codequistify.master.global.exception.ErrorCode;
@@ -19,58 +22,57 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 @RequiredArgsConstructor
 public class AuthenticationTokenFilter extends OncePerRequestFilter {
-    private final TokenProvider tokenProvider;
-    private final PlayerDetailsService playerDetailsService;
-    private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationTokenFilter.class);
+  private final TokenProvider tokenProvider;
+  private final PlayerDetailsService playerDetailsService;
+  private final Logger LOGGER = LoggerFactory.getLogger(AuthenticationTokenFilter.class);
 
-    @Value("${host.develop.api.ant-match.uri}")
-    private List<String> antMatchURIs = new ArrayList<>();
+  @Value("${host.develop.api.ant-match.uri}")
+  private List<String> antMatchURIs = new ArrayList<>();
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        String path = request.getRequestURI();
+  @Override
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+      throws ServletException, IOException {
+    String path = request.getRequestURI();
 
-        // 토큰 비검사 uri
-        for (String antMatchURI : antMatchURIs) {
-            if (path.startsWith(antMatchURI)) {
-                filterChain.doFilter(request, response);
-                return;
-            }
-        }
-
-        String token = tokenProvider.resolveToken(request);
-
-        String aud = tokenProvider.getAudience(token);
-        LOGGER.info("[] aud  {}", aud);
-        if (aud == null || aud.isBlank()) {
-            throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
-        }
-
-        if (aud.contains("@")) {
-            UserDetails userDetails = playerDetailsService.findOnePlayerByEmail(aud);
-            UsernamePasswordAuthenticationToken authenticationToken
-                    = new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
-
-            LOGGER.info("[AuthenticationTokenFilter] {}", authenticationToken);
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-            filterChain.doFilter(request, response);
-            return;
-        }
-
-        UserDetails userDetails = playerDetailsService.loadUserByUsername(aud);
-        UsernamePasswordAuthenticationToken authenticationToken
-                = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-
-        SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-
-        //response.setHeader("Authorization", token);
+    // 토큰 비검사 uri
+    for (String antMatchURI : antMatchURIs) {
+      if (path.startsWith(antMatchURI)) {
         filterChain.doFilter(request, response);
+        return;
+      }
     }
+
+    String token = tokenProvider.resolveToken(request);
+
+    String aud = tokenProvider.getAudience(token);
+    LOGGER.info("[] aud  {}", aud);
+    if (aud == null || aud.isBlank()) {
+      throw new BusinessException(ErrorCode.INVALID_TOKEN, HttpStatus.UNAUTHORIZED);
+    }
+
+    if (aud.contains("@")) {
+      UserDetails userDetails = playerDetailsService.findOnePlayerByEmail(aud);
+      UsernamePasswordAuthenticationToken authenticationToken =
+          new UsernamePasswordAuthenticationToken(
+              userDetails, userDetails.getPassword(), userDetails.getAuthorities());
+
+      LOGGER.info("[AuthenticationTokenFilter] {}", authenticationToken);
+      SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+      filterChain.doFilter(request, response);
+      return;
+    }
+
+    UserDetails userDetails = playerDetailsService.loadUserByUsername(aud);
+    UsernamePasswordAuthenticationToken authenticationToken =
+        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+    SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+    // response.setHeader("Authorization", token);
+    filterChain.doFilter(request, response);
+  }
 }

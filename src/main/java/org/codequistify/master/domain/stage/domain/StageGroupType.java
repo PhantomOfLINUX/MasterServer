@@ -1,13 +1,13 @@
 package org.codequistify.master.domain.stage.domain;
 
 public enum StageGroupType {
-    BASIC_PROBLEMS("B"),
-    ADVANCED_PROBLEMS("A"),
-    MOCK_TESTS("T");
+  BASIC_PROBLEMS("B"),
+  ADVANCED_PROBLEMS("A"),
+  MOCK_TESTS("T");
 
-    private final String code;
+  private final String code;
 
-    StageGroupType(String code) {
-        this.code = code;
-    }
+  StageGroupType(String code) {
+    this.code = code;
+  }
 }

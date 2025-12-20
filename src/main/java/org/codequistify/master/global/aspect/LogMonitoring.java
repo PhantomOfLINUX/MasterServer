@@ -9,6 +9,4 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @LogMethodInvocation
 @LogExecutionTime
-public @interface LogMonitoring {
-
-}
+public @interface LogMonitoring {}

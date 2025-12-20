@@ -8,25 +8,20 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class PlayerConverter {
-    public PlayerProfile convert(Player player) {
-        return new PlayerProfile(
-                player.getUid(),
-                player.getName(),
-                player.getEmail(),
-                player.getExp(),
-                player.getRoles()
-        );
-    }
+  public PlayerProfile convert(Player player) {
+    return new PlayerProfile(
+        player.getUid(), player.getName(), player.getEmail(), player.getExp(), player.getRoles());
+  }
 
-    public Player convert(SignUpRequest request) {
-        return Player.builder()
-                .email(request.email())
-                .name(request.name())
-                .password(request.password())
-                .oAuthType(OAuthType.POL)
-                .oAuthId("0")
-                .locked(false)
-                .exp(0)
-                .build();
-    }
+  public Player convert(SignUpRequest request) {
+    return Player.builder()
+        .email(request.email())
+        .name(request.name())
+        .password(request.password())
+        .oAuthType(OAuthType.POL)
+        .oAuthId("0")
+        .locked(false)
+        .exp(0)
+        .build();
+  }
 }

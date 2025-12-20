@@ -1,6 +1,5 @@
 package org.codequistify.master.global.config;
 
-
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.global.filter.AuthenticationTokenFilter;
 import org.codequistify.master.global.filter.BusinessExceptionHandlerFilter;
@@ -20,41 +19,48 @@ import org.springframework.web.filter.CorsFilter;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final CustomCorsFilter customCorsFilter;
-    private final AuthenticationTokenFilter authenticationTokenFilter;
-    private final BusinessExceptionHandlerFilter businessExceptionHandlerFilter;
-    private final ServletFilter servletFilter;
+  private final CustomCorsFilter customCorsFilter;
+  private final AuthenticationTokenFilter authenticationTokenFilter;
+  private final BusinessExceptionHandlerFilter businessExceptionHandlerFilter;
+  private final ServletFilter servletFilter;
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                // CORS 설정
-                .addFilterBefore(customCorsFilter, CorsFilter.class)
-                // 로그필터
-                .addFilterBefore(servletFilter, CustomCorsFilter.class)
-                // CSRF 비활성화
-                .csrf(csrf -> csrf.disable())
-                // Session 비활성화
-                .sessionManagement(session -> session.disable())
-                // 폼 로그인 비활성화
-                .formLogin(form -> form.disable())
-                .authorizeHttpRequests((authorize) -> authorize
-                        .requestMatchers("/home/**", "/index/**", "/index.js", "/favicon.ico", "/swagger-ui/**", "/v3/**", "/api/todo-list/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().authenticated())
+  @Bean
+  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        // CORS 설정
+        .addFilterBefore(customCorsFilter, CorsFilter.class)
+        // 로그필터
+        .addFilterBefore(servletFilter, CustomCorsFilter.class)
+        // CSRF 비활성화
+        .csrf(csrf -> csrf.disable())
+        // Session 비활성화
+        .sessionManagement(session -> session.disable())
+        // 폼 로그인 비활성화
+        .formLogin(form -> form.disable())
+        .authorizeHttpRequests((authorize) -> authorize
+            .requestMatchers(
+                "/home/**",
+                "/index/**",
+                "/index.js",
+                "/favicon.ico",
+                "/swagger-ui/**",
+                "/v3/**",
+                "/api/todo-list/**")
+            .permitAll()
+            .requestMatchers("/api/auth/**")
+            .permitAll()
+            .anyRequest()
+            .authenticated())
 
-                // jwt 인증 토큰 설정
-                .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(businessExceptionHandlerFilter, AuthenticationTokenFilter.class);
+        // jwt 인증 토큰 설정
+        .addFilterBefore(authenticationTokenFilter, UsernamePasswordAuthenticationFilter.class)
+        .addFilterBefore(businessExceptionHandlerFilter, AuthenticationTokenFilter.class);
 
+    return http.build();
+  }
 
-        return http.build();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+  @Bean
+  public PasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
 }
-
-

@@ -5,12 +5,11 @@ import org.codequistify.master.domain.stage.domain.DifficultyLevelType;
 import org.codequistify.master.domain.stage.domain.StageGroupType;
 
 public record StageResponse(
-        Long id,
-        String stageCode,
-        String title,
-        String description,
-        StageGroupType stageGroupType,
-        DifficultyLevelType difficultyLevelType,
-        Integer questionCount,
-        CompletedStatus completedStatus) {
-}
+    Long id,
+    String stageCode,
+    String title,
+    String description,
+    StageGroupType stageGroupType,
+    DifficultyLevelType difficultyLevelType,
+    Integer questionCount,
+    CompletedStatus completedStatus) {}

@@ -1,5 +1,7 @@
 package org.codequistify.master.domain.player.service;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.codequistify.master.domain.authentication.dto.LogInRequest;
 import org.codequistify.master.domain.authentication.dto.SignUpRequest;
 import org.codequistify.master.domain.authentication.service.AuthenticationService;
@@ -13,8 +15,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @SuppressWarnings("NonAsciiCharacters")
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
@@ -22,93 +22,89 @@ import static org.junit.jupiter.api.Assertions.*;
 @Transactional
 @Disabled("실제 DB 연동이 필요한 E2E 성격의 테스트로 개발 중 임시 비활성화")
 class AuthenticationServiceTest {
-    private final AuthenticationService authenticationService;
+  private final AuthenticationService authenticationService;
 
-    @Autowired
-    public AuthenticationServiceTest(AuthenticationService authenticationService) {
-        this.authenticationService = authenticationService;
-    }
+  @Autowired
+  public AuthenticationServiceTest(AuthenticationService authenticationService) {
+    this.authenticationService = authenticationService;
+  }
 
-    @BeforeEach
-    void setUp() {
-        SignUpRequest request = new SignUpRequest("A", "A@pol.or.kr", "password99763892*");
-        PlayerProfile result = authenticationService.signUp(request);
-    }
+  @BeforeEach
+  void setUp() {
+    SignUpRequest request = new SignUpRequest("A", "A@pol.or.kr", "password99763892*");
+    PlayerProfile result = authenticationService.signUp(request);
+  }
 
+  @Test
+  @Order(1)
+  public void 회원가입_성공() {
+    SignUpRequest request = new SignUpRequest("B", "B@pol.or.kr", "password99763892*");
+    PlayerProfile result = authenticationService.signUp(request);
 
-    @Test
-    @Order(1)
-    public void 회원가입_성공(){
-        SignUpRequest request = new SignUpRequest("B", "B@pol.or.kr", "password99763892*");
-        PlayerProfile result = authenticationService.signUp(request);
+    assertNotNull(result);
+    assertEquals(request.name(), result.name());
+    assertEquals(request.email(), result.email());
+  }
 
-        assertNotNull(result);
-        assertEquals(request.name(), result.name());
-        assertEquals(request.email(), result.email());
-    }
+  @Test
+  public void 중복_회원가입() {
+    SignUpRequest request = new SignUpRequest("A", "A@pol.or.kr", "password99763892*");
 
-    @Test
-    public void 중복_회원가입(){
-        SignUpRequest request = new SignUpRequest("A", "A@pol.or.kr", "password99763892*");
+    Throwable ex = assertThrows(BusinessException.class, () -> {
+      authenticationService.signUp(request);
+    });
+    assertEquals(ErrorCode.EMAIL_ALREADY_EXISTS.getMessage(), ex.getMessage());
+  }
 
-        Throwable ex = assertThrows(BusinessException.class, () -> {
-            authenticationService.signUp(request);
-        });
-        assertEquals(ErrorCode.EMAIL_ALREADY_EXISTS.getMessage(), ex.getMessage());
-    }
+  /*@Test
+  public void 이메일_양식_미충족(){
+      SignUpRequest request = new SignUpRequest("C", "", "password99763892*");
 
-    /*@Test
-    public void 이메일_양식_미충족(){
-        SignUpRequest request = new SignUpRequest("C", "", "password99763892*");
+      Throwable ex = assertThrows(BusinessException.class, () -> {
+          authenticationService.signUp(request);
+      });
+      assertEquals(ErrorCode.INVALID_EMAIL_FORMAT.getMessage(), ex.getMessage());
+  }*/
 
-        Throwable ex = assertThrows(BusinessException.class, () -> {
-            authenticationService.signUp(request);
-        });
-        assertEquals(ErrorCode.INVALID_EMAIL_FORMAT.getMessage(), ex.getMessage());
-    }*/
+  @Test
+  public void 비밀번호_조건_미충족() {
+    SignUpRequest request = new SignUpRequest("D", "D@pol.or.kr", "pass63892");
 
-    @Test
-    public void 비밀번호_조건_미충족(){
-        SignUpRequest request = new SignUpRequest("D", "D@pol.or.kr", "pass63892");
+    Throwable ex = assertThrows(BusinessException.class, () -> {
+      authenticationService.signUp(request);
+    });
+    assertEquals(ErrorCode.PASSWORD_POLICY_VIOLATION.getMessage(), ex.getMessage());
+  }
 
-        Throwable ex = assertThrows(BusinessException.class, () -> {
-            authenticationService.signUp(request);
-        });
-        assertEquals(ErrorCode.PASSWORD_POLICY_VIOLATION.getMessage(), ex.getMessage());
-    }
+  @Test
+  public void 정상_로그인() {
+    LogInRequest request = new LogInRequest("A@pol.or.kr", "password99763892*");
 
-    @Test
-    public void 정상_로그인() {
-        LogInRequest request = new LogInRequest("A@pol.or.kr", "password99763892*");
+    PlayerProfile result = authenticationService.logIn(request);
 
-        PlayerProfile result = authenticationService.logIn(request);
+    assertNotNull(result);
+    assertEquals(request.email(), result.email());
+  }
 
-        assertNotNull(result);
-        assertEquals(request.email(), result.email());
-    }
+  // 로그인 비밀번호 오류
+  @Test
+  public void 로그인_비밀번호_오류() {
+    LogInRequest request = new LogInRequest("A@pol.or.kr", "wrong");
 
-    //로그인 비밀번호 오류
-    @Test
-    public void 로그인_비밀번호_오류() {
-        LogInRequest request = new LogInRequest("A@pol.or.kr", "wrong");
+    Throwable ex = assertThrows(BusinessException.class, () -> {
+      authenticationService.logIn(request);
+    });
+    assertEquals(ErrorCode.INVALID_EMAIL_OR_PASSWORD.getMessage(), ex.getMessage());
+  }
 
-        Throwable ex = assertThrows(BusinessException.class, () -> {
-            authenticationService.logIn(request);
-        });
-        assertEquals(ErrorCode.INVALID_EMAIL_OR_PASSWORD.getMessage(), ex.getMessage());
-    }
+  // 로그인 이메일 오류
+  @Test
+  public void 로그인_이메일_오류() {
+    LogInRequest request = new LogInRequest("wrong@pol.or.kr", "password99763892*");
 
-    //로그인 이메일 오류
-    @Test
-    public void 로그인_이메일_오류() {
-        LogInRequest request = new LogInRequest("wrong@pol.or.kr", "password99763892*");
-
-        Throwable ex = assertThrows(BusinessException.class, () -> {
-            authenticationService.logIn(request);
-        });
-        assertEquals(ErrorCode.INVALID_EMAIL_OR_PASSWORD.getMessage(), ex.getMessage());
-    }
-
-
-
+    Throwable ex = assertThrows(BusinessException.class, () -> {
+      authenticationService.logIn(request);
+    });
+    assertEquals(ErrorCode.INVALID_EMAIL_OR_PASSWORD.getMessage(), ex.getMessage());
+  }
 }

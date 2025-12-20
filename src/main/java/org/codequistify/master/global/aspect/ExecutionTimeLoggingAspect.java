@@ -13,21 +13,22 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ExecutionTimeLoggingAspect {
-    private final Logger LOGGER = LoggerFactory.getLogger(MethodInvocationLoggingAspect.class);
-    @Around("@annotation(LogExecutionTime) || @annotation(LogMonitoring)")
-    public Object logMethod(ProceedingJoinPoint joinPoint) throws Throwable {
-        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
-        Object result = null;
+  private final Logger LOGGER = LoggerFactory.getLogger(MethodInvocationLoggingAspect.class);
 
-        long startTime = System.currentTimeMillis();
-        try {
-            result = joinPoint.proceed();
-        } finally {
-            long endTime = System.currentTimeMillis();
-            long durationTimeSec = endTime - startTime;
-            LOGGER.info("[{}] 실행시간: {}ms", signature.getMethod().getName(), durationTimeSec);
-        }
+  @Around("@annotation(LogExecutionTime) || @annotation(LogMonitoring)")
+  public Object logMethod(ProceedingJoinPoint joinPoint) throws Throwable {
+    MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+    Object result = null;
 
-        return result;
+    long startTime = System.currentTimeMillis();
+    try {
+      result = joinPoint.proceed();
+    } finally {
+      long endTime = System.currentTimeMillis();
+      long durationTimeSec = endTime - startTime;
+      LOGGER.info("[{}] 실행시간: {}ms", signature.getMethod().getName(), durationTimeSec);
     }
+
+    return result;
+  }
 }
