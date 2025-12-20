@@ -1,6 +1,6 @@
-package org.codequistify.master.domain.lab.virtualworkspace.config;
+package org.codequistify.master.virtualworkspace.config;
 
-import org.codequistify.master.domain.lab.virtualworkspace.domain.VirtualWorkspacePublicEndpoint;
+import org.codequistify.master.virtualworkspace.domain.model.VirtualWorkspacePublicEndpoint;
 import org.codequistify.master.domain.shared.net.ExternalHost;
 import org.codequistify.master.domain.shared.net.UrlBuilder;
 import org.codequistify.master.domain.shared.net.UrlScheme;

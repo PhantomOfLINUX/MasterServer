@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.judging.domain.vo;
+package org.codequistify.master.judging.domain.vo;
 
 import java.util.Objects;
 

@@ -1,9 +1,9 @@
 package org.codequistify.master.domain.stage.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.judging.application.JudgingService;
-import org.codequistify.master.domain.judging.domain.vo.JudgingAction;
-import org.codequistify.master.domain.judging.domain.vo.JudgingTarget;
+import org.codequistify.master.judging.application.JudgingService;
+import org.codequistify.master.judging.domain.vo.JudgingAction;
+import org.codequistify.master.judging.domain.vo.JudgingTarget;
 import org.codequistify.master.domain.shared.stage.StageCode;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.PlayerId;

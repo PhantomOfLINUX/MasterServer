@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.judging.infrastructure.http;
+package org.codequistify.master.judging.infrastructure.http;
 
 import org.codequistify.master.domain.shared.net.EndpointPath;
 import org.codequistify.master.domain.shared.net.ExternalHost;

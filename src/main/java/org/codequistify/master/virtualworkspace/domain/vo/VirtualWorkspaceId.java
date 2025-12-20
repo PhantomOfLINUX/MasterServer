@@ -1,20 +1,20 @@
-package org.codequistify.master.judging.domain.vo;
+package org.codequistify.master.virtualworkspace.domain.vo;
 
 import org.codequistify.master.domain.player.domain.PlayerId;
 import org.codequistify.master.domain.shared.stage.StageCode;
 
 import java.util.Objects;
 
-public record JudgingTarget(
+public record VirtualWorkspaceId(
         PlayerId playerId,
         StageCode stageCode
 ) {
-    public JudgingTarget {
+    public VirtualWorkspaceId {
         Objects.requireNonNull(playerId, "playerId must not be null");
         Objects.requireNonNull(stageCode, "stageCode must not be null");
     }
 
-    public static JudgingTarget of(PlayerId playerId, StageCode stageCode) {
-        return new JudgingTarget(playerId, stageCode);
+    public static VirtualWorkspaceId of(PlayerId playerId, StageCode stageCode) {
+        return new VirtualWorkspaceId(playerId, stageCode);
     }
 }

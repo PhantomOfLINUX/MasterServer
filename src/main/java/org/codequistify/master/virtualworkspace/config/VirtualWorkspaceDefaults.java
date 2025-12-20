@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.lab.virtualworkspace.config;
+package org.codequistify.master.virtualworkspace.config;
 
 public final class VirtualWorkspaceDefaults {
     public static final String BASE_HOST = "lab.pol.or.kr";

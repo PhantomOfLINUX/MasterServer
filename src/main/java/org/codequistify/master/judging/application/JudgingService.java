@@ -1,13 +1,13 @@
-package org.codequistify.master.domain.judging.application;
+package org.codequistify.master.judging.application;
 
 import lombok.RequiredArgsConstructor;
-import org.codequistify.master.domain.judging.domain.vo.JudgingAction;
-import org.codequistify.master.domain.judging.domain.vo.JudgingTarget;
-import org.codequistify.master.domain.judging.dto.JudgingActionRequest;
-import org.codequistify.master.domain.judging.infrastructure.http.LabExternalEndpoints;
-import org.codequistify.master.domain.lab.virtualworkspace.repository.VirtualWorkspaceRepository;
-import org.codequistify.master.domain.lab.virtualworkspace.vo.VirtualWorkspaceId;
-import org.codequistify.master.domain.lab.virtualworkspace.vo.WorkspacePublicId;
+import org.codequistify.master.judging.domain.vo.JudgingAction;
+import org.codequistify.master.judging.domain.vo.JudgingTarget;
+import org.codequistify.master.judging.presentation.dto.JudgingActionRequest;
+import org.codequistify.master.judging.infrastructure.http.LabExternalEndpoints;
+import org.codequistify.master.virtualworkspace.infrastructure.persistence.repository.VirtualWorkspaceRepository;
+import org.codequistify.master.virtualworkspace.domain.vo.VirtualWorkspaceId;
+import org.codequistify.master.virtualworkspace.domain.vo.WorkspacePublicId;
 import org.codequistify.master.global.data.Pair;
 import org.codequistify.master.global.data.UrlQuery;
 import org.codequistify.master.global.aspect.LogExecutionTime;

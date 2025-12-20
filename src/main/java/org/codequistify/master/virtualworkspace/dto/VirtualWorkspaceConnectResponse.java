@@ -1,4 +1,4 @@
-package org.codequistify.master.domain.lab.virtualworkspace.dto;
+package org.codequistify.master.virtualworkspace.dto;
 
 public record VirtualWorkspaceConnectResponse(
         String websocketUrl,
