@@ -33,6 +33,9 @@ public class Player extends BaseTimeEntity implements UserDetails {
     @Column(name = "player_id")
     private Long id;
 
+    @Transient
+    private PlayerId playerId;
+
     @Column(name = "uid", unique = true)
     private String uid; // pol 고유 식별 번호
 
@@ -112,6 +115,13 @@ public class Player extends BaseTimeEntity implements UserDetails {
         this.locked = true;
     }
 
+    public PlayerId id() {
+        if (playerId == null && id != null) {
+            playerId = PlayerId.of(id);
+        }
+        return playerId;
+    }
+
     public void dataClear() {
         this.name = null;
         this.email = null;
@@ -172,6 +182,14 @@ public class Player extends BaseTimeEntity implements UserDetails {
             this.uid = generateUID();
         }
         addRoles(List.of(PlayerRoleType.PLAYER), List.of(PlayerAccessType.BASIC_PROBLEMS_ACCESS));
+    }
+
+    @PostLoad
+    @PostPersist
+    private void syncPlayerId() {
+        if (id != null) {
+            this.playerId = PlayerId.of(id);
+        }
     }
 
     private String generateUID() {

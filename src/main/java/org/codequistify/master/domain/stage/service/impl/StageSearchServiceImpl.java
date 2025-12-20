@@ -8,10 +8,12 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.domain.player.domain.Player;
+import org.codequistify.master.domain.player.domain.PlayerId;
 import org.codequistify.master.domain.player.dto.PlayerStageProgressResponse;
 import org.codequistify.master.domain.stage.convertoer.QuestionConverter;
 import org.codequistify.master.domain.stage.convertoer.StageConverter;
 import org.codequistify.master.domain.stage.domain.*;
+import org.codequistify.master.domain.shared.stage.StageCode;
 import org.codequistify.master.domain.stage.dto.*;
 import org.codequistify.master.domain.stage.repository.CompletedStageRepository;
 import org.codequistify.master.domain.stage.repository.QuestionRepository;
@@ -31,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 
 @RequiredArgsConstructor
 @Service
@@ -52,6 +55,17 @@ public class StageSearchServiceImpl implements StageSearchService {
         return stageRepository.findById(stageId)
                 .orElseThrow(() -> {
                     LOGGER.info("[findStageById] 등록되지 않은 스테이지 id: {}", stageId);
+                    return new BusinessException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND);
+                });
+    }
+
+    @Override
+    @Transactional
+    public Stage getStageByCode(StageCode stageCode) {
+        StageImageType stageImage = parseStageImage(stageCode);
+        return stageRepository.findByStageImage(stageImage)
+                .orElseThrow(() -> {
+                    LOGGER.info("[findStageByCode] 등록되지 않은 스테이지 코드: {}", stageCode.value());
                     return new BusinessException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND);
                 });
     }
@@ -116,20 +130,20 @@ public class StageSearchServiceImpl implements StageSearchService {
 
     @Override // 완료 스테이지 조회
     @Transactional
-    public PlayerStageProgressResponse getCompletedStagesByPlayerId(Long playerId) {
-        return new PlayerStageProgressResponse(completedStageRepository.findCompletedStagesByPlayerId(playerId));
+    public PlayerStageProgressResponse getCompletedStagesByPlayerId(PlayerId playerId) {
+        return new PlayerStageProgressResponse(completedStageRepository.findCompletedStagesByPlayerId(playerId.value()));
     }
 
     @Override // 진행중 스테이지 조회
     @Transactional
-    public PlayerStageProgressResponse getInProgressStagesByPlayerId(Long playerId) {
-        return new PlayerStageProgressResponse(completedStageRepository.findInProgressStagesByPlayerId(playerId));
+    public PlayerStageProgressResponse getInProgressStagesByPlayerId(PlayerId playerId) {
+        return new PlayerStageProgressResponse(completedStageRepository.findInProgressStagesByPlayerId(playerId.value()));
     }
 
     @Override // 수정일 기준 데이터 조회
     @Transactional
-    public List<HeatMapDataPoint> getHeatMapDataPointsByModifiedDate(Long playerId) {
-        return completedStageRepository.countDataByModifiedDate(playerId);
+    public List<HeatMapDataPoint> getHeatMapDataPointsByModifiedDate(PlayerId playerId) {
+        return completedStageRepository.countDataByModifiedDate(playerId.value());
     }
 
     @Override // 입력 쿼리를 기반으로 일치하는 문제 조건 검색
@@ -180,6 +194,15 @@ public class StageSearchServiceImpl implements StageSearchService {
 
         LOGGER.info("[findStagesByCriteria] page 조회");
         return response;
+    }
+
+    private StageImageType parseStageImage(StageCode stageCode) {
+        try {
+            return StageImageType.valueOf(stageCode.value().trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            LOGGER.info("[parseStageImage] 등록되지 않은 스테이지 코드: {}", stageCode.value());
+            throw new BusinessException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND, e);
+        }
     }
 
     private List<StageResponse> fetchStageResponses(

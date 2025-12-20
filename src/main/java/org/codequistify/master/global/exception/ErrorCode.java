@@ -37,8 +37,8 @@ public enum ErrorCode {
     STAGE_PROGRESS_NOT_FOUND("진행 상황이 존재하지 않습니다.", "4503_TAGE_PROGRESS_NOT_FOUND_ERROR"),
     // 터미널 관련 오류
     INVALID_HEADER("올바르지 않은 헤더 정보입니다.", "4601_INVALID_HEADER_ERROR"),
-    PSHELL_NOT_FOUND("존재하지 PShell 정보입니다", "4602_PSHELL_NOT_FOUND"),
-    PSHELL_CREATE_FAILED("PShell 생성에 실패하였습니다", "46023_PSHELL_CREATE_FAILED"),
+    VIRTUAL_WORKSPACE_NOT_FOUND("존재하지 VirtualWorkspace 정보입니다", "4602_VIRTUAL_WORKSPACE_NOT_FOUND"),
+    VIRTUAL_WORKSPACE_CREATE_FAILED("VirtualWorkspace 생성에 실패하였습니다", "46023_VIRTUAL_WORKSPACE_CREATE_FAILED"),
     //
     FAIL_PROCEED("프로세스 실행중 문제가 발생하였습니다.", "5000_FAIL_PROCESSED_ERROR"),
     // 정상
