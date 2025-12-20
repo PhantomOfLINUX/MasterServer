@@ -17,6 +17,8 @@ import org.codequistify.master.domain.stage.domain.StageImageType;
 import org.codequistify.master.domain.stage.service.StageSearchService;
 import org.codequistify.master.global.exception.ErrorCode;
 import org.codequistify.master.global.exception.domain.BusinessException;
+import org.codequistify.master.virtualworkspace.application.port.VirtualWorkspaceRepository;
+import org.codequistify.master.virtualworkspace.application.port.VirtualWorkspaceClient;
 import org.codequistify.master.virtualworkspace.config.VirtualWorkspaceDefaults;
 import org.codequistify.master.virtualworkspace.domain.model.StageSpecSnapshot;
 import org.codequistify.master.virtualworkspace.domain.model.VirtualWorkspace;
@@ -26,8 +28,6 @@ import org.codequistify.master.virtualworkspace.domain.model.WorkspaceAccessPoli
 import org.codequistify.master.virtualworkspace.domain.vo.SubjectId;
 import org.codequistify.master.virtualworkspace.domain.vo.VirtualWorkspaceId;
 import org.codequistify.master.virtualworkspace.domain.vo.WorkspacePublicId;
-import org.codequistify.master.virtualworkspace.infrastructure.k8s.VirtualWorkspaceKubernetesManager;
-import org.codequistify.master.virtualworkspace.infrastructure.persistence.repository.VirtualWorkspaceRepository;
 import org.codequistify.master.virtualworkspace.presentation.dto.VirtualWorkspaceConnectionResponse;
 import org.codequistify.master.virtualworkspace.presentation.dto.VirtualWorkspaceStatusResponse;
 import org.codequistify.master.virtualworkspace.presentation.dto.VirtualWorkspaceSummaryResponse;
@@ -44,7 +44,7 @@ class VirtualWorkspaceServiceTest {
   private VirtualWorkspaceRepository virtualWorkspaceRepository;
 
   @Mock
-  private VirtualWorkspaceKubernetesManager kubernetesManager;
+  private VirtualWorkspaceClient virtualWorkspaceClient;
 
   @Mock
   private StageSearchService stageSearchService;
@@ -59,7 +59,10 @@ class VirtualWorkspaceServiceTest {
 
   @BeforeEach
   void setUp() {
-    service = new VirtualWorkspaceService(virtualWorkspaceRepository, kubernetesManager, stageSearchService);
+    service = new VirtualWorkspaceService(
+        virtualWorkspaceRepository,
+        virtualWorkspaceClient,
+        stageSearchService);
   }
 
   @Test
@@ -103,7 +106,7 @@ class VirtualWorkspaceServiceTest {
     when(stage.getStageImage()).thenReturn(StageImageType.S1015);
     when(virtualWorkspaceRepository.findById(any())).thenReturn(Optional.empty());
     when(virtualWorkspaceRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-    doThrow(new RuntimeException("boom")).when(kubernetesManager).createService(any());
+    doThrow(new RuntimeException("boom")).when(virtualWorkspaceClient).provision(any());
 
     BusinessException exception = assertThrows(
         BusinessException.class,
@@ -129,8 +132,7 @@ class VirtualWorkspaceServiceTest {
     when(player.id()).thenReturn(PlayerId.of(1L));
     VirtualWorkspace running = runningWorkspace();
     when(virtualWorkspaceRepository.findById(any())).thenReturn(Optional.of(running));
-    when(kubernetesManager.existsService(running.publicId())).thenReturn(true);
-    when(kubernetesManager.existsPod(running.publicId())).thenReturn(true);
+    when(virtualWorkspaceClient.exists(running.publicId())).thenReturn(true);
 
     VirtualWorkspaceStatusResponse response = service.getStatus("S1015", player);
 

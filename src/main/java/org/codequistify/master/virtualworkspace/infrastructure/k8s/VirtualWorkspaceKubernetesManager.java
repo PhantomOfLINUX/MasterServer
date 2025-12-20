@@ -6,6 +6,7 @@ import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.StatusDetails;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.List;
+import java.util.function.Supplier;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.virtualworkspace.config.VirtualWorkspaceDefaults;
 import org.codequistify.master.virtualworkspace.domain.model.VirtualWorkspace;
@@ -50,7 +51,7 @@ public class VirtualWorkspaceKubernetesManager {
     logger.debug("[createPod] pod: {}", pod.getMetadata().getName());
   }
 
-  public void deleteService(WorkspacePublicId publicId) {
+  public void deleteServiceAsync(WorkspacePublicId publicId) {
     List<StatusDetails> result = kubernetesClient
         .services()
         .inNamespace(VirtualWorkspaceDefaults.NAMESPACE)
@@ -60,7 +61,12 @@ public class VirtualWorkspaceKubernetesManager {
     logger.debug("[deleteService] result {}", result);
   }
 
-  public void deletePod(WorkspacePublicId publicId) {
+  public void deleteServiceSync(WorkspacePublicId publicId) {
+    deleteServiceAsync(publicId);
+    waitForDeletion(() -> existsService(publicId), "Service", publicId);
+  }
+
+  public void deletePodAsync(WorkspacePublicId publicId) {
     List<StatusDetails> result = kubernetesClient
         .pods()
         .inNamespace(VirtualWorkspaceDefaults.NAMESPACE)
@@ -68,6 +74,11 @@ public class VirtualWorkspaceKubernetesManager {
         .delete();
 
     logger.debug("[deletePod] result {}", result);
+  }
+
+  public void deletePodSync(WorkspacePublicId publicId) {
+    deletePodAsync(publicId);
+    waitForDeletion(() -> existsPod(publicId), "Pod", publicId);
   }
 
   public boolean existsService(WorkspacePublicId publicId) {
@@ -94,36 +105,6 @@ public class VirtualWorkspaceKubernetesManager {
         .inNamespace(VirtualWorkspaceDefaults.NAMESPACE)
         .withName(publicId.value())
         .get();
-  }
-
-  public void deleteSync(WorkspacePublicId publicId) {
-    deleteService(publicId);
-    deletePod(publicId);
-
-    boolean podDeleted = false;
-    boolean serviceDeleted = false;
-    int retryCount = 0;
-
-    while (!podDeleted || !serviceDeleted) {
-      if (!serviceDeleted && !existsService(publicId)) {
-        serviceDeleted = true;
-        logger.info("[deleteSync] Service 삭제 확인 {}번 시도", retryCount);
-      }
-      if (!podDeleted && !existsPod(publicId)) {
-        podDeleted = true;
-        logger.info("[deleteSync] Pod 삭제 확인 {}번 시도", retryCount);
-      }
-      if (retryCount > THRESHOLD) {
-        throw new IllegalStateException("VirtualWorkspace delete timeout");
-      }
-      try {
-        Thread.sleep(DELETE_SLEEP_PERIOD_MS);
-        retryCount++;
-      } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
-        throw new IllegalStateException("VirtualWorkspace delete interrupted", e);
-      }
-    }
   }
 
   public void waitForPodReadiness(WorkspacePublicId publicId) {
@@ -162,5 +143,22 @@ public class VirtualWorkspaceKubernetesManager {
       }
     }
     return false;
+  }
+
+  private void waitForDeletion(Supplier<Boolean> existsCheck, String resourceName, WorkspacePublicId publicId) {
+    int retryCount = 0;
+    while (existsCheck.get()) {
+      if (retryCount > THRESHOLD) {
+        throw new IllegalStateException(String.format("VirtualWorkspace %s delete timeout: %s", resourceName, publicId.value()));
+      }
+      try {
+        Thread.sleep(DELETE_SLEEP_PERIOD_MS);
+        retryCount++;
+        logger.info("[deleteSync] {} 삭제 확인 {}번 시도", resourceName, retryCount);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new IllegalStateException(String.format("VirtualWorkspace %s delete interrupted", resourceName), e);
+      }
+    }
   }
 }
