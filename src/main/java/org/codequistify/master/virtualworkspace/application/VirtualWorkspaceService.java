@@ -8,8 +8,9 @@ import org.codequistify.master.virtualworkspace.domain.model.VirtualWorkspace;
 import org.codequistify.master.virtualworkspace.domain.model.VirtualWorkspaceInternalRoute;
 import org.codequistify.master.virtualworkspace.domain.model.VirtualWorkspacePublicEndpoint;
 import org.codequistify.master.virtualworkspace.domain.model.WorkspaceAccessPolicy;
-import org.codequistify.master.virtualworkspace.dto.VirtualWorkspaceConnectResponse;
-import org.codequistify.master.virtualworkspace.dto.VirtualWorkspaceExistenceResponse;
+import org.codequistify.master.virtualworkspace.presentation.dto.VirtualWorkspaceConnectionResponse;
+import org.codequistify.master.virtualworkspace.presentation.dto.VirtualWorkspaceStatusResponse;
+import org.codequistify.master.virtualworkspace.presentation.dto.VirtualWorkspaceSummaryResponse;
 import org.codequistify.master.virtualworkspace.infrastructure.k8s.VirtualWorkspaceKubernetesManager;
 import org.codequistify.master.virtualworkspace.infrastructure.persistence.repository.VirtualWorkspaceRepository;
 import org.codequistify.master.domain.shared.stage.StageCode;
@@ -27,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.Locale;
 import java.util.Optional;
 
 @Service
@@ -38,14 +40,15 @@ public class VirtualWorkspaceService {
     private final VirtualWorkspaceKubernetesManager kubernetesManager;
     private final StageSearchService stageSearchService;
 
-    public VirtualWorkspaceConnectResponse recreate(Long stageId, Player player) {
-        Stage stage = stageSearchService.getStageById(stageId);
+    public VirtualWorkspaceConnectionResponse recreate(String stageCode, Player player) {
+        StageCode code = normalizeStageCode(stageCode);
+        Stage stage = stageSearchService.getStageByCode(code);
 
-        VirtualWorkspaceId workspaceId = VirtualWorkspaceId.of(player.id(), StageCode.from(stage.getStageImage().name()));
+        VirtualWorkspaceId workspaceId = VirtualWorkspaceId.of(player.id(), code);
         SubjectId owner = SubjectId.from(player.getUsername());
         WorkspaceAccessPolicy accessPolicy = WorkspaceAccessPolicy.ownerOnly(owner);
 
-        StageSpecSnapshot specSnapshot = snapshot(stage);
+        StageSpecSnapshot specSnapshot = snapshot(code, stage);
 
         Optional<VirtualWorkspace> existing = virtualWorkspaceRepository.findById(workspaceId);
         WorkspacePublicId newPublicId = WorkspacePublicId.issue();
@@ -78,51 +81,68 @@ public class VirtualWorkspaceService {
         VirtualWorkspace running = creating.markRunning(internalRoute);
         running = virtualWorkspaceRepository.save(running);
 
-        logger.info("[recreate] stageId: {}, workspaceId: {}, publicId: {}", stageId, workspaceId, running.publicId().value());
+        logger.info("[recreate] stageCode: {}, workspaceId: {}, publicId: {}", stageCode, workspaceId, running.publicId().value());
 
-        return VirtualWorkspaceConnectResponse.of(
-                VirtualWorkspaceExternalEndpoints.websocketUrl(running.routing().publicEndpoint()),
-                running.publicId().value()
-        );
+        return connectionResponse(running);
     }
 
-    public VirtualWorkspaceConnectResponse getAccessUrl(Long stageId, Player player) {
-        Stage stage = stageSearchService.getStageById(stageId);
-
-        VirtualWorkspaceId workspaceId = VirtualWorkspaceId.of(player.id(), StageCode.from(stage.getStageImage().name()));
+    public VirtualWorkspaceConnectionResponse getConnection(String stageCode, Player player) {
+        StageCode code = normalizeStageCode(stageCode);
+        VirtualWorkspaceId workspaceId = VirtualWorkspaceId.of(player.id(), code);
         VirtualWorkspace workspace = virtualWorkspaceRepository.findById(workspaceId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.VIRTUAL_WORKSPACE_NOT_FOUND, HttpStatus.NOT_FOUND));
 
-        return VirtualWorkspaceConnectResponse.of(
-                VirtualWorkspaceExternalEndpoints.websocketUrl(workspace.routing().publicEndpoint()),
-                workspace.publicId().value()
-        );
+        return connectionResponse(workspace);
     }
 
-    public VirtualWorkspaceExistenceResponse checkExistence(Long stageId, Player player) {
-        Stage stage = stageSearchService.getStageById(stageId);
-        VirtualWorkspaceId workspaceId = VirtualWorkspaceId.of(player.id(), StageCode.from(stage.getStageImage().name()));
+    public VirtualWorkspaceStatusResponse getStatus(String stageCode, Player player) {
+        StageCode code = normalizeStageCode(stageCode);
+        VirtualWorkspaceId workspaceId = VirtualWorkspaceId.of(player.id(), code);
 
         return virtualWorkspaceRepository.findById(workspaceId)
                 .map(workspace -> {
                     boolean exists = kubernetesManager.existsService(workspace.publicId())
                             && kubernetesManager.existsPod(workspace.publicId());
-                    return VirtualWorkspaceExistenceResponse.of(workspace.publicId().value(), exists);
+                    String status = workspace.lifecycle().status().name();
+                    return VirtualWorkspaceStatusResponse.of(workspace.publicId().value(), status, exists);
                 })
-                .orElseGet(() -> VirtualWorkspaceExistenceResponse.of("", false));
+                .orElseGet(() -> VirtualWorkspaceStatusResponse.of("", "NOT_FOUND", false));
     }
 
-    private StageSpecSnapshot snapshot(Stage stage) {
+    public VirtualWorkspaceSummaryResponse getSummary(String stageCode, Player player) {
+        VirtualWorkspaceStatusResponse statusResponse = getStatus(stageCode, player);
+        return VirtualWorkspaceSummaryResponse.of(
+                statusResponse.publicId(),
+                statusResponse.status(),
+                statusResponse.exists()
+        );
+    }
+
+    private StageSpecSnapshot snapshot(StageCode stageCode, Stage stage) {
         StageImageType stageImage = stage.getStageImage();
         String image = stageImage.getImageName();
 
         return StageSpecSnapshot.of(
-                StageCode.from(stageImage.name()),
+                stageCode,
                 image,
                 VirtualWorkspaceDefaults.SERVICE_PORT,
                 VirtualWorkspaceDefaults.DEFAULT_CPU,
                 VirtualWorkspaceDefaults.DEFAULT_MEMORY,
                 VirtualWorkspaceDefaults.READINESS_PATH
         );
+    }
+
+    private VirtualWorkspaceConnectionResponse connectionResponse(VirtualWorkspace workspace) {
+        VirtualWorkspacePublicEndpoint endpoint = workspace.routing().publicEndpoint();
+        String websocketUrl = VirtualWorkspaceExternalEndpoints.websocketUrl(endpoint);
+        return VirtualWorkspaceConnectionResponse.of(
+                workspace.publicId().value(),
+                endpoint.value(),
+                websocketUrl
+        );
+    }
+
+    private StageCode normalizeStageCode(String stageCode) {
+        return StageCode.from(stageCode.trim().toUpperCase(Locale.ROOT));
     }
 }

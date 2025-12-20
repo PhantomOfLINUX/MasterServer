@@ -3,6 +3,7 @@ package org.codequistify.master.domain.stage.service;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.domain.player.domain.PlayerId;
 import org.codequistify.master.domain.player.dto.PlayerStageProgressResponse;
+import org.codequistify.master.domain.shared.stage.StageCode;
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.dto.*;
 
@@ -11,6 +12,9 @@ import java.util.List;
 public interface StageSearchService {
     // 스테이지 조회
     Stage getStageById(Long stageId);
+
+    // 스테이지 코드 조회
+    Stage getStageByCode(StageCode stageCode);
 
     // 스테이지 목록 조회
     StagePageResponse findStagesByCriteria(SearchCriteria searchCriteria, Player player);

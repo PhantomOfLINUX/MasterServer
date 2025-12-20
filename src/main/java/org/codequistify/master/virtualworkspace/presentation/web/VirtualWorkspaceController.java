@@ -4,8 +4,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.codequistify.master.virtualworkspace.application.VirtualWorkspaceService;
-import org.codequistify.master.virtualworkspace.dto.VirtualWorkspaceConnectResponse;
-import org.codequistify.master.virtualworkspace.dto.VirtualWorkspaceExistenceResponse;
+import org.codequistify.master.virtualworkspace.presentation.dto.VirtualWorkspaceConnectionResponse;
+import org.codequistify.master.virtualworkspace.presentation.dto.VirtualWorkspaceCreateRequest;
+import org.codequistify.master.virtualworkspace.presentation.dto.VirtualWorkspaceStatusResponse;
+import org.codequistify.master.virtualworkspace.presentation.dto.VirtualWorkspaceSummaryResponse;
 import org.codequistify.master.domain.player.domain.Player;
 import org.codequistify.master.global.aspect.LogMonitoring;
 import org.codequistify.master.global.lock.LockManager;
@@ -18,9 +20,11 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.validation.constraints.Min;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -28,6 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @RequiredArgsConstructor
 @Tag(name = "VirtualWorkspace")
 @Validated
+@RequestMapping("api/v1/virtualworkspaces")
 public class VirtualWorkspaceController {
     private final VirtualWorkspaceService virtualWorkspaceService;
     private final LockManager lockManager;
@@ -46,61 +51,74 @@ public class VirtualWorkspaceController {
                     """
     )
     @LogMonitoring
-    @PostMapping("lab/terminal/stage/{stage_id}")
-    public ResponseEntity<VirtualWorkspaceConnectResponse> applyVirtualWorkspace(@AuthenticationPrincipal Player player,
-                                                            @NotNull @Min(1) @PathVariable(name = "stage_id") Long stageId) {
-        ReentrantLock lock = lockManager.getLock(player.getId(), stageId);
+    @PostMapping("/stages")
+    public ResponseEntity<VirtualWorkspaceConnectionResponse> applyVirtualWorkspace(@AuthenticationPrincipal Player player,
+                                                            @Valid @RequestBody VirtualWorkspaceCreateRequest request) {
+        ReentrantLock lock = lockManager.getLock(player.getId(), request.stageCode());
         if (lock.tryLock()) {
             try {
-                VirtualWorkspaceConnectResponse response = virtualWorkspaceService
-                        .recreate(stageId, player);
+                VirtualWorkspaceConnectionResponse response = virtualWorkspaceService
+                        .recreate(request.stageCode(), player);
 
                 return ResponseEntity
                         .status(HttpStatus.OK)
                         .body(response);
             } finally {
-                lockManager.unlock(player.getId(), stageId);
+                lockManager.unlock(player.getId(), request.stageCode());
             }
         }
 
         // 락 걸린 동안 들어오는 요청은 무시
-        LOGGER.info("[applyVirtualWorkspace] 작업 중 중복된 요청 발생. stage: {}", stageId);
+        LOGGER.info("[applyVirtualWorkspace] 작업 중 중복된 요청 발생. stageCode: {}", request.stageCode());
         return ResponseEntity
                 .status(HttpStatus.TOO_MANY_REQUESTS)
                 .body(null);
 
     }
 
-    // 접속 가능한 주소 조회
     @Operation(
-            summary = "가상 작업공간 (VirtualWorkspace) 접속 주소 & 쿼리파라미터 조회",
+            summary = "가상 작업공간 (VirtualWorkspace) 조회",
             description = """
-                    :stage에 대한 VirtualWorkspace 접속 주소 정보를 조회한다.
+                    :stageCode에 대한 VirtualWorkspace 상태 정보를 조회한다.
                     """
     )
-    @GetMapping("lab/terminal/access-url/{stage_id}")
+    @GetMapping("/stages/{stageCode}")
     @LogMonitoring
-    public ResponseEntity<VirtualWorkspaceConnectResponse> getVirtualWorkspaceAccessUrl(@AuthenticationPrincipal Player player,
-                                                                   @NotNull @Min(1) @PathVariable(name = "stage_id") Long stageId) {
-        VirtualWorkspaceConnectResponse response = virtualWorkspaceService.getAccessUrl(stageId, player);
+    public ResponseEntity<VirtualWorkspaceSummaryResponse> getVirtualWorkspace(@AuthenticationPrincipal Player player,
+                                                                   @NotNull @PathVariable String stageCode) {
+        VirtualWorkspaceSummaryResponse response = virtualWorkspaceService.getSummary(stageCode, player);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(response);
     }
 
-
-    // 현재 터미널 존재 여부 조회
     @Operation(
-            summary = "기존 가상 작업공간 (VirtualWorkspace) 존재여부 조회",
+            summary = "가상 작업공간 (VirtualWorkspace) 상태 조회",
             description = """
-                    :stage에 대한 기존 VirtualWorkspace가 존재하는지를 확인한다.
+                    :stageCode에 대한 VirtualWorkspace 상태를 확인한다.
                     """
     )
-    @GetMapping("/lab/terminal/existence/{stage_id}")
-    public ResponseEntity<VirtualWorkspaceExistenceResponse> checkVirtualWorkspaceExistence(@AuthenticationPrincipal Player player,
-                                                                     @NotNull @Min(1) @PathVariable(name = "stage_id") Long stageId) {
-        VirtualWorkspaceExistenceResponse response = virtualWorkspaceService.checkExistence(stageId, player);
+    @GetMapping("/stages/{stageCode}/status")
+    public ResponseEntity<VirtualWorkspaceStatusResponse> getVirtualWorkspaceStatus(@AuthenticationPrincipal Player player,
+                                                                     @NotNull @PathVariable String stageCode) {
+        VirtualWorkspaceStatusResponse response = virtualWorkspaceService.getStatus(stageCode, player);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
+    }
+
+    @Operation(
+            summary = "가상 작업공간 (VirtualWorkspace) 연결 정보 조회",
+            description = """
+                    :stageCode에 대한 VirtualWorkspace 연결 정보를 조회한다.
+                    """
+    )
+    @GetMapping("/stages/{stageCode}/connection")
+    public ResponseEntity<VirtualWorkspaceConnectionResponse> getVirtualWorkspaceConnection(@AuthenticationPrincipal Player player,
+                                                                     @NotNull @PathVariable String stageCode) {
+        VirtualWorkspaceConnectionResponse response = virtualWorkspaceService.getConnection(stageCode, player);
 
         return ResponseEntity
                 .status(HttpStatus.OK)

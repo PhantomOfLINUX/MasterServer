@@ -13,6 +13,7 @@ import org.codequistify.master.domain.player.dto.PlayerStageProgressResponse;
 import org.codequistify.master.domain.stage.convertoer.QuestionConverter;
 import org.codequistify.master.domain.stage.convertoer.StageConverter;
 import org.codequistify.master.domain.stage.domain.*;
+import org.codequistify.master.domain.shared.stage.StageCode;
 import org.codequistify.master.domain.stage.dto.*;
 import org.codequistify.master.domain.stage.repository.CompletedStageRepository;
 import org.codequistify.master.domain.stage.repository.QuestionRepository;
@@ -32,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 
 @RequiredArgsConstructor
 @Service
@@ -53,6 +55,17 @@ public class StageSearchServiceImpl implements StageSearchService {
         return stageRepository.findById(stageId)
                 .orElseThrow(() -> {
                     LOGGER.info("[findStageById] 등록되지 않은 스테이지 id: {}", stageId);
+                    return new BusinessException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND);
+                });
+    }
+
+    @Override
+    @Transactional
+    public Stage getStageByCode(StageCode stageCode) {
+        StageImageType stageImage = parseStageImage(stageCode);
+        return stageRepository.findByStageImage(stageImage)
+                .orElseThrow(() -> {
+                    LOGGER.info("[findStageByCode] 등록되지 않은 스테이지 코드: {}", stageCode.value());
                     return new BusinessException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND);
                 });
     }
@@ -181,6 +194,15 @@ public class StageSearchServiceImpl implements StageSearchService {
 
         LOGGER.info("[findStagesByCriteria] page 조회");
         return response;
+    }
+
+    private StageImageType parseStageImage(StageCode stageCode) {
+        try {
+            return StageImageType.valueOf(stageCode.value().trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            LOGGER.info("[parseStageImage] 등록되지 않은 스테이지 코드: {}", stageCode.value());
+            throw new BusinessException(ErrorCode.STAGE_NOT_FOUND, HttpStatus.NOT_FOUND, e);
+        }
     }
 
     private List<StageResponse> fetchStageResponses(
