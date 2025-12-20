@@ -1,9 +1,7 @@
 package org.codequistify.master.domain.stage.service;
 
 import org.codequistify.master.domain.player.domain.Player;
-import org.codequistify.master.domain.player.domain.PlayerId;
 import org.codequistify.master.domain.player.dto.PlayerStageProgressResponse;
-import org.codequistify.master.domain.shared.stage.StageCode;
 import org.codequistify.master.domain.stage.domain.Stage;
 import org.codequistify.master.domain.stage.dto.*;
 
@@ -13,9 +11,6 @@ public interface StageSearchService {
     // 스테이지 조회
     Stage getStageById(Long stageId);
 
-    // 스테이지 코드 조회
-    Stage getStageByCode(StageCode stageCode);
-
     // 스테이지 목록 조회
     StagePageResponse findStagesByCriteria(SearchCriteria searchCriteria, Player player);
 
@@ -23,12 +18,12 @@ public interface StageSearchService {
     QuestionResponse findQuestion(Long stageId, Integer questionIndex);
 
     // 완료한 스테이지 목록 조회
-    PlayerStageProgressResponse getCompletedStagesByPlayerId(PlayerId playerId);
+    PlayerStageProgressResponse getCompletedStagesByPlayerId(Long playerId);
 
     // 진행중인 스테이지 목록 조회
-    PlayerStageProgressResponse getInProgressStagesByPlayerId(PlayerId playerId);
+    PlayerStageProgressResponse getInProgressStagesByPlayerId(Long playerId);
     // 완료한 날짜/횟수 기록 조회
-    List<HeatMapDataPoint> getHeatMapDataPointsByModifiedDate(PlayerId playerId);
+    List<HeatMapDataPoint> getHeatMapDataPointsByModifiedDate(Long playerId);
 
     //preview 메서드
     StageResponse getStageByChoCho(String src);
