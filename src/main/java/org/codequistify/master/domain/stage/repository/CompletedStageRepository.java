@@ -23,11 +23,23 @@ public interface CompletedStageRepository extends JpaRepository<CompletedStage, 
             "WHERE c.player.id = :playerId AND c.status = org.codequistify.master.domain.stage.domain.CompletedStatus.IN_PROGRESS")
     List<StageCodeDTO> findInProgressStagesByPlayerId(@Param("playerId") Long playerId);
 
-    @Query("SELECT new org.codequistify.master.domain.stage.dto" +
-            ".HeatMapDataPoint(DATE(cs.modifiedDate), COUNT(*)) " +
-            "FROM CompletedStage cs " +
-            "WHERE cs.player.id = :playerId " +
-            "GROUP BY DATE(cs.modifiedDate)")
+    // @Query("""
+    //     SELECT new org.codequistify.master.domain.stage.dto.HeatMapDataPoint(
+    //             DATE(cs.modifiedDate),
+    //             COUNT(cs)
+    //     )
+    //     FROM CompletedStage cs
+    //     WHERE cs.player.id = :playerId
+    //     GROUP BY DATE(cs.modifiedDate)
+    // """)
+    @Query(
+        value = """
+            SELECT CAST(NULL AS DATE) AS date,
+                CAST(NULL AS BIGINT) AS count
+            WHERE 1 = 0
+        """,
+        nativeQuery = true
+    )
     List<HeatMapDataPoint> countDataByModifiedDate(@Param("playerId") Long playerId);
 
     Optional<CompletedStage> findByPlayerIdAndStageId(Long playerId, Long stageId);

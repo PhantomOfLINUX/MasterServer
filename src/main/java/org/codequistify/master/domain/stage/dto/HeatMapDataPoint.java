@@ -1,9 +1,9 @@
 package org.codequistify.master.domain.stage.dto;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 public record HeatMapDataPoint(
-        Date date,
+        LocalDate date,
         Long count
 ) {
 }
