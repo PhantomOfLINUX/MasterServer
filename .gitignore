@@ -37,3 +37,10 @@ out/
 
 ### VS Code ###
 .vscode/
+
+
+### 
+.codex
+.codex/
+.cursor/
+.cloudcode/
