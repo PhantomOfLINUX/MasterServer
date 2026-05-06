@@ -30,7 +30,7 @@ public class CompletedStage extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private CompletedStatus status;
 
-    @Column(name = "question_index", columnDefinition = "0")
+    @Column(name = "question_index", nullable = false)
     private Integer questionIndex = 0;
 
     public void updateQuestionIndex(Integer questionIndex) {
