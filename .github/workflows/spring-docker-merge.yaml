@@ -11,13 +11,6 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
     - uses: actions/checkout@v3
-    - name: Create application.properties
-      run: |
-        echo "logging.file.name=/app/logs/pol-back.log" >> application.properties
-        echo "${{ secrets.APPLICATION_DB }}" > src/main/resources/application-db.properties
-        echo "${{ secrets.APPLICATION_MAIL }}" > src/main/resources/application-mail.properties
-        echo "${{ secrets.APPLICATION_SECURITY }}" > src/main/resources/application-security.properties
-        echo "${{ secrets.APPLICATION_HOST }}" > src/main/resources/application-host.properties
     - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
@@ -60,4 +53,39 @@ jobs:
           docker rm pol-back || true
           docker run -d --name pol-back -p 8080:8080 \
             -v ${{ secrets.APP_DIR_LOGS }}:/app/logs \
+            -e SPRING_PROFILES_ACTIVE=develop \
+            -e LOGGING_FILE_NAME=/app/logs/pol-back.log \
+            -e DB_URL='${{ secrets.DB_URL }}' \
+            -e DB_USERNAME='${{ secrets.DB_USERNAME }}' \
+            -e DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
+            -e JWT_SECRET='${{ secrets.JWT_SECRET }}' \
+            -e MAIL_SECRET='${{ secrets.MAIL_SECRET }}' \
+            -e SPRING_MAIL_HOST='${{ secrets.SPRING_MAIL_HOST }}' \
+            -e SPRING_MAIL_PORT='${{ secrets.SPRING_MAIL_PORT }}' \
+            -e SPRING_MAIL_USERNAME='${{ secrets.SPRING_MAIL_USERNAME }}' \
+            -e SPRING_MAIL_PASSWORD='${{ secrets.SPRING_MAIL_PASSWORD }}' \
+            -e SPRING_MAIL_SMTP_AUTH='${{ secrets.SPRING_MAIL_SMTP_AUTH }}' \
+            -e SPRING_MAIL_SMTP_STARTTLS_ENABLE='${{ secrets.SPRING_MAIL_SMTP_STARTTLS_ENABLE }}' \
+            -e HOST_DEPLOY_API_SERVER='${{ secrets.HOST_DEPLOY_API_SERVER }}' \
+            -e HOST_DEVELOP_API_SERVER='${{ secrets.HOST_DEVELOP_API_SERVER }}' \
+            -e HOST_DEVELOP_API_ANT_MATCH_URI='${{ secrets.HOST_DEVELOP_API_ANT_MATCH_URI }}' \
+            -e OAUTH2_GOOGLE_CLIENT_ID='${{ secrets.OAUTH2_GOOGLE_CLIENT_ID }}' \
+            -e OAUTH2_GOOGLE_CLIENT_SECRET='${{ secrets.OAUTH2_GOOGLE_CLIENT_SECRET }}' \
+            -e OAUTH2_GOOGLE_REDIRECT_URI='${{ secrets.OAUTH2_GOOGLE_REDIRECT_URI }}' \
+            -e OAUTH2_GOOGLE_TOKEN_URI='${{ secrets.OAUTH2_GOOGLE_TOKEN_URI }}' \
+            -e OAUTH2_GOOGLE_RESOURCE_URI='${{ secrets.OAUTH2_GOOGLE_RESOURCE_URI }}' \
+            -e OAUTH2_KAKAO_CLIENT_ID='${{ secrets.OAUTH2_KAKAO_CLIENT_ID }}' \
+            -e OAUTH2_KAKAO_REDIRECT_URI='${{ secrets.OAUTH2_KAKAO_REDIRECT_URI }}' \
+            -e OAUTH2_KAKAO_TOKEN_URI='${{ secrets.OAUTH2_KAKAO_TOKEN_URI }}' \
+            -e OAUTH2_KAKAO_RESOURCE_URI='${{ secrets.OAUTH2_KAKAO_RESOURCE_URI }}' \
+            -e OAUTH2_NAVER_CLIENT_ID='${{ secrets.OAUTH2_NAVER_CLIENT_ID }}' \
+            -e OAUTH2_NAVER_CLIENT_SECRET='${{ secrets.OAUTH2_NAVER_CLIENT_SECRET }}' \
+            -e OAUTH2_NAVER_REDIRECT_URI='${{ secrets.OAUTH2_NAVER_REDIRECT_URI }}' \
+            -e OAUTH2_NAVER_TOKEN_URI='${{ secrets.OAUTH2_NAVER_TOKEN_URI }}' \
+            -e OAUTH2_NAVER_RESOURCE_URI='${{ secrets.OAUTH2_NAVER_RESOURCE_URI }}' \
+            -e OAUTH2_GITHUB_CLIENT_ID='${{ secrets.OAUTH2_GITHUB_CLIENT_ID }}' \
+            -e OAUTH2_GITHUB_CLIENT_SECRET='${{ secrets.OAUTH2_GITHUB_CLIENT_SECRET }}' \
+            -e OAUTH2_GITHUB_REDIRECT_URI='${{ secrets.OAUTH2_GITHUB_REDIRECT_URI }}' \
+            -e OAUTH2_GITHUB_TOKEN_URI='${{ secrets.OAUTH2_GITHUB_TOKEN_URI }}' \
+            -e OAUTH2_GITHUB_RESOURCE_URI='${{ secrets.OAUTH2_GITHUB_RESOURCE_URI }}' \
             ${{ secrets.DOCKERHUB_ORGNIZATIONS }}/pol-back:latest

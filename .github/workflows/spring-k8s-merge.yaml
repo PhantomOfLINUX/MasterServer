@@ -11,16 +11,6 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v3
-      - name: Create application.properties
-        run: |
-          echo "logging.file.name=/app/logs/pol-back.log" >> application.properties
-          echo "${{ secrets.APPLICATION_DB }}" > src/main/resources/application-db.properties
-          echo "${{ secrets.APPLICATION_MAIL }}" > src/main/resources/application-mail.properties
-          echo "${{ secrets.APPLICATION_SECURITY }}" > src/main/resources/application-security.properties
-          echo "${{ secrets.APPLICATION_HOST }}" > src/main/resources/application-host.properties
-          export HOST_API_SERVER="${{ secrets.HOST_API_SERVER }}"
-          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c 1-7)
-          export APP_VERSION=$SHORT_SHA
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
@@ -73,4 +63,40 @@ jobs:
 
       - name: Deploy to GKE
         run: |
+          kubectl set env deployment/pol-back \
+            SPRING_PROFILES_ACTIVE=develop \
+            LOGGING_FILE_NAME=/app/logs/pol-back.log \
+            DB_URL='${{ secrets.DB_URL }}' \
+            DB_USERNAME='${{ secrets.DB_USERNAME }}' \
+            DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
+            JWT_SECRET='${{ secrets.JWT_SECRET }}' \
+            MAIL_SECRET='${{ secrets.MAIL_SECRET }}' \
+            SPRING_MAIL_HOST='${{ secrets.SPRING_MAIL_HOST }}' \
+            SPRING_MAIL_PORT='${{ secrets.SPRING_MAIL_PORT }}' \
+            SPRING_MAIL_USERNAME='${{ secrets.SPRING_MAIL_USERNAME }}' \
+            SPRING_MAIL_PASSWORD='${{ secrets.SPRING_MAIL_PASSWORD }}' \
+            SPRING_MAIL_SMTP_AUTH='${{ secrets.SPRING_MAIL_SMTP_AUTH }}' \
+            SPRING_MAIL_SMTP_STARTTLS_ENABLE='${{ secrets.SPRING_MAIL_SMTP_STARTTLS_ENABLE }}' \
+            HOST_DEPLOY_API_SERVER='${{ secrets.HOST_DEPLOY_API_SERVER }}' \
+            HOST_DEVELOP_API_SERVER='${{ secrets.HOST_DEVELOP_API_SERVER }}' \
+            HOST_DEVELOP_API_ANT_MATCH_URI='${{ secrets.HOST_DEVELOP_API_ANT_MATCH_URI }}' \
+            OAUTH2_GOOGLE_CLIENT_ID='${{ secrets.OAUTH2_GOOGLE_CLIENT_ID }}' \
+            OAUTH2_GOOGLE_CLIENT_SECRET='${{ secrets.OAUTH2_GOOGLE_CLIENT_SECRET }}' \
+            OAUTH2_GOOGLE_REDIRECT_URI='${{ secrets.OAUTH2_GOOGLE_REDIRECT_URI }}' \
+            OAUTH2_GOOGLE_TOKEN_URI='${{ secrets.OAUTH2_GOOGLE_TOKEN_URI }}' \
+            OAUTH2_GOOGLE_RESOURCE_URI='${{ secrets.OAUTH2_GOOGLE_RESOURCE_URI }}' \
+            OAUTH2_KAKAO_CLIENT_ID='${{ secrets.OAUTH2_KAKAO_CLIENT_ID }}' \
+            OAUTH2_KAKAO_REDIRECT_URI='${{ secrets.OAUTH2_KAKAO_REDIRECT_URI }}' \
+            OAUTH2_KAKAO_TOKEN_URI='${{ secrets.OAUTH2_KAKAO_TOKEN_URI }}' \
+            OAUTH2_KAKAO_RESOURCE_URI='${{ secrets.OAUTH2_KAKAO_RESOURCE_URI }}' \
+            OAUTH2_NAVER_CLIENT_ID='${{ secrets.OAUTH2_NAVER_CLIENT_ID }}' \
+            OAUTH2_NAVER_CLIENT_SECRET='${{ secrets.OAUTH2_NAVER_CLIENT_SECRET }}' \
+            OAUTH2_NAVER_REDIRECT_URI='${{ secrets.OAUTH2_NAVER_REDIRECT_URI }}' \
+            OAUTH2_NAVER_TOKEN_URI='${{ secrets.OAUTH2_NAVER_TOKEN_URI }}' \
+            OAUTH2_NAVER_RESOURCE_URI='${{ secrets.OAUTH2_NAVER_RESOURCE_URI }}' \
+            OAUTH2_GITHUB_CLIENT_ID='${{ secrets.OAUTH2_GITHUB_CLIENT_ID }}' \
+            OAUTH2_GITHUB_CLIENT_SECRET='${{ secrets.OAUTH2_GITHUB_CLIENT_SECRET }}' \
+            OAUTH2_GITHUB_REDIRECT_URI='${{ secrets.OAUTH2_GITHUB_REDIRECT_URI }}' \
+            OAUTH2_GITHUB_TOKEN_URI='${{ secrets.OAUTH2_GITHUB_TOKEN_URI }}' \
+            OAUTH2_GITHUB_RESOURCE_URI='${{ secrets.OAUTH2_GITHUB_RESOURCE_URI }}'
           kubectl set image deployment/pol-back pol-back=${{ secrets.DOCKERHUB_ORGNIZATIONS }}/pol-back:${{ github.sha }} --record

@@ -24,16 +24,6 @@ public class LabAssignmentService {
     private final Logger LOGGER = LoggerFactory.getLogger(LabAssignmentService.class);
     private final String NAMESPACE = "default";
 
-
-    @Bean
-    public void testA() {
-        String stageCode = StageImageType.S1015.name();
-        String uid = "pol-bdbeej-gj5antzprz";
-        //String qUrl = KubernetesResourceNaming.getQuery(stageCode, uid);
-        System.out.println("https://lab.pol.or.kr/grade"+KubernetesResourceNaming.getQuery(stageCode, uid));
-        System.out.println("https://lab.pol.or.kr/compose"+KubernetesResourceNaming.getQuery(stageCode, uid));
-    }
-
     @LogExecutionTime
     public ResponseEntity<SuccessResponse> sendGradingRequest(String stageCode, String uid, StageActionRequest request) {
         //String svcName = KubernetesResourceNaming.getServiceName(stageCode, uid);

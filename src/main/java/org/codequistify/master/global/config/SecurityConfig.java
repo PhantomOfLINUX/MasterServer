@@ -34,12 +34,14 @@ public class SecurityConfig {
                 .addFilterBefore(servletFilter, CustomCorsFilter.class)
                 // CSRF 비활성화
                 .csrf(csrf -> csrf.disable())
+                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
                 // Session 비활성화
                 .sessionManagement(session -> session.disable())
                 // 폼 로그인 비활성화
                 .formLogin(form -> form.disable())
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers("/home/**", "/index/**", "/index.js", "/favicon.ico", "/swagger-ui/**", "/v3/**", "/api/todo-list/**").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .anyRequest().authenticated())
 
@@ -56,5 +58,4 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 }
-
 

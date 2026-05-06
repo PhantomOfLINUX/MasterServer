@@ -62,6 +62,7 @@ dependencies {
     // maria db
     runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
     //runtimeOnly 'mysql:mysql-connector-java'
+    runtimeOnly 'com.h2database:h2'
 
     //비속어 필터
     implementation 'io.github.vaneproject:badwordfiltering:1.0.0'

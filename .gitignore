@@ -6,6 +6,9 @@ build/
 !**/src/test/**/build/
 
 src/main/resources/*.properties
+!src/main/resources/application.properties
+!src/main/resources/application-local.properties
+!src/main/resources/application-develop.properties
 
 ### STS ###
 .apt_generated
