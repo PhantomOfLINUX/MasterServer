@@ -40,16 +40,21 @@ public class Question extends BaseTimeEntity {
     @NotNull
     private String description;
 
-    @Column(name = "answer_type") @ColumnDefault("SHORT_ANSWER")
+    @Builder.Default
+    @Column(name = "answer_type")
+    @ColumnDefault("'SHORT_ANSWER'")
     @Enumerated(EnumType.STRING)
     @NotNull
     private AnswerType answerType = AnswerType.SHORT_ANSWER;
 
+    @Builder.Default
     @Column(name = "correct_answer")
     @NotNull
     private String correctAnswer = "";
 
-    @Column(name = "is_composable") @ColumnDefault("false")
+    @Builder.Default
+    @Column(name = "is_composable")
+    @ColumnDefault("false")
     @NotNull
     private boolean isComposable = false;
 

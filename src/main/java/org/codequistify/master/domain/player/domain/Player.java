@@ -46,9 +46,10 @@ public class Player extends BaseTimeEntity implements UserDetails {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @Column(name = "oauth_type") @ColumnDefault("pol")
+    @Builder.Default
+    @Column(name = "oauth_type") @ColumnDefault("'POL'")
     @Enumerated(EnumType.STRING)
-    private OAuthType oAuthType;
+    private OAuthType oAuthType = OAuthType.POL;
 
     @Column(name = "oauth_id")
     private String oAuthId;
@@ -57,8 +58,9 @@ public class Player extends BaseTimeEntity implements UserDetails {
     @Builder.Default
     private List<String> roles = new ArrayList<>();
 
+    @Builder.Default
     @Column(name = "locked") @ColumnDefault("false")
-    private Boolean locked;
+    private Boolean locked = false;
 
     // 수정 많음 테이블 분할 필요
 
@@ -68,6 +70,7 @@ public class Player extends BaseTimeEntity implements UserDetails {
     @Column(name = "refresh_token")
     private String refreshToken;
 
+    @Builder.Default
     @Column(name = "exp") @ColumnDefault("0")
     private Integer exp = 0;
 

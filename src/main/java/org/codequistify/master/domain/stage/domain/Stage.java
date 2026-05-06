@@ -44,9 +44,11 @@ public class Stage extends BaseTimeEntity {
     @NotNull
     private DifficultyLevelType difficultyLevel;
 
+    @Builder.Default
     @Column(name = "count") @ColumnDefault("0")
     private Integer questionCount = 0;
 
+    @Builder.Default
     @OneToMany(mappedBy = "stage", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<Question> questions = new ArrayList<>();
@@ -56,9 +58,11 @@ public class Stage extends BaseTimeEntity {
     @NotNull
     private StageImageType stageImage;
 
+    @Builder.Default
     @Column(name = "approved") @ColumnDefault("false")
     private Boolean approved = false;
 
+    @Builder.Default
     @OneToMany(mappedBy = "stage")
     private Set<CompletedStage> completedStages = new HashSet<>();
 
